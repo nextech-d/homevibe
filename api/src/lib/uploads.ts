@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
+import { put } from "@vercel/blob";
 
 export const PRODUCT_IMAGE_ACCEPT = [
   "image/jpeg",
@@ -131,19 +132,38 @@ async function saveUploadedImage(
   const filename = `${randomUUID()}${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  const blobToken = process.env.BLOB_READ_WRITE_TOKEN?.trim();
-  if (blobToken) {
-    const { put } = await import("@vercel/blob");
+  if (shouldUseBlobStorage()) {
+    const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
     const blob = await put(`${blobFolder}/${filename}`, buffer, {
       access: "public",
-      token: blobToken,
       contentType: file.type,
+      addRandomSuffix: false,
+      ...(token ? { token } : {}),
     });
     return blob.url;
   }
 
-  await mkdir(localDir, { recursive: true });
-  await writeFile(join(localDir, filename), buffer);
+  try {
+    await mkdir(localDir, { recursive: true });
+    await writeFile(join(localDir, filename), buffer);
+  } catch (error) {
+    const code =
+      error && typeof error === "object" && "code" in error ? String(error.code) : "";
+    if (code === "EROFS" || process.env.VERCEL) {
+      throw new Error(
+        "Image storage is not connected on the live API yet. Retry in a minute, or save the product as a draft without a photo."
+      );
+    }
+    throw error;
+  }
 
   return `${localPrefix}${filename}`;
+}
+
+function shouldUseBlobStorage(): boolean {
+  return Boolean(
+    process.env.BLOB_READ_WRITE_TOKEN?.trim() ||
+      process.env.BLOB_STORE_ID?.trim() ||
+      process.env.VERCEL
+  );
 }

@@ -29,6 +29,7 @@ export function mapDbProductToAppliance(product: ProductWithRelations): Applianc
 
   return {
     id: product.id,
+    slug: product.slug,
     name: product.name,
     category: product.subcategory.category.label,
     subcategory: product.subcategory.slug,
@@ -40,6 +41,7 @@ export function mapDbProductToAppliance(product: ProductWithRelations): Applianc
     highlights: product.highlights as string[],
     metaTitle: product.metaTitle,
     metaDescription: product.metaDescription,
+    isFeatured: product.isFeatured,
     imageSet,
     image: imageSet.card,
     images: imageSet.gallery,

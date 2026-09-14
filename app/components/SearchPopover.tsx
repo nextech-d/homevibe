@@ -9,6 +9,7 @@ import { searchProducts, getAllSearchResults } from "../lib/searchProducts";
 import { formatPrice } from "../lib/formatPrice";
 import { getProductThumbnail, PRODUCT_IMAGE_SIZES } from "../lib/productImages";
 import { useInventory } from "../context/ProductsContext";
+import { productHref, type Appliance } from "../data/products";
 
 export default function SearchPopover() {
   const inventory = useInventory();
@@ -34,8 +35,8 @@ export default function SearchPopover() {
   }, []);
 
   const navigateToProduct = useCallback(
-    (id: number) => {
-      router.push(`/product/${id}`);
+    (product: Pick<Appliance, "id" | "slug">) => {
+      router.push(productHref(product));
       setSearch("");
       setShowSearchPop(false);
       setActiveIndex(-1);
@@ -54,7 +55,7 @@ export default function SearchPopover() {
       setActiveIndex((i) => Math.max(i - 1, 0));
     } else if (e.key === "Enter" && activeIndex >= 0 && results[activeIndex]) {
       e.preventDefault();
-      navigateToProduct(results[activeIndex].id);
+      navigateToProduct(results[activeIndex]);
     } else if (e.key === "Escape") {
       setShowSearchPop(false);
       setActiveIndex(-1);
@@ -62,7 +63,7 @@ export default function SearchPopover() {
   };
 
   return (
-    <div className="relative mx-4 max-w-lg flex-1" ref={popoverRef}>
+    <div className="relative min-w-0 w-full" ref={popoverRef}>
       <div className="relative">
         <input
           ref={inputRef}
@@ -120,7 +121,7 @@ export default function SearchPopover() {
                   key={product.id}
                   role="option"
                   aria-selected={activeIndex === idx}
-                  onClick={() => navigateToProduct(product.id)}
+                  onClick={() => navigateToProduct(product)}
                   className={`flex cursor-pointer items-center gap-3 border-b border-neutral-100 p-3 transition last:border-0 ${
                     activeIndex === idx ? "bg-neutral-100" : "hover:bg-neutral-50"
                   }`}

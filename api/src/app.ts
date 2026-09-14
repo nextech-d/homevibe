@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { verifyAdminToken } from "./lib/admin-jwt.js";
 import { extractBearerToken } from "./lib/session.js";
-import { handleGetProducts } from "./routes/products.js";
+import { handleGetProducts, handleGetProduct } from "./routes/products.js";
 import { ordersRoute, adminOrdersRoute } from "./routes/orders.js";
 import { adminProductsRoute } from "./routes/admin/products.js";
 import { adminCatalogRoute } from "./routes/admin/catalog.js";
@@ -59,6 +59,19 @@ export function createApp(basePath = "") {
       return c.json(data);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to load products.";
+      return c.json({ success: false, message }, 503);
+    }
+  });
+
+  app.get("/products/:id", async (c) => {
+    const id = c.req.param("id");
+    if (!id?.trim()) return c.json({ success: false, message: "Invalid product." }, 400);
+    try {
+      const data = await handleGetProduct(id);
+      if (!data) return c.json({ success: false, message: "Product not found." }, 404);
+      return c.json(data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to load product.";
       return c.json({ success: false, message }, 503);
     }
   });

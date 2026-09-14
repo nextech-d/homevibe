@@ -26,6 +26,27 @@ function mapDbBrand(brand: {
   };
 }
 
+export async function listBrandsForSitemap(): Promise<{ slug: string }[]> {
+  if (!process.env.DATABASE_URL) {
+    return [];
+  }
+
+  const prisma = getPrisma();
+  if (!prisma) {
+    return [];
+  }
+
+  try {
+    return await prisma.brand.findMany({
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: { slug: true },
+    });
+  } catch (error) {
+    console.error("Failed to load brands for sitemap:", error);
+    return [];
+  }
+}
+
 export async function getBrandBySlugFromDb(slug: string): Promise<BrandSeo | undefined> {
   const normalized = slug.toLowerCase();
 

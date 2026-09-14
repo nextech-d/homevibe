@@ -7,6 +7,7 @@ import { Trash2, Plus, Minus, ArrowLeft, ShieldCheck, Truck, RotateCcw } from "l
 import Image from "next/image";
 import { formatPrice } from "../lib/formatPrice";
 import { PRODUCT_IMAGE_SIZES } from "../lib/productImages";
+import { productHref } from "../data/products";
 
 export default function CartPage() {
   const { items, removeItem, updateQty, total } = useCart();
@@ -72,7 +73,7 @@ export default function CartPage() {
                         {/* Title & Brand */}
                         <div>
                           <Link
-                            href={`/product/${item.id}`}
+                            href={productHref(item)}
                             className="text-sm font-bold text-neutral-900 tracking-tight leading-tight hover:underline"
                           >
                             {item.name}

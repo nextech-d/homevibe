@@ -23,6 +23,11 @@ export default function CategoryCatalog({ category, subSlug }: CategoryCatalogPr
   const inventory = useInventory();
   const subcategoryMeta = subSlug ? getSubcategory(category.slug, subSlug, category) : undefined;
   const [sortBy, setSortBy] = useState<string>("default");
+  const subNavItems =
+    category.subcategories.length === 1 &&
+    category.subcategories[0].slug === category.slug
+      ? []
+      : category.subcategories;
 
   const categoryProducts = useMemo(() => {
     return inventory.filter(
@@ -112,7 +117,7 @@ export default function CategoryCatalog({ category, subSlug }: CategoryCatalogPr
             >
               All
             </Link>
-            {category.subcategories.map((sub) => (
+            {subNavItems.map((sub) => (
               <Link
                 key={sub.slug}
                 href={categoryHref(category.slug, sub.slug)}

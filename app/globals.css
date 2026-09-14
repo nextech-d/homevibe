@@ -32,3 +32,11 @@ body {
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.4);
 }
+
+/* Match admin DescriptionEditor: text-sm line height, inline font-size overrides block default. */
+.product-description p,
+.product-description div {
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}

@@ -37,3 +37,53 @@ export async function getInventory(): Promise<Appliance[]> {
     return APPLIANCES_INVENTORY;
   }
 }
+
+export async function getPublishedProduct(id: number): Promise<Appliance | null> {
+  if (!process.env.DATABASE_URL) {
+    return APPLIANCES_INVENTORY.find((item) => item.id === id) ?? null;
+  }
+
+  const prisma = getPrisma();
+  if (!prisma) {
+    return APPLIANCES_INVENTORY.find((item) => item.id === id) ?? null;
+  }
+
+  try {
+    const row = await prisma.product.findFirst({
+      where: { id, isPublished: true },
+      include: productInclude,
+    });
+    return row ? mapDbProductToAppliance(row) : null;
+  } catch (error) {
+    console.error("Failed to load product from database:", error);
+    return null;
+  }
+}
+
+export async function getPublishedProductByParam(param: string): Promise<Appliance | null> {
+  const trimmed = param.trim();
+  if (!trimmed) return null;
+  if (/^\d+$/.test(trimmed)) {
+    return getPublishedProduct(Number(trimmed));
+  }
+
+  if (!process.env.DATABASE_URL) {
+    return APPLIANCES_INVENTORY.find((item) => item.slug === trimmed.toLowerCase()) ?? null;
+  }
+
+  const prisma = getPrisma();
+  if (!prisma) {
+    return APPLIANCES_INVENTORY.find((item) => item.slug === trimmed.toLowerCase()) ?? null;
+  }
+
+  try {
+    const row = await prisma.product.findFirst({
+      where: { slug: trimmed.toLowerCase(), isPublished: true },
+      include: productInclude,
+    });
+    return row ? mapDbProductToAppliance(row) : null;
+  } catch (error) {
+    console.error("Failed to load product from database:", error);
+    return null;
+  }
+}

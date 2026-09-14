@@ -1,25 +1,18 @@
-import { getInventory } from "../../lib/inventory.server";
+import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
+import { getPublishedProductByParam } from "../../lib/inventory.server";
 import { buildPageMetadata, absoluteUrl } from "../../lib/seo";
 import { getProductDetailImage } from "../../lib/productImages";
+import { productHref } from "../../data/products";
 
 type Props = {
   params: Promise<{ id: string }>;
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
-  const productId = Number(id);
-  if (!productId) {
-    return buildPageMetadata({
-      title: "Product Not Found",
-      description: "This product could not be found.",
-      noIndex: true,
-    });
-  }
-
-  const products = await getInventory();
-  const product = products.find((p) => p.id === productId);
+  const product = id ? await getPublishedProductByParam(id) : null;
   if (!product) {
     return buildPageMetadata({
       title: "Product Not Found",
@@ -38,16 +31,18 @@ export async function generateMetadata({ params }: Props) {
     description:
       product.metaDescription?.trim() ||
       `${product.brand} ${product.name}. ${fallbackDescription}`,
-    path: `/product/${product.id}`,
+    path: productHref(product),
     image: getProductDetailImage(product),
   });
 }
 
 export default async function ProductLayout({ children, params }: Props) {
   const { id } = await params;
-  const productId = Number(id);
-  const products = await getInventory();
-  const product = productId ? products.find((p) => p.id === productId) : undefined;
+  const product = id ? await getPublishedProductByParam(id) : undefined;
+
+  if (product?.slug && /^\d+$/.test(id)) {
+    redirect(productHref(product));
+  }
 
   const jsonLd = product
     ? {
@@ -60,7 +55,7 @@ export default async function ProductLayout({ children, params }: Props) {
         sku: String(product.id),
         offers: {
           "@type": "Offer",
-          url: absoluteUrl(`/product/${product.id}`),
+          url: absoluteUrl(productHref(product)),
           priceCurrency: "KES",
           price: product.price,
           availability:

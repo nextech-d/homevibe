@@ -36,6 +36,7 @@ export type AdminProductDetail = {
   priceKes: number;
   stockStatus: StockStatus;
   isPublished: boolean;
+  isFeatured: boolean;
   specs: string;
   description: string;
   metaTitle: string | null;

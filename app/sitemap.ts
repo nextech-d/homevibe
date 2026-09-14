@@ -1,14 +1,20 @@
 import type { MetadataRoute } from "next";
-import { FEATURED_BRANDS } from "./data/brands";
-import { ALL_CATEGORIES, categoryHref } from "./data/categories";
+import { categoryHref } from "./data/categories";
+import { listBrandsForSitemap } from "./lib/brands.server";
+import { getAllCategories } from "./lib/categories.server";
 import { getInventory } from "./lib/inventory.server";
+import { productHref } from "./data/products";
 import { getSiteUrl } from "./lib/seo";
 import { contentPostPath, listAllPublishedPostsForSitemap } from "./lib/content.server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
   const now = new Date();
-  const products = await getInventory();
+  const [products, categoriesList, brandsList] = await Promise.all([
+    getInventory(),
+    getAllCategories(),
+    listBrandsForSitemap(),
+  ]);
 
   const home: MetadataRoute.Sitemap = [
     {
@@ -25,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const categories: MetadataRoute.Sitemap = ALL_CATEGORIES.flatMap((category) => {
+  const categories: MetadataRoute.Sitemap = categoriesList.flatMap((category) => {
     const entries: MetadataRoute.Sitemap = [
       {
         url: `${base}${categoryHref(category.slug)}`,
@@ -45,7 +51,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return entries;
   });
 
-  const brands: MetadataRoute.Sitemap = FEATURED_BRANDS.map((brand) => ({
+  const brands: MetadataRoute.Sitemap = brandsList.map((brand) => ({
     url: `${base}/brand/${brand.slug}`,
     lastModified: now,
     changeFrequency: "weekly",
@@ -53,7 +59,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const productPages: MetadataRoute.Sitemap = products.map((product) => ({
-    url: `${base}/product/${product.id}`,
+    url: `${base}${productHref(product)}`,
     lastModified: now,
     changeFrequency: "weekly",
     priority: 0.7,

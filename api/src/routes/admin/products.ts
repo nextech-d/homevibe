@@ -59,6 +59,7 @@ function parseProductBody(body: Record<string, unknown>): ProductFormInput | nul
     priceKes: body.priceKes,
     stockStatus,
     isPublished: body.isPublished !== false,
+    isFeatured: body.isFeatured === true,
     specs: body.specs,
     description: body.description,
     metaTitle: parseOptionalString(body.metaTitle),

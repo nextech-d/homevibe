@@ -16,6 +16,19 @@ export default function FeaturedProductsGrid({
   renderItem,
   itemClassName = "w-full",
 }: FeaturedProductsGridProps) {
+  const featured = inventory.filter((item) => item.isFeatured);
+  if (featured.length > 0) {
+    return (
+      <div className="grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4">
+        {featured.map((appliance) => (
+          <div key={appliance.id} className={itemClassName}>
+            {renderItem(appliance)}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const byId = new Map(inventory.map((item) => [item.id, item]));
 
   const columns = featuredColumns.flatMap((column) => {

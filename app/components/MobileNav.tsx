@@ -8,11 +8,13 @@ import {
   categoryHref,
   subcategoryHref,
 } from "../data/categories";
-import { FEATURED_BRANDS, brandHref } from "../data/brands";
+import { brandHref } from "../data/brands";
+import { useNavBrands } from "../context/BrandsContext";
 import { useNavCategories } from "../context/CategoriesContext";
 
 export default function MobileNav() {
   const pathname = usePathname();
+  const navBrands = useNavBrands();
   const navCategories = useNavCategories();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -92,7 +94,7 @@ export default function MobileNav() {
                 </button>
                 {expanded === "brands" && (
                   <div className="mb-2 ml-2 border-l border-neutral-200 pl-2">
-                    {FEATURED_BRANDS.map((brand) => (
+                    {navBrands.map((brand) => (
                       <Link
                         key={brand.slug}
                         href={brandHref(brand.slug)}

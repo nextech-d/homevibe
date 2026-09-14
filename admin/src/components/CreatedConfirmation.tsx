@@ -14,6 +14,7 @@ type Props = {
   listPath: string;
   editPath: string;
   createAnotherPath?: string;
+  onCreateAnother?: () => void;
   preview?: React.ReactNode;
   rows: SummaryRow[];
 };
@@ -44,6 +45,7 @@ export default function CreatedConfirmation({
   listPath,
   editPath,
   createAnotherPath,
+  onCreateAnother,
   preview,
   rows,
 }: Props) {
@@ -92,15 +94,25 @@ export default function CreatedConfirmation({
             <List className="h-3.5 w-3.5" />
             Back to list
           </Link>
-          {createAnotherPath && (
-            <Link
-              to={createAnotherPath}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#00e599]/30 bg-[#00e599]/10 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#00e599] hover:bg-[#00e599]/15"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Create another
-            </Link>
-          )}
+          {(createAnotherPath || onCreateAnother) &&
+            (onCreateAnother ? (
+              <button
+                type="button"
+                onClick={onCreateAnother}
+                className="inline-flex items-center gap-2 rounded-lg border border-[#00e599]/30 bg-[#00e599]/10 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#00e599] hover:bg-[#00e599]/15"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Create another
+              </button>
+            ) : (
+              <Link
+                to={createAnotherPath!}
+                className="inline-flex items-center gap-2 rounded-lg border border-[#00e599]/30 bg-[#00e599]/10 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-[#00e599] hover:bg-[#00e599]/15"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Create another
+              </Link>
+            ))}
         </div>
       </div>
     </div>

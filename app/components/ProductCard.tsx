@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import type { Appliance } from "../data/products";
+import { productHref } from "../data/products";
 import { formatPrice } from "../lib/formatPrice";
 import {
   getProductCardImage,
@@ -36,7 +37,7 @@ export default function ProductCard({
   const contentPadding = compact ? "px-3" : "px-4";
 
   return (
-    <div onClick={() => router.push(`/product/${appliance.id}`)} className={cardShell}>
+    <div onClick={() => router.push(productHref(appliance))} className={cardShell}>
       <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-white">
         <Image
           src={cardImage}

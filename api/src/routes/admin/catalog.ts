@@ -62,6 +62,7 @@ function parseBrandBody(body: Record<string, unknown>) {
     metaTitle: parseOptionalString(body.metaTitle),
     metaDescription: parseOptionalString(body.metaDescription),
     sortOrder: typeof body.sortOrder === "number" ? body.sortOrder : undefined,
+    isFeatured: typeof body.isFeatured === "boolean" ? body.isFeatured : undefined,
   };
 }
 
@@ -122,6 +123,7 @@ adminCatalogRoute.patch("/brands/:id", async (c) => {
     }
     if (body.slug !== undefined && typeof body.slug === "string") patch.slug = body.slug;
     if (typeof body.sortOrder === "number") patch.sortOrder = body.sortOrder;
+    if (typeof body.isFeatured === "boolean") patch.isFeatured = body.isFeatured;
     if (body.tier !== undefined) {
       if (body.tier !== "signature" && body.tier !== "partner") {
         return c.json({ success: false, message: "Invalid tier." }, 400);

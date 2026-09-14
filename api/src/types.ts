@@ -8,6 +8,7 @@ export type CartItem = {
 
 export type Appliance = {
   id: number;
+  slug: string;
   name: string;
   category: string;
   subcategory: string;
@@ -25,6 +26,7 @@ export type Appliance = {
   brand: string;
   description: string;
   highlights: string[];
+  isFeatured?: boolean;
 };
 
 export type AuthUser = {

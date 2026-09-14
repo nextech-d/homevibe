@@ -15,6 +15,7 @@ export function useAddToCart() {
       addItem(
         {
           id: appliance.id,
+          slug: appliance.slug,
           name: appliance.name,
           price: appliance.price,
           image: getProductThumbnail(appliance),

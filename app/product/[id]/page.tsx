@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
-import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { getCategorySlug, getSubcategoryLabel, categoryHref } from "../../data/categories";
 import { useCart } from "../../context/CartContext";
 import { useInventory } from "../../context/ProductsContext";
+import { fetchProductByParamClient, type Appliance } from "../../lib/inventory";
+import { productHref } from "../../data/products";
 import { formatPrice } from "../../lib/formatPrice";
 import { buildWhatsAppUrl } from "../../lib/whatsapp";
 import {
@@ -17,21 +19,70 @@ import {
 import ProductCard from "../../components/ProductCard";
 import QuantitySelector from "../../components/QuantitySelector";
 import TrustBadges from "../../components/TrustBadges";
-import { ShoppingCart, CheckCircle2 } from "lucide-react";
+import { ShoppingCart, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import {
+  descriptionLooksLikeHtml,
+  sanitizeDescriptionHtml,
+} from "../../lib/descriptionHtml";
+
+function ProductDescriptionBody({ text }: { text: string }) {
+  if (descriptionLooksLikeHtml(text)) {
+    return (
+      <div
+        className="product-description w-full text-sm text-neutral-600 [&_b]:font-bold [&_strong]:font-bold [&_i]:italic [&_em]:italic [&_u]:underline [&_p]:mb-3 [&_p]:min-h-[1.25em] [&_p:last-child]:mb-0 [&_div]:mb-3 [&_div]:min-h-[1.25em] [&_div:last-child]:mb-0"
+        dangerouslySetInnerHTML={{ __html: sanitizeDescriptionHtml(text) }}
+      />
+    );
+  }
+
+  return (
+    <div className="w-full whitespace-pre-wrap text-sm text-neutral-600">
+      {text}
+    </div>
+  );
+}
 
 export default function ProductPage() {
   const { id } = useParams();
+  const router = useRouter();
+  const param = typeof id === "string" ? id : Array.isArray(id) ? id[0] : "";
   const { addItem } = useCart();
   const inventory = useInventory();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [product, setProduct] = useState<Appliance | null | undefined>(undefined);
+  const [activeIndex, setActiveIndex] = useState(0);
 
-  const product = inventory.find((p) => p.id === Number(id));
-  const gallery = product ? getProductGallery(product) : [];
-  const [activeImage, setActiveImage] = useState(
-    product ? getProductDetailImage(product) : ""
-  );
+  useEffect(() => {
+    if (!param) {
+      setProduct(null);
+      return;
+    }
+    let cancelled = false;
+    fetchProductByParamClient(param).then((loaded) => {
+      if (cancelled) return;
+      setProduct(loaded);
+      if (loaded) setActiveIndex(0);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [param]);
+
+  useEffect(() => {
+    if (product?.slug && /^\d+$/.test(param)) {
+      router.replace(productHref(product));
+    }
+  }, [product, param, router]);
+
+  if (product === undefined) {
+    return (
+      <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
+        <p className="text-sm text-neutral-500">Loading product…</p>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -46,12 +97,23 @@ export default function ProductPage() {
     );
   }
 
+  const gallery = getProductGallery(product);
+  const safeIndex = gallery.length > 0 ? Math.min(activeIndex, gallery.length - 1) : 0;
+  const activeImage = gallery[safeIndex] ?? getProductDetailImage(product);
+  const hasGalleryNav = gallery.length > 1;
+
+  function showGalleryImage(index: number) {
+    if (gallery.length === 0) return;
+    setActiveIndex((index + gallery.length) % gallery.length);
+  }
+
   const handleAddToCart = () => {
     addItem(
       {
         id: product.id,
         name: product.name,
         price: product.price,
+        slug: product.slug,
         image: getProductThumbnail(product),
       },
       qty,
@@ -67,24 +129,32 @@ export default function ProductPage() {
     (p) => p.category === product.category && p.id !== product.id
   ).slice(0, 5);
 
+  const categorySlug = getCategorySlug(product.category);
+  const showSubcategoryCrumb =
+    product.subcategory.toLowerCase() !== categorySlug.toLowerCase();
+
   return (
     <div className="min-h-screen bg-[var(--bg)] font-sans pb-24">
       <div className="mx-auto max-w-7xl px-6 py-8">
-        <nav className="mb-12 text-xs font-bold uppercase tracking-widest text-neutral-500 flex items-center space-x-3">
+        <nav className="mb-12 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-widest text-neutral-500">
           <Link href="/" className="hover:text-neutral-900 transition">Home</Link>
           <span className="text-neutral-400">/</span>
-          <Link href={`/category/${getCategorySlug(product.category)}`} className="hover:text-neutral-900 transition">
+          <Link href={`/category/${categorySlug}`} className="hover:text-neutral-900 transition">
             {product.category}
           </Link>
+          {showSubcategoryCrumb ? (
+            <>
+              <span className="text-neutral-400">/</span>
+              <Link
+                href={categoryHref(categorySlug, product.subcategory)}
+                className="hover:text-neutral-900 transition"
+              >
+                {getSubcategoryLabel(categorySlug, product.subcategory)}
+              </Link>
+            </>
+          ) : null}
           <span className="text-neutral-400">/</span>
-          <Link
-            href={categoryHref(getCategorySlug(product.category), product.subcategory)}
-            className="hover:text-neutral-900 transition"
-          >
-            {getSubcategoryLabel(getCategorySlug(product.category), product.subcategory)}
-          </Link>
-          <span className="text-neutral-400">/</span>
-          <span className="text-neutral-900">{product.name}</span>
+          <span className="min-w-0 max-w-full text-neutral-900 sm:line-clamp-2">{product.name}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 w-full">
@@ -98,15 +168,35 @@ export default function ProductPage() {
                 className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
                 priority
               />
+              {hasGalleryNav && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => showGalleryImage(safeIndex - 1)}
+                    aria-label="Previous image"
+                    className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/90 text-neutral-800 shadow-md transition hover:bg-white"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => showGalleryImage(safeIndex + 1)}
+                    aria-label="Next image"
+                    className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/90 text-neutral-800 shadow-md transition hover:bg-white"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </>
+              )}
             </div>
 
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide w-full">
-              {gallery.slice(0, 5).map((img, idx) => (
+              {gallery.map((img, idx) => (
                 <div
                   key={idx}
-                  onClick={() => setActiveImage(img)}
+                  onClick={() => setActiveIndex(idx)}
                   className={`h-20 w-20 shrink-0 cursor-pointer overflow-hidden rounded-xl border-2 p-1 transition-all duration-200 ${
-                    activeImage === img
+                    safeIndex === idx
                       ? "border-neutral-900 bg-neutral-50 shadow-md"
                       : "border-transparent bg-neutral-50 opacity-70 hover:border-neutral-300 hover:opacity-100"
                   }`}
@@ -135,14 +225,6 @@ export default function ProductPage() {
               </span>
             </div>
 
-            <p className="mt-6 text-sm leading-relaxed text-neutral-600">{product.description}</p>
-
-            <div className="my-8">
-              <TrustBadges />
-            </div>
-
-            <div className="h-px w-full bg-neutral-300/70"></div>
-
             <div className="grid grid-cols-2 gap-x-12 gap-y-8 my-10">
               <div>
                 <span className="block text-[10px] font-black uppercase tracking-widest text-neutral-500">Category</span>
@@ -163,6 +245,12 @@ export default function ProductPage() {
                   100% Genuine
                 </span>
               </div>
+            </div>
+
+            <div className="h-px w-full bg-neutral-300/70"></div>
+
+            <div className="my-8">
+              <TrustBadges />
             </div>
 
             <div className="h-px w-full bg-neutral-300/70"></div>
@@ -196,20 +284,19 @@ export default function ProductPage() {
                 </a>
               </div>
             </div>
-
-            <div className="mt-12">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mb-4">Core Specifications</h4>
-              <div className="flex flex-wrap gap-2">
-                {product.specs.split("•").map((spec, i) => (
-                  <span key={i} className="px-4 py-2 border-2 border-neutral-300 rounded-full text-xs font-bold text-neutral-900">
-                    {spec.trim()}
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
+        {product.description.trim() ? (
+          <div className="mt-16 w-full">
+            <h4 className="mb-8 text-[10px] font-black uppercase tracking-widest text-neutral-500">
+              Product Description
+            </h4>
+            <ProductDescriptionBody text={product.description} />
+          </div>
+        ) : null}
+
+        {/*
         <div className="mt-24 max-w-4xl">
           <h2 className="text-3xl font-black text-neutral-900 mb-8 uppercase tracking-tight">
             Why {product.name}
@@ -223,6 +310,7 @@ export default function ProductPage() {
             ))}
           </ul>
         </div>
+        */}
 
         {relatedProducts.length > 0 && (
           <div className="mt-24 pt-12 border-t border-neutral-300/70 w-full">

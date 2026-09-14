@@ -1,4 +1,5 @@
 import type { StockStatus } from "@prisma/client";
+import { resolveSubcategoryIdForCategory } from "./catalog.js";
 import { getPrisma } from "./db.js";
 import { validateProductImageRefs } from "./uploads.js";
 
@@ -9,6 +10,7 @@ export type AdminProductListItem = {
   priceKes: number;
   stockStatus: StockStatus;
   isPublished: boolean;
+  isFeatured: boolean;
   primaryPhotoId: string;
 };
 
@@ -24,6 +26,7 @@ export type AdminProductDetail = {
   priceKes: number;
   stockStatus: StockStatus;
   isPublished: boolean;
+  isFeatured: boolean;
   specs: string;
   description: string;
   metaTitle: string | null;
@@ -41,6 +44,7 @@ export type ProductFormInput = {
   priceKes: number;
   stockStatus: StockStatus;
   isPublished: boolean;
+  isFeatured?: boolean;
   specs: string;
   description: string;
   metaTitle?: string | null;
@@ -89,6 +93,7 @@ function mapDetail(product: {
   priceKes: number;
   stockStatus: StockStatus;
   isPublished: boolean;
+  isFeatured: boolean;
   specs: string;
   description: string;
   metaTitle: string | null;
@@ -97,7 +102,7 @@ function mapDetail(product: {
   primaryPhotoId: string;
   galleryPhotoIds: unknown;
   brand: { name: string };
-  subcategory: { label: string; category: { label: string } };
+  subcategory: { label: string; categoryId: number; category: { label: string } };
 }): AdminProductDetail {
   return {
     id: product.id,
@@ -111,6 +116,7 @@ function mapDetail(product: {
     priceKes: product.priceKes,
     stockStatus: product.stockStatus,
     isPublished: product.isPublished,
+    isFeatured: product.isFeatured,
     specs: product.specs,
     description: product.description,
     metaTitle: product.metaTitle,
@@ -199,6 +205,7 @@ export async function listProductsFiltered(
       priceKes: product.priceKes,
       stockStatus: product.stockStatus,
       isPublished: product.isPublished,
+      isFeatured: product.isFeatured,
       primaryPhotoId: product.primaryPhotoId,
     })),
     summary: { total, published, unpublished, lowStock, outOfStock },
@@ -229,16 +236,43 @@ export async function listBrandOptions(): Promise<BrandOption[]> {
 export async function listSubcategoryOptions(): Promise<SubcategoryOption[]> {
   const prisma = getPrisma();
   if (!prisma) return [];
-  const rows = await prisma.subcategory.findMany({
-    include: { category: true },
-    orderBy: [{ category: { sortOrder: "asc" } }, { sortOrder: "asc" }],
+
+  const categories = await prisma.category.findMany({
+    include: { subcategories: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } },
+    orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
   });
-  return rows.map((row) => ({
-    id: row.id,
-    label: row.label,
-    slug: row.slug,
-    categoryLabel: row.category.label,
-  }));
+
+  const options: SubcategoryOption[] = [];
+
+  for (const category of categories) {
+    if (category.subcategories.length === 0) {
+      const subcategoryId = await resolveSubcategoryIdForCategory(category.id);
+      const sub = await prisma.subcategory.findUnique({
+        where: { id: subcategoryId },
+        include: { category: true },
+      });
+      if (sub) {
+        options.push({
+          id: sub.id,
+          label: sub.label,
+          slug: sub.slug,
+          categoryLabel: sub.category.label,
+        });
+      }
+      continue;
+    }
+
+    for (const sub of category.subcategories) {
+      options.push({
+        id: sub.id,
+        label: sub.label,
+        slug: sub.slug,
+        categoryLabel: category.label,
+      });
+    }
+  }
+
+  return options;
 }
 
 export async function createProductForAdmin(input: ProductFormInput): Promise<AdminProductDetail> {
@@ -257,6 +291,7 @@ export async function createProductForAdmin(input: ProductFormInput): Promise<Ad
       priceKes: Math.round(input.priceKes),
       stockStatus: input.stockStatus,
       isPublished: input.isPublished,
+      isFeatured: input.isFeatured ?? false,
       specs: input.specs.trim(),
       description: input.description.trim(),
       metaTitle: input.metaTitle?.trim() || null,
@@ -286,6 +321,7 @@ export async function updateProductForAdmin(
   if (input.priceKes !== undefined) data.priceKes = Math.round(input.priceKes);
   if (input.stockStatus !== undefined) data.stockStatus = input.stockStatus;
   if (input.isPublished !== undefined) data.isPublished = input.isPublished;
+  if (input.isFeatured !== undefined) data.isFeatured = input.isFeatured;
   if (input.specs !== undefined) data.specs = input.specs.trim();
   if (input.description !== undefined) data.description = input.description.trim();
   if (input.metaTitle !== undefined) data.metaTitle = input.metaTitle?.trim() || null;
@@ -354,6 +390,7 @@ export async function patchProductPriceStock(
       priceKes: product.priceKes,
       stockStatus: product.stockStatus,
       isPublished: product.isPublished,
+      isFeatured: product.isFeatured,
       primaryPhotoId: product.primaryPhotoId,
     };
   } catch {

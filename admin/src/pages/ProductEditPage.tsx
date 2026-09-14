@@ -43,7 +43,12 @@ export default function ProductEditPage() {
   }, [id, isNew]);
 
   if (createdId) {
-    return <ProductCreatedView entityId={String(createdId)} />;
+    return (
+      <ProductCreatedView
+        entityId={String(createdId)}
+        onCreateAnother={() => setCreatedId(null)}
+      />
+    );
   }
 
   if (loading) {

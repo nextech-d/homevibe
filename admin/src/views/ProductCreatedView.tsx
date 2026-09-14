@@ -5,9 +5,10 @@ import { productThumbUrl, STOCK_LABELS, type AdminProductDetail } from "../lib/p
 
 type Props = {
   entityId: string;
+  onCreateAnother?: () => void;
 };
 
-export default function ProductCreatedView({ entityId }: Props) {
+export default function ProductCreatedView({ entityId, onCreateAnother }: Props) {
   const [product, setProduct] = useState<AdminProductDetail | null>(null);
   const [error, setError] = useState("");
 
@@ -31,7 +32,8 @@ export default function ProductCreatedView({ entityId }: Props) {
       name={product.name}
       listPath="/products"
       editPath={`/products/${product.id}/edit`}
-      createAnotherPath="/products/new"
+      createAnotherPath={onCreateAnother ? undefined : "/products/new"}
+      onCreateAnother={onCreateAnother}
       preview={
         <div className="flex items-center gap-4">
           {product.primaryPhotoId ? (
@@ -74,7 +76,7 @@ export default function ProductCreatedView({ entityId }: Props) {
           label: "Storefront",
           value: product.isPublished ? (
             <a
-              href={`${STORE_URL}/product/${product.id}`}
+              href={`${STORE_URL}/product/${product.slug || product.id}`}
               target="_blank"
               rel="noreferrer"
               className="text-[#00e599] hover:underline"

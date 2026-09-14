@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useEffect, useRef, ReactNode } fro
 
 export type CartItem = {
   id: number;
+  slug?: string;
   name: string;
   price: number;
   qty: number;

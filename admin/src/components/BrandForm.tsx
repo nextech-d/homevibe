@@ -21,6 +21,7 @@ export type BrandDetail = {
   metaTitle: string | null;
   metaDescription: string | null;
   sortOrder: number;
+  isFeatured?: boolean;
   productCount?: number;
 };
 
@@ -58,6 +59,7 @@ export default function BrandForm({ brand, mode, onCreated }: Props) {
   const [origin, setOrigin] = useState(brand?.origin ?? "");
   const [logoUrl, setLogoUrl] = useState(initialLogo(brand));
   const [sortOrder, setSortOrder] = useState(String(brand?.sortOrder ?? 0));
+  const [isFeatured, setIsFeatured] = useState(brand?.isFeatured ?? false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -79,6 +81,7 @@ export default function BrandForm({ brand, mode, onCreated }: Props) {
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
       sortOrder: Number(sortOrder) || 0,
+      isFeatured,
     };
 
     try {
@@ -182,6 +185,15 @@ export default function BrandForm({ brand, mode, onCreated }: Props) {
             className={storefrontInputClass}
           />
         </StorefrontField>
+        <label className="flex items-center gap-2 rounded-lg border border-[#2a2a2a] bg-[#111111] px-3.5 py-3 text-xs text-neutral-400">
+          <input
+            type="checkbox"
+            checked={isFeatured}
+            onChange={(e) => setIsFeatured(e.target.checked)}
+            className="rounded border-[#333]"
+          />
+          Featured on homepage
+        </label>
         {!isNew && brand && brand.productCount !== undefined && (
           <p className="text-xs text-neutral-500">
             {brand.productCount} product{brand.productCount === 1 ? "" : "s"} linked

@@ -29,6 +29,7 @@ export type BrandListItem = {
   metaTitle: string | null;
   metaDescription: string | null;
   sortOrder: number;
+  isFeatured: boolean;
   productCount: number;
 };
 
@@ -92,6 +93,7 @@ export async function listBrandsFiltered(filters: { q?: string; tier?: BrandTier
       metaTitle: b.metaTitle,
       metaDescription: b.metaDescription,
       sortOrder: b.sortOrder,
+      isFeatured: b.isFeatured,
       productCount: b._count.products,
     })),
     summary: {
@@ -121,6 +123,7 @@ export async function getBrandById(id: number) {
     metaTitle: brand.metaTitle,
     metaDescription: brand.metaDescription,
     sortOrder: brand.sortOrder,
+    isFeatured: brand.isFeatured,
     productCount: brand._count.products,
   };
 }
@@ -134,6 +137,7 @@ export async function createBrand(input: {
   metaTitle?: string | null;
   metaDescription?: string | null;
   sortOrder?: number;
+  isFeatured?: boolean;
 }) {
   const prisma = getPrisma();
   if (!prisma) throw new Error("Database unavailable");
@@ -147,6 +151,7 @@ export async function createBrand(input: {
       metaTitle: input.metaTitle?.trim() || null,
       metaDescription: input.metaDescription?.trim() || null,
       sortOrder: input.sortOrder ?? 0,
+      isFeatured: input.isFeatured ?? false,
     },
   });
 }
@@ -162,6 +167,7 @@ export async function updateBrand(
     metaTitle: string | null;
     metaDescription: string | null;
     sortOrder: number;
+    isFeatured: boolean;
   }>
 ) {
   const prisma = getPrisma();
@@ -484,6 +490,46 @@ export async function deleteCategory(
   } catch {
     return { ok: false, message: "Cannot delete category." };
   }
+}
+
+export type CategoryOption = {
+  id: number;
+  label: string;
+  slug: string;
+};
+
+export async function listCategoryOptionsForProducts(): Promise<CategoryOption[]> {
+  const prisma = getPrisma();
+  if (!prisma) return [];
+  return prisma.category.findMany({
+    orderBy: [{ sortOrder: "asc" }, { label: "asc" }],
+    select: { id: true, label: true, slug: true },
+  });
+}
+
+/** Flat categories (e.g. TVs) get a hidden bucket subcategory for product assignment. */
+export async function resolveSubcategoryIdForCategory(categoryId: number): Promise<number> {
+  const prisma = getPrisma();
+  if (!prisma) throw new Error("Database unavailable");
+
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+    include: { subcategories: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } },
+  });
+  if (!category) throw new Error("Category not found");
+
+  const bucket = category.subcategories.find((sub) => sub.slug === category.slug);
+  if (bucket) return bucket.id;
+
+  const created = await prisma.subcategory.create({
+    data: {
+      categoryId,
+      label: category.label,
+      slug: category.slug,
+      sortOrder: 0,
+    },
+  });
+  return created.id;
 }
 
 export async function listSubcategories() {

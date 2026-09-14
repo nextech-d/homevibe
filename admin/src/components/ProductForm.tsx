@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Settings2, FileText } from "lucide-react";
 import { api } from "../lib/api";
 import { ProductGalleryField, ProductImageField } from "./ProductImageField";
+import DescriptionEditor from "./DescriptionEditor";
+import { descriptionHasText } from "../lib/descriptionHtml";
 import {
   StorefrontField,
   StorefrontSection,
@@ -15,6 +17,13 @@ import type {
   StockStatus,
   SubcategoryOption,
 } from "../lib/products";
+
+function subcategoryOptionLabel(option: SubcategoryOption): string {
+  if (option.label.toLowerCase() === option.categoryLabel.toLowerCase()) {
+    return option.categoryLabel;
+  }
+  return `${option.categoryLabel} — ${option.label}`;
+}
 
 const STOCK_OPTIONS: { value: StockStatus; label: string }[] = [
   { value: "in_stock", label: "In stock" },
@@ -70,6 +79,7 @@ export default function ProductForm({
     product?.stockStatus ?? "in_stock"
   );
   const [isPublished, setIsPublished] = useState(product?.isPublished ?? false);
+  const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
   const [specs, setSpecs] = useState(product?.specs ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [mainImage, setMainImage] = useState(initialMainImage(product));
@@ -81,6 +91,11 @@ export default function ProductForm({
 
     if (isPublished && !mainImage) {
       setError("Main image is required to publish. Save as draft or upload an image.");
+      return;
+    }
+
+    if (!descriptionHasText(description)) {
+      setError("Description is required.");
       return;
     }
 
@@ -97,6 +112,7 @@ export default function ProductForm({
       priceKes: Number(priceKes),
       stockStatus,
       isPublished,
+      isFeatured,
       specs,
       description,
       primaryPhotoId: mainImage,
@@ -165,15 +181,7 @@ export default function ProductForm({
               className={storefrontInputClass}
             />
           </StorefrontField>
-          <StorefrontField label="Description">
-            <textarea
-              required
-              rows={8}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className={storefrontInputClass}
-            />
-          </StorefrontField>
+          <DescriptionEditor value={description} onChange={setDescription} />
           <ProductImageField
             label="Main image"
             required={isPublished}
@@ -219,16 +227,16 @@ export default function ProductForm({
               ))}
             </select>
           </StorefrontField>
-          <StorefrontField label="Subcategory">
+          <StorefrontField label="Category">
             <select
               required
               value={subcategoryId}
               onChange={(e) => setSubcategoryId(Number(e.target.value))}
               className={storefrontSelectClass}
             >
-              {subcategories.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.categoryLabel} — {s.label}
+              {subcategories.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {subcategoryOptionLabel(option)}
                 </option>
               ))}
             </select>
@@ -272,6 +280,15 @@ export default function ProductForm({
               className="rounded border-[#333]"
             />
             Published on storefront
+          </label>
+          <label className="flex items-center gap-2 rounded-lg border border-[#2a2a2a] bg-[#111111] px-3.5 py-3 text-xs text-neutral-400">
+            <input
+              type="checkbox"
+              checked={isFeatured}
+              onChange={(e) => setIsFeatured(e.target.checked)}
+              className="rounded border-[#333]"
+            />
+            Featured on homepage
           </label>
           <button
             type="submit"

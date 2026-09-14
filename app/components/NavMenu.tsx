@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { categoryHref, subcategoryHref } from "../data/categories";
-import { FEATURED_BRANDS, brandHref } from "../data/brands";
+import { brandHref } from "../data/brands";
+import { useNavBrands } from "../context/BrandsContext";
 import { useNavCategories } from "../context/CategoriesContext";
 
 const linkClass =
@@ -55,6 +56,7 @@ function NavDropdown({
 
 export default function NavMenu() {
   const pathname = usePathname();
+  const navBrands = useNavBrands();
   const navCategories = useNavCategories();
 
   return (
@@ -69,7 +71,7 @@ export default function NavMenu() {
       </Link>
 
       <NavDropdown label="Brands" active={pathname.startsWith("/brand/")}>
-        {FEATURED_BRANDS.map((brand) => (
+        {navBrands.map((brand) => (
           <Link
             key={brand.slug}
             href={brandHref(brand.slug)}

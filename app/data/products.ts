@@ -5,6 +5,7 @@ import {
 
 export type Appliance = {
   id: number;
+  slug: string;
   name: string;
   category: string;
   subcategory: string;
@@ -21,18 +22,33 @@ export type Appliance = {
   highlights: string[];
   metaTitle?: string | null;
   metaDescription?: string | null;
+  isFeatured?: boolean;
 };
 
-type ApplianceInput = Omit<Appliance, "image" | "images" | "imageSet"> & {
+type ApplianceInput = Omit<Appliance, "image" | "images" | "imageSet" | "slug"> & {
+  slug?: string;
   photoId: string;
   galleryPhotoIds: string[];
 };
+
+function slugifyName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function productHref(product: { slug?: string; id: number }): string {
+  return `/product/${product.slug || product.id}`;
+}
 
 function defineAppliance(input: ApplianceInput): Appliance {
   const { photoId, galleryPhotoIds, ...rest } = input;
   const imageSet = buildProductImageSet(photoId, galleryPhotoIds);
   return {
     ...rest,
+    slug: rest.slug || slugifyName(rest.name),
     imageSet,
     image: imageSet.card,
     images: imageSet.gallery,

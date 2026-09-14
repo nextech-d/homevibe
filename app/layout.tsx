@@ -10,6 +10,7 @@ import SiteJsonLd from "./components/SiteJsonLd";
 import FaqJsonLd from "./components/FaqJsonLd";
 import { CartProvider } from "./context/CartContext";
 import { ProductsProvider } from "./context/ProductsContext";
+import { BrandsProvider } from "./context/BrandsContext";
 import { CategoriesProvider } from "./context/CategoriesContext";
 import { StorefrontProvider } from "./context/StorefrontContext";
 import { buildRootMetadataFromContext } from "./lib/seo";
@@ -47,6 +48,7 @@ export default function RootLayout({
         <CartProvider>
           <ProductsProvider>
             <CategoriesProvider>
+              <BrandsProvider>
               <StorefrontProvider>
                 <Header />
                 <CartDrawer />
@@ -54,6 +56,7 @@ export default function RootLayout({
                 <main className="flex-grow">{children}</main>
                 <Footer />
               </StorefrontProvider>
+              </BrandsProvider>
             </CategoriesProvider>
           </ProductsProvider>
         </CartProvider>

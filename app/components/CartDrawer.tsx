@@ -7,6 +7,7 @@ import { X, Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { PRODUCT_IMAGE_SIZES } from "../lib/productImages";
+import { productHref } from "../data/products";
 
 export default function CartDrawer() {
   const { items, cartOpen, setCartOpen, removeItem, updateQty, total } = useCart();
@@ -102,7 +103,7 @@ export default function CartDrawer() {
                 {/* Info & Quantity controls */}
                 <div className="flex-1 min-w-0">
                   <Link
-                    href={`/product/${item.id}`}
+                    href={productHref(item)}
                     onClick={() => setCartOpen(false)}
                     className="text-xs font-bold text-black truncate block hover:underline"
                   >

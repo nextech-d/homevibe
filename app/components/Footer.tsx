@@ -1,4 +1,5 @@
 import { unstable_noStore as noStore } from "next/cache";
+import Image from "next/image";
 import Link from "next/link";
 import { categoryHref } from "../data/categories";
 import { getAllCategories } from "../lib/categories.server";
@@ -30,8 +31,21 @@ export default async function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-10">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <Link href="/" className="text-lg font-black uppercase tracking-tighter text-black">
-              {site.name}
+            <Link
+              href="/"
+              aria-label={`${site.name} home`}
+              className="inline-flex items-center gap-2.5"
+            >
+              <Image
+                src="/logo.png"
+                alt=""
+                width={250}
+                height={250}
+                className="h-10 w-auto shrink-0"
+              />
+              <span className="text-lg font-black uppercase tracking-tighter text-black">
+                {site.name}
+              </span>
             </Link>
             <p className="mt-3 text-xs leading-relaxed text-black/70">
               {site.tagline}. Serving {site.city} and {site.region}.

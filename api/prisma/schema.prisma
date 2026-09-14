@@ -33,6 +33,7 @@ model Brand {
   metaTitle       String?   @map("meta_title")
   metaDescription String?   @map("meta_description")
   sortOrder       Int       @default(0) @map("sort_order")
+  isFeatured      Boolean   @default(false) @map("is_featured")
   products        Product[]
 
   @@map("brands")
@@ -72,6 +73,7 @@ model Product {
   priceKes        Int                @map("price_kes")
   stockStatus     StockStatus        @default(in_stock) @map("stock_status")
   isPublished     Boolean            @default(true) @map("is_published")
+  isFeatured      Boolean            @default(false) @map("is_featured")
   specs           String
   description     String
   metaTitle       String?            @map("meta_title")
@@ -88,6 +90,7 @@ model Product {
   @@index([brandId])
   @@index([subcategoryId])
   @@index([isPublished])
+  @@index([isFeatured])
   @@map("products")
 }
 

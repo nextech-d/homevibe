@@ -59,6 +59,13 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
   };
 }
 
+const siteIconMetadata: Pick<Metadata, "icons"> = {
+  icons: {
+    icon: [{ url: "/logo.png", type: "image/png" }],
+    apple: [{ url: "/logo.png", type: "image/png" }],
+  },
+};
+
 export const siteKeywords = [
   "kitchen appliances",
   "gym equipment",
@@ -79,6 +86,7 @@ export const rootMetadata: Metadata = {
     description: `${SITE.tagline}. Shop kitchen and gym equipment in ${SITE.city} with free delivery, installation help, and M-Pesa across ${SITE.region}.`,
     path: "/",
   }),
+  ...siteIconMetadata,
   keywords: siteKeywords,
   authors: [{ name: SITE.name }],
   creator: SITE.name,
@@ -102,6 +110,11 @@ export async function buildRootMetadataFromContext(): Promise<Metadata> {
       siteName: ctx.siteName,
       defaultOgImage: ctx.defaultOgImage,
     }),
+    ...siteIconMetadata,
+    title: {
+      default: ctx.homepageTitle,
+      template: `%s | ${ctx.siteName}`,
+    },
     keywords: siteKeywords,
     authors: [{ name: ctx.siteName }],
     creator: ctx.siteName,
