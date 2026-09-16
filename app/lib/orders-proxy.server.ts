@@ -9,16 +9,14 @@ import type { OrderPayload } from "./orders.server";
  * before the platform hard-kills the route. maxDuration on the route can be higher
  * when the plan allows it; this timeout stays conservative.
  */
-function orderForwardTimeoutMs(): number {
+function orderForwardTestTimeoutMs(): number | null {
   const override = process.env.ORDER_FORWARD_TEST_TIMEOUT_MS?.trim();
-  if (override) {
-    const parsed = Number(override);
-    if (Number.isFinite(parsed) && parsed > 0) {
-      return parsed;
-    }
-  }
-  return 9_000;
+  if (!override) return null;
+  const parsed = Number(override);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
+
+const ORDER_FORWARD_TIMEOUT_MS = 9_000;
 
 /** Recovery lookup after a failed forward; keep well under the forward budget. */
 export const ORDER_IDEMPOTENCY_RECOVERY_MS = 2_500;
@@ -115,14 +113,53 @@ export async function forwardOrderCreate(
     headers["Idempotency-Key"] = idempotencyKey.trim();
   }
 
+  const forwardInit: RequestInit = {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ ...payload, total: 0 }),
+  };
+  const forwardUrl = `${base}/orders`;
+
   let upstream: Response;
   try {
-    upstream = await fetch(`${base}/orders`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ ...payload, total: 0 }),
-      signal: AbortSignal.timeout(orderForwardTimeoutMs()),
-    });
+    const testTimeoutMs = orderForwardTestTimeoutMs();
+    if (testTimeoutMs !== null) {
+      /** Test hook: stop waiting for the response without aborting the upstream POST. */
+      const forwardPromise = fetch(forwardUrl, forwardInit);
+      void forwardPromise.catch((error) => {
+        console.error("Order proxy test forward completed after simulated timeout:", error);
+      });
+      const raced = await Promise.race([
+        forwardPromise.then((response) => ({ kind: "response" as const, response })),
+        new Promise<{ kind: "test_timeout" }>((resolve) => {
+          setTimeout(() => resolve({ kind: "test_timeout" }), testTimeoutMs);
+        }),
+      ]);
+      if (raced.kind === "test_timeout") {
+        if (idempotencyKey?.trim()) {
+          const recovered = await fetchOrderByIdempotencyKey(base, idempotencyKey);
+          if (recovered) {
+            return Response.json(recovered, { status: 200 });
+          }
+        }
+        return Response.json(
+          {
+            success: false,
+            code: "ORDER_PROXY_TIMEOUT" satisfies OrderProxyFailureCode,
+            proxyError: true,
+            message:
+              "The order service took too long to respond. Your order may not have been placed — check your email or contact us before submitting again.",
+          },
+          { status: 504 }
+        );
+      }
+      upstream = raced.response;
+    } else {
+      upstream = await fetch(forwardUrl, {
+        ...forwardInit,
+        signal: AbortSignal.timeout(ORDER_FORWARD_TIMEOUT_MS),
+      });
+    }
   } catch (error) {
     const timedOut =
       error instanceof Error &&
