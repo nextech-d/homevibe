@@ -47,30 +47,42 @@ async function fetchOrderByIdempotencyKey(
   idempotencyKey: string
 ): Promise<CreateOrderSuccessBody | null> {
   const url = `${base}/orders?idempotencyKey=${encodeURIComponent(idempotencyKey.trim())}`;
-  try {
-    const res = await fetch(url, {
-      signal: AbortSignal.timeout(ORDER_IDEMPOTENCY_RECOVERY_MS),
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as {
-      success?: boolean;
-      trackingId?: string;
-      order?: unknown;
-    };
-    if (data.success !== true || typeof data.trackingId !== "string") {
-      return null;
+  const perAttemptMs = 600;
+  const pauseMs = 350;
+  const maxAttempts = 3;
+  const started = Date.now();
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (attempt > 0) {
+      await new Promise((resolve) => setTimeout(resolve, pauseMs));
     }
-    return {
-      success: true,
-      message: "Order placed successfully.",
-      trackingId: data.trackingId,
-      order: data.order,
-      recoveredFromProxy: true,
-    };
-  } catch (error) {
-    console.error("Order idempotency recovery lookup failed:", error);
-    return null;
+    if (Date.now() - started > ORDER_IDEMPOTENCY_RECOVERY_MS) {
+      break;
+    }
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(perAttemptMs) });
+      if (!res.ok) continue;
+      const data = (await res.json()) as {
+        success?: boolean;
+        trackingId?: string;
+        order?: unknown;
+      };
+      if (data.success !== true || typeof data.trackingId !== "string") {
+        continue;
+      }
+      return {
+        success: true,
+        message: "Order placed successfully.",
+        trackingId: data.trackingId,
+        order: data.order,
+        recoveredFromProxy: true,
+      };
+    } catch (error) {
+      console.error("Order idempotency recovery lookup failed:", error);
+    }
   }
+
+  return null;
 }
 
 /**
