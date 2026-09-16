@@ -4,6 +4,7 @@ import {
   createOrder,
   getAdminOrderByTrackingId,
   getOrderByTrackingId,
+  getOrderCreateResultByIdempotencyKey,
   listOrders,
   listOrdersFiltered,
   ordersToCsv,
@@ -17,9 +18,30 @@ import type { CartItem } from "../types.js";
 export const ordersRoute = new Hono();
 
 ordersRoute.get("/", async (c) => {
+  const idempotencyKey = c.req.query("idempotencyKey")?.trim();
   const trackingId = c.req.query("trackingId")?.trim().toUpperCase();
+
+  if (idempotencyKey) {
+    try {
+      const order = await getOrderCreateResultByIdempotencyKey(idempotencyKey);
+      if (!order) {
+        return c.json({ success: false, message: "No order found for that checkout attempt." }, 404);
+      }
+      return c.json({
+        success: true,
+        trackingId: order.trackingId,
+        order,
+      });
+    } catch {
+      return c.json({ success: false, message: "Invalid idempotency key." }, 400);
+    }
+  }
+
   if (!trackingId) {
-    return c.json({ success: false, message: "Order reference is required." }, 400);
+    return c.json(
+      { success: false, message: "Order reference or idempotency key is required." },
+      400
+    );
   }
 
   const order = await getOrderByTrackingId(trackingId);

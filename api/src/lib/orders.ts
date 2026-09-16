@@ -352,6 +352,24 @@ export async function createOrder(payload: OrderPayload) {
   return result;
 }
 
+export async function getOrderCreateResultByIdempotencyKey(
+  key: string
+): Promise<ReturnType<typeof mapOrderRecordToCreateResult> | null> {
+  const idempotencyKey = normalizeIdempotencyKey(key);
+  if (!idempotencyKey) return null;
+
+  const prisma = getPrisma();
+  if (!prisma) return null;
+
+  const order = await prisma.order.findUnique({
+    where: { idempotencyKey },
+    include: { items: true },
+  });
+
+  if (!order) return null;
+  return mapOrderRecordToCreateResult(order);
+}
+
 export async function getOrderByTrackingId(
   trackingId: string
 ): Promise<PublicOrder | null> {

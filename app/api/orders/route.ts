@@ -5,12 +5,42 @@ import { NextResponse } from "next/server";
 export const maxDuration = 30;
 import type { CartItem } from "../../context/CartContext";
 import { USER_SESSION_COOKIE } from "../../lib/user-auth.constants";
-import { forwardOrderCreate } from "../../lib/orders-proxy.server";
+import { getApiBaseUrl } from "../../lib/api-client";
+import {
+  forwardOrderCreate,
+  ORDER_IDEMPOTENCY_RECOVERY_MS,
+} from "../../lib/orders-proxy.server";
 import { getOrderByTrackingId, type OrderPayload } from "../../lib/orders.server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const idempotencyKey = searchParams.get("idempotencyKey")?.trim();
   const trackingId = searchParams.get("trackingId")?.trim().toUpperCase();
+
+  if (idempotencyKey) {
+    const base = getApiBaseUrl();
+    if (!base) {
+      return NextResponse.json(
+        { success: false, message: "Order service is not configured." },
+        { status: 503 }
+      );
+    }
+    try {
+      const upstream = await fetch(
+        `${base}/orders?idempotencyKey=${encodeURIComponent(idempotencyKey)}`,
+        { signal: AbortSignal.timeout(ORDER_IDEMPOTENCY_RECOVERY_MS) }
+      );
+      const data = await upstream.json();
+      return NextResponse.json(data, {
+        status: upstream.ok ? 200 : upstream.status >= 400 ? upstream.status : 404,
+      });
+    } catch {
+      return NextResponse.json(
+        { success: false, message: "Unable to look up your order." },
+        { status: 503 }
+      );
+    }
+  }
 
   if (!trackingId) {
     return NextResponse.json(

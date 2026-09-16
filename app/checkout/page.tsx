@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
@@ -9,6 +9,11 @@ import { formatPrice } from "../lib/formatPrice";
 import { buildWhatsAppUrl } from "../lib/whatsapp";
 import DemoModeBanner from "../components/DemoModeBanner";
 import { SITE } from "../config/site";
+import {
+  checkoutCartFingerprint,
+  clearCheckoutIdempotencyKey,
+  getOrCreateCheckoutIdempotencyKey,
+} from "../lib/checkout-idempotency";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -26,7 +31,7 @@ export default function CheckoutPage() {
   const [city, setCity] = useState("");
   const [saveAddress, setSaveAddress] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const idempotencyKeyRef = useRef<string | null>(null);
+  const cartFingerprint = useMemo(() => checkoutCartFingerprint(items), [items]);
 
   useEffect(() => {
     fetch("/api/auth/me?include=all")
@@ -66,16 +71,14 @@ export default function CheckoutPage() {
     setDeliveryError("");
     setLoading(true);
 
-    if (!idempotencyKeyRef.current) {
-      idempotencyKeyRef.current = crypto.randomUUID();
-    }
+    const idempotencyKey = getOrCreateCheckoutIdempotencyKey(cartFingerprint);
 
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Idempotency-Key": idempotencyKeyRef.current,
+          "Idempotency-Key": idempotencyKey,
         },
         body: JSON.stringify({ name, email, phone, address, city, items, saveAddress }),
       });
@@ -83,10 +86,27 @@ export default function CheckoutPage() {
 
       if (data.success === true) {
         setTrackingId(data.trackingId);
-        setOrderTotal(total);
+        setOrderTotal(
+          typeof data.order?.total === "number" ? data.order.total : total
+        );
         clearCart();
-        idempotencyKeyRef.current = null;
+        clearCheckoutIdempotencyKey(cartFingerprint);
         setStep(2);
+      } else if (data.proxyError === true) {
+        const recovery = await fetch(
+          `/api/orders?idempotencyKey=${encodeURIComponent(idempotencyKey)}`
+        ).then((r) => r.json());
+        if (recovery.success === true && recovery.trackingId) {
+          setTrackingId(recovery.trackingId);
+          setOrderTotal(
+            typeof recovery.order?.total === "number" ? recovery.order.total : total
+          );
+          clearCart();
+          clearCheckoutIdempotencyKey(cartFingerprint);
+          setStep(2);
+        } else {
+          alert(data.message || "Checkout failed. Please try again.");
+        }
       } else {
         alert(data.message || "Checkout failed. Please try again.");
       }
