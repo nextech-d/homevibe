@@ -3,14 +3,6 @@ import "server-only";
 import { Resend } from "resend";
 import { SITE } from "../config/site";
 import { absoluteUrl } from "./seo";
-import type { OrderPayload } from "./orders.server";
-
-type OrderEmailDetails = {
-  trackingId: string;
-  total: number;
-  customer: Pick<OrderPayload, "name" | "email" | "phone" | "address" | "city">;
-  items: OrderPayload["items"];
-};
 
 type StatusEmailDetails = {
   trackingId: string;
@@ -18,14 +10,6 @@ type StatusEmailDetails = {
   customerName: string;
   customerEmail: string;
 };
-
-function formatKes(amount: number): string {
-  return new Intl.NumberFormat(SITE.currency.locale, {
-    style: "currency",
-    currency: SITE.currency.code,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function emailShell(title: string, body: string): string {
   return `
@@ -44,66 +28,6 @@ function emailShell(title: string, body: string): string {
   </p>
 </body>
 </html>`;
-}
-
-function buildItemsHtml(items: OrderPayload["items"]): string {
-  const rows = items
-    .map(
-      (item) =>
-        `<tr>
-          <td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">${item.name} × ${item.qty}</td>
-          <td style="padding:8px 0;border-bottom:1px solid #f5f5f5;text-align:right;font-weight:600;">
-            ${formatKes(item.price * item.qty)}
-          </td>
-        </tr>`
-    )
-    .join("");
-
-  return `
-    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:16px 0;">
-      ${rows}
-    </table>`;
-}
-
-function buildOrderHtml(order: OrderEmailDetails): string {
-  const trackUrl = absoluteUrl(`/track-order?id=${encodeURIComponent(order.trackingId)}`);
-
-  return emailShell(
-    `Order ${order.trackingId}`,
-    `
-    <p style="margin:0 0 12px;"><strong>${order.customer.name}</strong></p>
-    <p style="margin:0 0 12px;font-size:14px;color:#525252;">
-      ${order.customer.email} · ${order.customer.phone}<br />
-      ${order.customer.address}, ${order.customer.city}
-    </p>
-    ${buildItemsHtml(order.items)}
-    <p style="font-size:16px;font-weight:700;margin:16px 0 0;">Total: ${formatKes(order.total)}</p>
-    <p style="margin:20px 0 0;">
-      <a href="${trackUrl}" style="display:inline-block;background:#171717;color:#fff;text-decoration:none;padding:12px 20px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">
-        Track order
-      </a>
-    </p>`
-  );
-}
-
-function buildCustomerConfirmationHtml(order: OrderEmailDetails): string {
-  const trackUrl = absoluteUrl(`/track-order?id=${encodeURIComponent(order.trackingId)}`);
-
-  return emailShell(
-    `Thanks for your order, ${order.customer.name}!`,
-    `
-    <p style="margin:0 0 12px;font-size:14px;">
-      Your reference is <strong style="font-family:monospace;">${order.trackingId}</strong>.
-      We'll contact you at <strong>${order.customer.phone}</strong> to confirm delivery and payment.
-    </p>
-    ${buildItemsHtml(order.items)}
-    <p style="font-size:16px;font-weight:700;margin:16px 0 0;">Total: ${formatKes(order.total)}</p>
-    <p style="margin:20px 0 0;">
-      <a href="${trackUrl}" style="display:inline-block;background:#059669;color:#fff;text-decoration:none;padding:12px 20px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">
-        Track your order
-      </a>
-    </p>`
-  );
 }
 
 function buildStatusUpdateHtml(order: StatusEmailDetails): string {
@@ -127,36 +51,6 @@ function buildStatusUpdateHtml(order: StatusEmailDetails): string {
   );
 }
 
-async function sendEmails(
-  sends: Promise<{ data: unknown; error: unknown }>[]
-): Promise<void> {
-  await Promise.allSettled(sends);
-}
-
-export async function sendOrderEmails(order: OrderEmailDetails): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return;
-
-  const resend = new Resend(apiKey);
-  const from = process.env.EMAIL_FROM ?? "HomeVibe <onboarding@resend.dev>";
-  const notifyEmail = process.env.ORDER_NOTIFY_EMAIL ?? SITE.email;
-
-  await sendEmails([
-    resend.emails.send({
-      from,
-      to: notifyEmail,
-      subject: `New order ${order.trackingId}`,
-      html: buildOrderHtml(order),
-    }),
-    resend.emails.send({
-      from,
-      to: order.customer.email,
-      subject: `Your HomeVibe order ${order.trackingId}`,
-      html: buildCustomerConfirmationHtml(order),
-    }),
-  ]);
-}
-
 export async function sendOrderStatusEmail(order: StatusEmailDetails): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return;
@@ -164,7 +58,7 @@ export async function sendOrderStatusEmail(order: StatusEmailDetails): Promise<v
   const resend = new Resend(apiKey);
   const from = process.env.EMAIL_FROM ?? "HomeVibe <onboarding@resend.dev>";
 
-  await sendEmails([
+  await Promise.allSettled([
     resend.emails.send({
       from,
       to: order.customerEmail,
