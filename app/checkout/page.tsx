@@ -69,11 +69,11 @@ export default function CheckoutPage() {
       const response = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone, address, city, items, total, saveAddress }),
+        body: JSON.stringify({ name, email, phone, address, city, items, saveAddress }),
       });
       const data = await response.json();
 
-      if (data.success) {
+      if (data.success === true) {
         setTrackingId(data.trackingId);
         setOrderTotal(total);
         clearCart();

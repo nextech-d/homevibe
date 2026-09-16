@@ -1,7 +1,12 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+
+/** Vercel/serverless budget for this route (seconds). Proxy timeout must stay below this. */
+export const maxDuration = 30;
 import type { CartItem } from "../../context/CartContext";
-import { createOrder, getOrderByTrackingId, type OrderPayload } from "../../lib/orders.server";
-import { getCurrentUser } from "../../lib/users.server";
+import { USER_SESSION_COOKIE } from "../../lib/user-auth.constants";
+import { forwardOrderCreate } from "../../lib/orders-proxy.server";
+import { getOrderByTrackingId, type OrderPayload } from "../../lib/orders.server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -29,18 +34,18 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as OrderPayload;
-    const { name, email, phone, address, city, items, total, saveAddress } = payload;
+    const { name, email, phone, address, city, items, saveAddress } = payload;
 
     if (!name?.trim() || !email?.trim() || !phone?.trim() || !address?.trim() || !city?.trim()) {
       return NextResponse.json(
-        { success: false, message: "Delivery information is required." },
+        { success: false, proxyError: false, message: "Delivery information is required." },
         { status: 400 }
       );
     }
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
-        { success: false, message: "Your cart is empty." },
+        { success: false, proxyError: false, message: "Your cart is empty." },
         { status: 400 }
       );
     }
@@ -56,50 +61,36 @@ export async function POST(request: Request) {
 
     if (validItems.length === 0) {
       return NextResponse.json(
-        { success: false, message: "Your cart items are invalid." },
+        { success: false, proxyError: false, message: "Your cart items are invalid." },
         { status: 400 }
       );
     }
 
-    const order = await createOrder({
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      address: address.trim(),
-      city: city.trim(),
-      items: validItems,
-      total: typeof total === "number" ? total : 0,
-      userId: (await getCurrentUser())?.id,
-      saveAddress: Boolean(saveAddress),
-    });
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get(USER_SESSION_COOKIE)?.value;
 
-    return NextResponse.json({
-      success: true,
-      message: "Order placed successfully.",
-      trackingId: order.trackingId,
-      order,
-    });
-  } catch (error: unknown) {
-    console.error("Order processing failure:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    const validationErrors = [
-      "empty",
-      "invalid",
-      "unavailable",
-      "out of stock",
-      "DATABASE_URL",
-    ];
-    const isValidation = validationErrors.some((phrase) =>
-      message.toLowerCase().includes(phrase)
+    return forwardOrderCreate(
+      {
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        address: address.trim(),
+        city: city.trim(),
+        items: validItems,
+        saveAddress: Boolean(saveAddress),
+      },
+      sessionToken
     );
-    const status = message.includes("DATABASE_URL") ? 503 : isValidation ? 400 : 500;
+  } catch (error: unknown) {
+    console.error("Order proxy request parse failure:", error);
     return NextResponse.json(
       {
         success: false,
-        message: isValidation ? message : "Unable to place your order. Please try again.",
-        error: message,
+        code: "ORDER_PROXY_UNAVAILABLE",
+        proxyError: true,
+        message: "Unable to process your order request. Please try again.",
       },
-      { status }
+      { status: 500 }
     );
   }
 }
