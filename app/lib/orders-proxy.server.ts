@@ -28,7 +28,8 @@ type ForwardBody = Pick<
  */
 export async function forwardOrderCreate(
   payload: ForwardBody,
-  sessionToken?: string | null
+  sessionToken?: string | null,
+  idempotencyKey?: string | null
 ): Promise<Response> {
   const base = getApiBaseUrl();
   if (!base) {
@@ -46,6 +47,9 @@ export async function forwardOrderCreate(
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (sessionToken?.trim()) {
     headers.Authorization = `Bearer ${sessionToken.trim()}`;
+  }
+  if (idempotencyKey?.trim()) {
+    headers["Idempotency-Key"] = idempotencyKey.trim();
   }
 
   let upstream: Response;

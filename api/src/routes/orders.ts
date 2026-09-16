@@ -45,6 +45,11 @@ ordersRoute.post("/", async (c) => {
 
     const sessionToken = extractBearerToken(c.req.header("Authorization"));
     const user = await getUserBySessionId(sessionToken ?? undefined);
+    const idempotencyKey =
+      c.req.header("Idempotency-Key")?.trim() ||
+      (typeof (payload as { idempotencyKey?: string }).idempotencyKey === "string"
+        ? (payload as { idempotencyKey?: string }).idempotencyKey?.trim()
+        : undefined);
 
     const order = await createOrder({
       name: name.trim(),
@@ -56,6 +61,7 @@ ordersRoute.post("/", async (c) => {
       total: 0,
       userId: user?.id,
       saveAddress: Boolean(saveAddress),
+      idempotencyKey,
     });
 
     return c.json({
@@ -67,7 +73,7 @@ ordersRoute.post("/", async (c) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     const isValidation =
-      /empty|invalid|unavailable|out of stock|DATABASE_URL/i.test(message);
+      /empty|invalid|unavailable|out of stock|idempotency|DATABASE_URL/i.test(message);
     const status = message.includes("DATABASE_URL") ? 503 : isValidation ? 400 : 500;
     return c.json(
       {

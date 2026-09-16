@@ -15,7 +15,70 @@ export type OrderPayload = {
   total: number;
   userId?: number;
   saveAddress?: boolean;
+  idempotencyKey?: string;
 };
+
+type OrderWithItems = {
+  trackingId: string;
+  orderDate: Date;
+  status: OrderStatus;
+  paymentStatus: PaymentStatus;
+  totalKes: number;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  deliveryAddress: string;
+  deliveryCity: string;
+  items: {
+    productId: number | null;
+    name: string;
+    priceKes: number;
+    quantity: number;
+    imageUrl: string;
+  }[];
+};
+
+function normalizeIdempotencyKey(key: string | undefined): string | undefined {
+  const trimmed = key?.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.length < 8 || trimmed.length > 128) {
+    throw new Error("Invalid idempotency key.");
+  }
+  return trimmed;
+}
+
+function mapOrderRecordToCreateResult(order: OrderWithItems) {
+  return {
+    trackingId: order.trackingId,
+    orderDate: order.orderDate.toISOString(),
+    status: statusLabel(order.status),
+    paymentStatus: paymentStatusLabel(order.paymentStatus),
+    total: order.totalKes,
+    customer: {
+      name: order.customerName,
+      email: order.customerEmail,
+      phone: order.customerPhone,
+      address: order.deliveryAddress,
+      city: order.deliveryCity,
+    },
+    items: order.items.map((item) => ({
+      id: item.productId ?? 0,
+      name: item.name,
+      price: item.priceKes,
+      qty: item.quantity,
+      image: item.imageUrl,
+    })),
+  };
+}
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: string }).code === "P2002"
+  );
+}
 
 export type PublicOrder = {
   trackingId: string;
@@ -200,6 +263,18 @@ export async function createOrder(payload: OrderPayload) {
   }
 
   const { name, email, phone, address, city, items, userId, saveAddress } = payload;
+  const idempotencyKey = normalizeIdempotencyKey(payload.idempotencyKey);
+
+  if (idempotencyKey) {
+    const existing = await prisma.order.findUnique({
+      where: { idempotencyKey },
+      include: { items: true },
+    });
+    if (existing) {
+      return mapOrderRecordToCreateResult(existing);
+    }
+  }
+
   const validated = await validateOrderItems(items);
   if (!validated.ok) {
     throw new Error(validated.message);
@@ -208,28 +283,43 @@ export async function createOrder(payload: OrderPayload) {
   const { items: resolvedItems, total } = validated;
   const trackingId = await generateTrackingId();
 
-  const order = await prisma.order.create({
-    data: {
-      trackingId,
-      userId: userId ?? null,
-      customerName: name.trim(),
-      customerEmail: email.trim(),
-      customerPhone: phone.trim(),
-      deliveryAddress: address.trim(),
-      deliveryCity: city.trim(),
-      totalKes: total,
-      items: {
-        create: resolvedItems.map((item) => ({
-          productId: item.id,
-          name: item.name,
-          priceKes: item.price,
-          quantity: item.qty,
-          imageUrl: item.image,
-        })),
+  let order;
+  try {
+    order = await prisma.order.create({
+      data: {
+        idempotencyKey: idempotencyKey ?? null,
+        trackingId,
+        userId: userId ?? null,
+        customerName: name.trim(),
+        customerEmail: email.trim(),
+        customerPhone: phone.trim(),
+        deliveryAddress: address.trim(),
+        deliveryCity: city.trim(),
+        totalKes: total,
+        items: {
+          create: resolvedItems.map((item) => ({
+            productId: item.id,
+            name: item.name,
+            priceKes: item.price,
+            quantity: item.qty,
+            imageUrl: item.image,
+          })),
+        },
       },
-    },
-    include: { items: true },
-  });
+      include: { items: true },
+    });
+  } catch (error) {
+    if (idempotencyKey && isUniqueConstraintError(error)) {
+      const existing = await prisma.order.findUnique({
+        where: { idempotencyKey },
+        include: { items: true },
+      });
+      if (existing) {
+        return mapOrderRecordToCreateResult(existing);
+      }
+    }
+    throw error;
+  }
 
   if (userId && saveAddress) {
     const { createSavedAddress, listUserAddresses } = await import("./users.js");

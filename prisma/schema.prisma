@@ -120,6 +120,7 @@ enum PaymentStatus {
 
 model Order {
   id              Int           @id @default(autoincrement())
+  idempotencyKey  String?       @unique @map("idempotency_key")
   trackingId      String        @unique @map("tracking_id")
   status          OrderStatus   @default(confirmed)
   paymentStatus   PaymentStatus @default(pending) @map("payment_status")

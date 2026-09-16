@@ -68,6 +68,7 @@ export async function POST(request: Request) {
 
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get(USER_SESSION_COOKIE)?.value;
+    const idempotencyKey = request.headers.get("Idempotency-Key");
 
     return forwardOrderCreate(
       {
@@ -79,7 +80,8 @@ export async function POST(request: Request) {
         items: validItems,
         saveAddress: Boolean(saveAddress),
       },
-      sessionToken
+      sessionToken,
+      idempotencyKey
     );
   } catch (error: unknown) {
     console.error("Order proxy request parse failure:", error);

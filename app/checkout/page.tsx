@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
@@ -26,6 +26,7 @@ export default function CheckoutPage() {
   const [city, setCity] = useState("");
   const [saveAddress, setSaveAddress] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me?include=all")
@@ -65,10 +66,17 @@ export default function CheckoutPage() {
     setDeliveryError("");
     setLoading(true);
 
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = crypto.randomUUID();
+    }
+
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKeyRef.current,
+        },
         body: JSON.stringify({ name, email, phone, address, city, items, saveAddress }),
       });
       const data = await response.json();
@@ -77,6 +85,7 @@ export default function CheckoutPage() {
         setTrackingId(data.trackingId);
         setOrderTotal(total);
         clearCart();
+        idempotencyKeyRef.current = null;
         setStep(2);
       } else {
         alert(data.message || "Checkout failed. Please try again.");
