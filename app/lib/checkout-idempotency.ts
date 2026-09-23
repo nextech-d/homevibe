@@ -1,6 +1,9 @@
 import type { CartItem } from "../context/CartContext";
 
-const STORAGE_PREFIX = "patril_checkout_idempotency_v1:";
+import { readMigrated } from "./storage-migration";
+
+const STORAGE_PREFIX = "homevibe_checkout_idempotency_v1:";
+const LEGACY_STORAGE_PREFIX = "patril_checkout_idempotency_v1:";
 
 /** Stable fingerprint for the current cart lines (same cart → same key slot). */
 export function checkoutCartFingerprint(items: CartItem[]): string {
@@ -16,7 +19,11 @@ export function getOrCreateCheckoutIdempotencyKey(fingerprint: string): string {
   }
   const storageKey = STORAGE_PREFIX + fingerprint;
   try {
-    const existing = sessionStorage.getItem(storageKey);
+    const existing = readMigrated(
+      sessionStorage,
+      storageKey,
+      LEGACY_STORAGE_PREFIX + fingerprint
+    );
     if (existing && existing.length >= 8) {
       return existing;
     }
@@ -32,6 +39,7 @@ export function clearCheckoutIdempotencyKey(fingerprint: string): void {
   if (typeof window === "undefined") return;
   try {
     sessionStorage.removeItem(STORAGE_PREFIX + fingerprint);
+    sessionStorage.removeItem(LEGACY_STORAGE_PREFIX + fingerprint);
   } catch {
     /* ignore */
   }

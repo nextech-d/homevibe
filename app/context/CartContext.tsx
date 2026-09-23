@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { readMigrated } from '../lib/storage-migration';
 
 export type CartItem = {
   id: number;
@@ -36,9 +37,12 @@ type CartContextProps = {
 
 const CartContext = createContext<CartContextProps | undefined>(undefined);
 
+const CART_STORAGE_KEY = "homevibe_cart";
+const LEGACY_CART_STORAGE_KEY = "patril_cart";
+
 function readStoredCart(): CartItem[] {
   try {
-    const stored = localStorage.getItem("patril_cart");
+    const stored = readMigrated(localStorage, CART_STORAGE_KEY, LEGACY_CART_STORAGE_KEY);
     const parsed = stored ? (JSON.parse(stored) as unknown) : null;
     if (!Array.isArray(parsed)) return [];
     return parsed as CartItem[];
@@ -73,7 +77,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const saveItems = (newItems: CartItem[]) => {
     setItems(newItems);
     try {
-      localStorage.setItem("patril_cart", JSON.stringify(newItems));
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
     } catch (e) {
       console.error("Failed to save cart items to localStorage", e);
     }

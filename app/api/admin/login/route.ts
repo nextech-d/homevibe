@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { ADMIN_COOKIE, getAdminToken } from "../../../lib/admin-auth";
+import {
+  ADMIN_COOKIE,
+  ADMIN_COOKIE_MAX_AGE_SECONDS,
+  getAdminToken,
+} from "../../../lib/admin-auth";
 
 export async function POST(request: Request) {
   const token = await getAdminToken();
@@ -22,7 +26,7 @@ export async function POST(request: Request) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 24 * 7,
+    maxAge: ADMIN_COOKIE_MAX_AGE_SECONDS,
   });
 
   return NextResponse.json({ success: true });

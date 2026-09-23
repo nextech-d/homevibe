@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 /** Vercel/serverless budget for this route (seconds). Proxy timeout must stay below this. */
 export const maxDuration = 30;
 import type { CartItem } from "../../context/CartContext";
-import { USER_SESSION_COOKIE } from "../../lib/user-auth.constants";
+import { readUserSessionCookie } from "../../lib/user-auth.constants";
 import { getApiBaseUrl } from "../../lib/api-client";
 import {
   forwardOrderCreate,
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
     }
 
     const cookieStore = await cookies();
-    const sessionToken = cookieStore.get(USER_SESSION_COOKIE)?.value;
+    const sessionToken = readUserSessionCookie(cookieStore);
     const idempotencyKey = request.headers.get("Idempotency-Key");
 
     return forwardOrderCreate(

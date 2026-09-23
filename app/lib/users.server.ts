@@ -3,7 +3,12 @@ import "server-only";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { getPrisma } from "./db";
-import { SESSION_MAX_AGE_SECONDS, USER_SESSION_COOKIE } from "./user-auth.constants";
+import {
+  LEGACY_USER_SESSION_COOKIE,
+  SESSION_MAX_AGE_SECONDS,
+  USER_SESSION_COOKIE,
+  readUserSessionCookie,
+} from "./user-auth.constants";
 
 export type AuthUser = {
   id: number;
@@ -57,8 +62,9 @@ export async function setUserSession(sessionId: string): Promise<void> {
 
 export async function clearUserSession(): Promise<void> {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get(USER_SESSION_COOKIE)?.value;
+  const sessionId = readUserSessionCookie(cookieStore);
   cookieStore.delete(USER_SESSION_COOKIE);
+  cookieStore.delete(LEGACY_USER_SESSION_COOKIE);
 
   if (sessionId) {
     const prisma = getPrisma();
@@ -73,7 +79,7 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   if (!prisma) return null;
 
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get(USER_SESSION_COOKIE)?.value;
+  const sessionId = readUserSessionCookie(cookieStore);
   if (!sessionId) return null;
 
   const session = await prisma.session.findUnique({

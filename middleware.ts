@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { ADMIN_COOKIE, getAdminToken } from "./app/lib/admin-auth";
+import {
+  ADMIN_COOKIE,
+  LEGACY_ADMIN_COOKIE,
+  ADMIN_COOKIE_MAX_AGE_SECONDS,
+  getAdminToken,
+  readAdminCookie,
+} from "./app/lib/admin-auth";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -52,7 +58,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
-  const session = request.cookies.get(ADMIN_COOKIE)?.value;
+  const session = readAdminCookie(request.cookies);
   if (session !== expected) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ success: false, message: "Unauthorized." }, { status: 401 });
@@ -60,7 +66,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/admin/login", request.url));
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  /** Move a still-valid pre-rename cookie onto the current name, once. */
+  if (!request.cookies.has(ADMIN_COOKIE)) {
+    response.cookies.set(ADMIN_COOKIE, session, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: ADMIN_COOKIE_MAX_AGE_SECONDS,
+    });
+    response.cookies.delete(LEGACY_ADMIN_COOKIE);
+  }
+
+  return response;
 }
 
 export const config = {

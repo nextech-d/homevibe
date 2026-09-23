@@ -1,11 +1,25 @@
-const TOKEN_KEY = "patril_admin_token";
+const TOKEN_KEY = "homevibe_admin_token";
+/** Pre-rename key. Read-only: migrated on first read so logins survive. */
+const LEGACY_TOKEN_KEY = "patril_admin_token";
 
 const base =
   import.meta.env.VITE_API_URL?.replace(/\/$/, "") ||
   (import.meta.env.DEV ? "/api" : "https://api.homevibe.co.ke/api");
 
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  try {
+    const current = localStorage.getItem(TOKEN_KEY);
+    if (current !== null) return current;
+
+    const legacy = localStorage.getItem(LEGACY_TOKEN_KEY);
+    if (legacy === null) return null;
+
+    localStorage.setItem(TOKEN_KEY, legacy);
+    localStorage.removeItem(LEGACY_TOKEN_KEY);
+    return legacy;
+  } catch {
+    return null;
+  }
 }
 
 export function setToken(token: string): void {
@@ -14,6 +28,7 @@ export function setToken(token: string): void {
 
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
 }
 
 type ApiOptions = RequestInit & { auth?: boolean };
