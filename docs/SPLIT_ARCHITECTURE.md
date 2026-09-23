@@ -114,4 +114,4 @@ Next steps: point store checkout and account flows at the external API; remove e
 
 ## Splitting into separate Git repos
 
-Each folder (`api/`, `admin/`, store root) can become its own repository. Move `prisma/` source of truth to `patril-api` only when the store no longer runs Prisma locally.
+Each folder (`api/`, `admin/`, store root) can become its own repository. Move `prisma/` source of truth to `homevibe-api` only when the store no longer runs Prisma locally.

@@ -1,5 +1,5 @@
 export const runtime = "nodejs";
 
 export function GET() {
-  return Response.json({ ok: true, service: "patril-api" });
+  return Response.json({ ok: true, service: "homevibe-api" });
 }

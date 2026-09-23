@@ -51,7 +51,7 @@ export function createApp(basePath = "") {
     })
   );
 
-  app.get("/health", (c) => c.json({ ok: true, service: "patril-api" }));
+  app.get("/health", (c) => c.json({ ok: true, service: "homevibe-api" }));
 
   app.get("/products", async (c) => {
     try {

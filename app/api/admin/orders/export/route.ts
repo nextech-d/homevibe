@@ -4,7 +4,7 @@ import { listOrders, ordersToCsv } from "../../../../lib/orders.server";
 export async function GET() {
   const orders = await listOrders();
   const csv = ordersToCsv(orders);
-  const filename = `patril-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+  const filename = `homevibe-orders-${new Date().toISOString().slice(0, 10)}.csv`;
 
   return new NextResponse(csv, {
     headers: {
