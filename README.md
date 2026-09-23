@@ -50,7 +50,7 @@ Set `NEXT_PUBLIC_DEMO_MODE=true` in `.env.local` to match staging behaviour (sim
 git add .
 git commit -m "Prepare for Vercel deploy"
 git branch -M main
-git remote add origin https://github.com/YOUR_USER/patrilappliances.git
+git remote add origin https://github.com/nextech-d/homevibe.git
 git push -u origin main
 ```
 

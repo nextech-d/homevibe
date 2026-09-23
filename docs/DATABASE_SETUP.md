@@ -5,7 +5,7 @@ Day 1 wires the **product catalog** to PostgreSQL. Day 2 adds **order persistenc
 ## 1. Create Neon database
 
 1. Go to [neon.tech](https://neon.tech) and sign up / log in.
-2. **New Project** → name it `patrilappliances`.
+2. **New Project** → name it `homevibe`.
 3. Copy the **connection string** (starts with `postgresql://`).
 
 ## 2. Local environment
@@ -155,7 +155,7 @@ Sign up at [resend.com](https://resend.com), verify your domain (or use their sa
 ```
 RESEND_API_KEY=re_...
 EMAIL_FROM=Patril Appliances <orders@yourdomain.com>
-ORDER_NOTIFY_EMAIL=hello@patrilappliances.com
+ORDER_NOTIFY_EMAIL=hello@homevibe.co.ke
 ```
 
 ## Order tracking (Day 5)

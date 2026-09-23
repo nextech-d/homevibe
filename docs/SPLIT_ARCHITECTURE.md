@@ -3,9 +3,9 @@
 Patril is split into three apps that can be deployed separately or run together locally.
 
 ```
-patrilappliances/          Storefront (Next.js)     → patrilappliances.vercel.app
-patrilappliances/api/      Backend API (Hono)       → api.patrilappliances.com
-patrilappliances/admin/    Admin UI (Vite React)    → admin.patrilappliances.com
+homevibe/          Storefront (Next.js)     → homevibe.co.ke
+homevibe/api/      Backend API (Hono)       → api.homevibe.co.ke
+homevibe/admin/    Admin UI (Vite React)    → admin.homevibe.co.ke
                               ↓
                          Neon Postgres
 ```

@@ -16,7 +16,7 @@ npm run dev:all
 | **Admin** | http://localhost:5173 | Operations — orders, products, catalog |
 | **API** | http://localhost:4000/health | Backend health check |
 
-**Production store:** https://patrilappliances.vercel.app
+**Production store:** https://homevibe.co.ke
 
 ---
 
