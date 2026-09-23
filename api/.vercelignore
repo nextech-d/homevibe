@@ -1,0 +1,10 @@
+# Intentionally empty.
+#
+# This project must build with its own directory as the build context, so
+# that Vercel resolves THIS file rather than the repository root's
+# .vercelignore — which ignores /api/ to keep the shop deploy under the
+# Hobby serverless-function cap, and would otherwise strip this project's
+# own package.json before `npm install` runs.
+#
+# Requires "Include source files outside of the Root Directory in the Build
+# Step" to be OFF for the homevibe-api project. See docs/SPLIT_ARCHITECTURE.md.

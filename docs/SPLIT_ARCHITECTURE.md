@@ -115,3 +115,29 @@ Next steps: point store checkout and account flows at the external API; remove e
 ## Splitting into separate Git repos
 
 Each folder (`api/`, `admin/`, store root) can become its own repository. Move `prisma/` source of truth to `homevibe-api` only when the store no longer runs Prisma locally.
+
+## Why the API project needs its own build context
+
+The repository root `.vercelignore` ignores `/api/`. It has to: the shop
+project builds from the repository root, where a top-level `api/` directory
+is picked up as standalone serverless functions, and the Hono app has far
+more than the twelve a Hobby deployment allows.
+
+That same file is applied when the **homevibe-api** project builds from git,
+which stripped `api/package.json` and failed every deploy with:
+
+```
+npm error enoent Could not read package.json:
+  ENOENT: open '/vercel/path0/api/package.json'
+```
+
+Between 2026-09-16 and 2026-09-23 the only successful API deploys were manual
+`vercel` CLI pushes run from inside `api/`, which upload that directory
+directly and never consult the repository root.
+
+The fix is to turn **off** "Include source files outside of the Root Directory
+in the Build Step" for the homevibe-api project (Settings → Build & Deployment).
+Vercel then uses `api/` as the build context and resolves `api/.vercelignore`,
+which is deliberately empty. `api/` is self-contained — it has its own
+`package.json`, `prisma/` and `vercel.json`, and its imports never reach
+outside the directory — so nothing is lost by narrowing the context.
