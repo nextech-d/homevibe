@@ -2,14 +2,14 @@ export const SITE = {
   name: "HomeVibe",
   tagline: "Kitchen & gym gear you can trust",
   demoMode: process.env.NEXT_PUBLIC_DEMO_MODE === "true",
-  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "254719705935",
+  whatsapp: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "254182230250",
   social: {
     facebook: process.env.NEXT_PUBLIC_FACEBOOK_URL ?? "https://facebook.com/homevibe",
     instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "https://instagram.com/homevibe",
     tiktok: process.env.NEXT_PUBLIC_TIKTOK_URL ?? "https://tiktok.com/@homevibe",
   },
   email: "hello@homevibe.co.ke",
-  phone: "+254 719 705 935",
+  phone: "+254 182 230 250",
   region: "East & Central Africa",
   city: "Nairobi",
   currency: {
