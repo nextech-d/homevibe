@@ -1,5 +1,5 @@
 /**
- * Base URL for the standalone Patril API.
+ * Base URL for the standalone HomeVibe API.
  * When unset, the storefront uses embedded Next.js `/api` routes.
  */
 export function getApiBaseUrl(): string {

@@ -1,6 +1,6 @@
 # Split architecture (API + Admin + Store)
 
-Patril is split into three apps that can be deployed separately or run together locally.
+HomeVibe is split into three apps that can be deployed separately or run together locally.
 
 ```
 homevibe/          Storefront (Next.js)     → homevibe.co.ke

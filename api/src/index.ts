@@ -9,7 +9,7 @@ loadEnv({ override: true });
 const app = createApp();
 const port = Number(process.env.PORT ?? 4000);
 
-console.log(`Patril API listening on http://localhost:${port}`);
+console.log(`HomeVibe API listening on http://localhost:${port}`);
 
 serve({ fetch: app.fetch, port });
 

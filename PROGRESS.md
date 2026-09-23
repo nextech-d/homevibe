@@ -1,4 +1,4 @@
-# Patril — local progress tracker
+# HomeVibe — local progress tracker
 
 **Start everything (one command):**
 

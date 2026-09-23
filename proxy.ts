@@ -8,7 +8,7 @@ import {
   readAdminCookie,
 } from "./app/lib/admin-auth";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isLoginPage = pathname === "/admin/login";
   const isLoginApi = pathname === "/api/admin/login";
@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: "Legacy admin API is disabled. Use the Patril Admin app.",
+          message: "Legacy admin API is disabled. Use the HomeVibe Admin app.",
         },
         { status: 410 }
       );
