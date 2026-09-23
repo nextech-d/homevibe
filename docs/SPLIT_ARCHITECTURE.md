@@ -135,9 +135,31 @@ Between 2026-09-16 and 2026-09-23 the only successful API deploys were manual
 `vercel` CLI pushes run from inside `api/`, which upload that directory
 directly and never consult the repository root.
 
-The fix is to turn **off** "Include source files outside of the Root Directory
-in the Build Step" for the homevibe-api project (Settings → Build & Deployment).
-Vercel then uses `api/` as the build context and resolves `api/.vercelignore`,
-which is deliberately empty. `api/` is self-contained — it has its own
-`package.json`, `prisma/` and `vercel.json`, and its imports never reach
-outside the directory — so nothing is lost by narrowing the context.
+The fix is `api/.vercelignore`. Vercel looks for `.vercelignore` in the
+project's Root Directory first and only falls back to the repository root
+when that file is absent, so simply creating it — deliberately empty — is
+enough. No project setting needs changing.
+
+Before, with no `api/.vercelignore`:
+
+```
+Found .vercelignore (repository root)
+Removed 51 ignored files defined in .vercelignore
+  /api/package.json
+  ...
+Error: Command "npm install" exited with 254
+```
+
+After:
+
+```
+Found .vercelignore
+Removed 0 ignored files defined in .vercelignore
+Running "install" command: `npm install`...
+```
+
+Keep `api/.vercelignore` in place even while it is empty: deleting it silently
+hands the API project the repository root's rules again and breaks every
+deploy. `api/` is self-contained — it has its own `package.json`, `prisma/`
+and `vercel.json`, and its imports never reach outside the directory — so it
+has nothing legitimate to exclude.
