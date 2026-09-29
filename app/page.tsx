@@ -3,6 +3,7 @@
 import React from "react";
 import ProductCard from "./components/ProductCard";
 import FeaturedBrands from "./components/FeaturedBrands";
+import GoogleReviews from "./components/GoogleReviews";
 import FeaturedProductsGrid from "./components/FeaturedProductsGrid";
 import HomeHero from "./components/HomeHero";
 import { useAddToCart } from "./hooks/useAddToCart";
@@ -44,6 +45,8 @@ export default function Home() {
         </section>
 
         <FeaturedBrands />
+
+        <GoogleReviews />
 
         <section id="faq" className="mx-auto mt-24 mb-12 max-w-5xl px-6">
           <div className="mb-12 text-center">
