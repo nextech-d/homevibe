@@ -4,6 +4,8 @@ import CategoryCatalog from "../../../components/CategoryCatalog";
 import { getSubcategory } from "../../../data/categories";
 import { getCategoryBySlugFromDb } from "../../../lib/categories.server";
 import { buildPageMetadata } from "../../../lib/seo";
+import { getSeoContext } from "../../../lib/seo.server";
+import { categoryMetaFallback, subcategoryMetaFallback } from "../../../lib/seo-fallbacks";
 
 export const dynamic = "force-dynamic";
 
@@ -24,19 +26,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const subSlug = sub?.[0];
   const subcategory = getSubcategory(slug, subSlug, category);
+  const ctx = await getSeoContext();
 
   if (subcategory) {
+    const fallback = subcategoryMetaFallback(subcategory, category, ctx);
     return buildPageMetadata({
-      title: `${subcategory.label} — ${category.label}`,
-      description: `Shop ${subcategory.label.toLowerCase()} from ${category.label.toLowerCase()} at HomeVibe. Delivery across ${category.label.toLowerCase()} categories in Nairobi and East Africa.`,
+      title: fallback.title,
+      description: fallback.description,
       path: `/category/${slug}/${subSlug}`,
+      siteName: ctx.siteName,
+      defaultOgImage: ctx.defaultOgImage,
     });
   }
 
+  const fallback = categoryMetaFallback(category, ctx);
   return buildPageMetadata({
-    title: category.label,
-    description: category.description,
+    title: fallback.title,
+    description: fallback.description,
     path: `/category/${slug}`,
+    siteName: ctx.siteName,
+    defaultOgImage: ctx.defaultOgImage,
   });
 }
 

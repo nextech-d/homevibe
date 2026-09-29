@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import BrandCatalog from "../../components/BrandCatalog";
 import { buildPageMetadata } from "../../lib/seo";
+import { getSeoContext } from "../../lib/seo.server";
+import { brandMetaFallback } from "../../lib/seo-fallbacks";
 import { getBrandBySlugFromDb } from "../../lib/brands.server";
 
 type BrandPageProps = {
@@ -19,12 +21,15 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
     });
   }
 
-  const fallbackDescription = `Shop ${brand.name} kitchen and gym appliances at HomeVibe. ${brand.tier === "signature" ? "Signature" : "Partner"} brand from ${brand.origin}.`;
+  const ctx = await getSeoContext();
+  const fallback = brandMetaFallback(brand, ctx);
 
   return buildPageMetadata({
-    title: brand.metaTitle?.trim() || brand.name,
-    description: brand.metaDescription?.trim() || fallbackDescription,
+    title: brand.metaTitle?.trim() || fallback.title,
+    description: brand.metaDescription?.trim() || fallback.description,
     path: `/brand/${slug}`,
+    siteName: ctx.siteName,
+    defaultOgImage: ctx.defaultOgImage,
   });
 }
 
