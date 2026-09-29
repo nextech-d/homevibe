@@ -31,8 +31,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (subcategory) {
     const fallback = subcategoryMetaFallback(subcategory, category, ctx);
     return buildPageMetadata({
-      title: fallback.title,
-      description: fallback.description,
+      title: subcategory.metaTitle?.trim() || fallback.title,
+      description: subcategory.metaDescription?.trim() || fallback.description,
       path: `/category/${slug}/${subSlug}`,
       siteName: ctx.siteName,
       defaultOgImage: ctx.defaultOgImage,
@@ -41,8 +41,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const fallback = categoryMetaFallback(category, ctx);
   return buildPageMetadata({
-    title: fallback.title,
-    description: fallback.description,
+    title: category.metaTitle?.trim() || fallback.title,
+    description: category.metaDescription?.trim() || fallback.description,
     path: `/category/${slug}`,
     siteName: ctx.siteName,
     defaultOgImage: ctx.defaultOgImage,

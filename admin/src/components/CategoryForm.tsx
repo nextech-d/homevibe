@@ -13,6 +13,8 @@ export type CategorySubcategory = {
   label: string;
   slug: string;
   categoryId: number;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   sortOrder: number;
   productCount: number;
 };
@@ -23,6 +25,8 @@ export type CategoryDetail = {
   slug: string;
   navLabel: string;
   description: string;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   sortOrder: number;
   subcategoryCount?: number;
   productCount?: number;
@@ -68,6 +72,8 @@ export default function CategoryForm({ category, mode, onCreated }: Props) {
   const [label, setLabel] = useState(category?.label ?? "");
   const [navLabel, setNavLabel] = useState(category?.navLabel ?? "");
   const [description, setDescription] = useState(category?.description ?? "");
+  const [metaTitle, setMetaTitle] = useState(category?.metaTitle ?? "");
+  const [metaDescription, setMetaDescription] = useState(category?.metaDescription ?? "");
   const [slug, setSlug] = useState(category?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(!!category);
   const [sortOrder, setSortOrder] = useState(String(category?.sortOrder ?? 0));
@@ -90,6 +96,8 @@ export default function CategoryForm({ category, mode, onCreated }: Props) {
       label: label.trim(),
       navLabel: (navLabel || label).trim(),
       description: (description || label).trim(),
+      metaTitle: metaTitle.trim(),
+      metaDescription: metaDescription.trim(),
       slug: slug.trim() || slugify(label),
       sortOrder: Number(sortOrder) || 0,
     };
@@ -160,7 +168,7 @@ export default function CategoryForm({ category, mode, onCreated }: Props) {
         title="Category details"
         description={
           isNew
-            ? "Name, meta title, and description shown on the storefront."
+            ? "Name, navigation text, and description shown on the storefront."
             : "Label, navigation text, and description shown on the storefront."
         }
         icon={Layers}
@@ -180,13 +188,9 @@ export default function CategoryForm({ category, mode, onCreated }: Props) {
           />
         </StorefrontField>
         <StorefrontField
-          label={isNew ? "Meta title" : "Nav label"}
+          label="Nav label"
           sentenceCase={isNew}
-          hint={
-            isNew
-              ? "Page title for SEO and browser tabs."
-              : "Short label used in the header menu."
-          }
+          hint="Short label used in the header menu."
         >
           <input
             required
@@ -201,6 +205,33 @@ export default function CategoryForm({ category, mode, onCreated }: Props) {
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            className={storefrontInputClass}
+          />
+        </StorefrontField>
+        <StorefrontField
+          label="Meta title"
+          hint="Leave empty to use the generated title."
+        >
+          <input
+            value={metaTitle}
+            onChange={(e) => setMetaTitle(e.target.value)}
+            placeholder="SEO page title"
+            className={storefrontInputClass}
+          />
+        </StorefrontField>
+        <StorefrontField
+          label="Meta description"
+          hint={
+            metaDescription
+              ? `${metaDescription.length} characters — aim for 120-155.`
+              : "Leave empty to use the generated description."
+          }
+        >
+          <textarea
+            rows={3}
+            value={metaDescription}
+            onChange={(e) => setMetaDescription(e.target.value)}
+            placeholder="Short summary for search results"
             className={storefrontInputClass}
           />
         </StorefrontField>

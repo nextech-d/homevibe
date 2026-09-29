@@ -164,6 +164,8 @@ adminCatalogRoute.post("/categories", async (c) => {
     slug?: string;
     navLabel?: string;
     description?: string;
+    metaTitle?: string;
+    metaDescription?: string;
     sortOrder?: number;
   };
   if (!body.label || !body.navLabel || !body.description) {
@@ -174,6 +176,8 @@ adminCatalogRoute.post("/categories", async (c) => {
     slug: body.slug,
     navLabel: body.navLabel,
     description: body.description,
+    metaTitle: parseOptionalString(body.metaTitle),
+    metaDescription: parseOptionalString(body.metaDescription),
     sortOrder: body.sortOrder,
   });
   return c.json({ success: true, category });
@@ -211,6 +215,8 @@ adminCatalogRoute.post("/subcategories", async (c) => {
     categoryId?: number;
     label?: string;
     slug?: string;
+    metaTitle?: string;
+    metaDescription?: string;
     sortOrder?: number;
   };
   if (!body.categoryId || !body.label) {
@@ -220,6 +226,8 @@ adminCatalogRoute.post("/subcategories", async (c) => {
     categoryId: body.categoryId,
     label: body.label,
     slug: body.slug,
+    metaTitle: parseOptionalString(body.metaTitle),
+    metaDescription: parseOptionalString(body.metaDescription),
     sortOrder: body.sortOrder,
   });
   return c.json({ success: true, subcategory });

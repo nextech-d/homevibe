@@ -230,6 +230,8 @@ export async function getCategoryById(id: number) {
     label: sub.label,
     slug: sub.slug,
     categoryId: sub.categoryId,
+    metaTitle: sub.metaTitle,
+    metaDescription: sub.metaDescription,
     sortOrder: sub.sortOrder,
     productCount: sub._count.products,
   }));
@@ -242,6 +244,8 @@ export async function getCategoryById(id: number) {
     slug: category.slug,
     navLabel: category.navLabel,
     description: category.description,
+    metaTitle: category.metaTitle,
+    metaDescription: category.metaDescription,
     sortOrder: category.sortOrder,
     subcategoryCount: category._count.subcategories,
     productCount,
@@ -266,6 +270,8 @@ export async function getSubcategoryById(id: number) {
     categoryLabel: subcategory.category.label,
     label: subcategory.label,
     slug: subcategory.slug,
+    metaTitle: subcategory.metaTitle,
+    metaDescription: subcategory.metaDescription,
     sortOrder: subcategory.sortOrder,
     productCount: subcategory._count.products,
   };
@@ -276,6 +282,8 @@ export type CategoryListSubcategory = {
   label: string;
   slug: string;
   categoryId: number;
+  metaTitle: string | null;
+  metaDescription: string | null;
   sortOrder: number;
   productCount: number;
 };
@@ -286,6 +294,8 @@ export type CategoryListItem = {
   slug: string;
   navLabel: string;
   description: string;
+  metaTitle: string | null;
+  metaDescription: string | null;
   sortOrder: number;
   subcategoryCount: number;
   productCount: number;
@@ -303,7 +313,14 @@ export type StorefrontCategory = {
   slug: string;
   navLabel: string;
   description: string;
-  subcategories: { label: string; slug: string }[];
+  metaTitle: string | null;
+  metaDescription: string | null;
+  subcategories: {
+    label: string;
+    slug: string;
+    metaTitle: string | null;
+    metaDescription: string | null;
+  }[];
 };
 
 export async function listCategoriesForStorefront(): Promise<StorefrontCategory[]> {
@@ -320,9 +337,13 @@ export async function listCategoriesForStorefront(): Promise<StorefrontCategory[
     slug: category.slug,
     navLabel: category.navLabel,
     description: category.description,
+    metaTitle: category.metaTitle,
+    metaDescription: category.metaDescription,
     subcategories: category.subcategories.map((sub) => ({
       label: sub.label,
       slug: sub.slug,
+      metaTitle: sub.metaTitle,
+      metaDescription: sub.metaDescription,
     })),
   }));
 }
@@ -368,6 +389,8 @@ export async function listCategoriesFiltered(filters: { q?: string }) {
         label: sub.label,
         slug: sub.slug,
         categoryId: sub.categoryId,
+        metaTitle: sub.metaTitle,
+        metaDescription: sub.metaDescription,
         sortOrder: sub.sortOrder,
         productCount: sub._count.products,
       }));
@@ -380,6 +403,8 @@ export async function listCategoriesFiltered(filters: { q?: string }) {
         slug: category.slug,
         navLabel: category.navLabel,
         description: category.description,
+        metaTitle: category.metaTitle,
+        metaDescription: category.metaDescription,
         sortOrder: category.sortOrder,
         subcategoryCount: subcategories.length,
         productCount,
@@ -428,6 +453,8 @@ export async function createCategory(input: {
   slug?: string;
   navLabel: string;
   description: string;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   sortOrder?: number;
 }) {
   const prisma = getPrisma();
@@ -438,6 +465,8 @@ export async function createCategory(input: {
       slug: slugify(input.slug || input.label),
       navLabel: input.navLabel.trim(),
       description: input.description.trim(),
+      metaTitle: input.metaTitle?.trim() || null,
+      metaDescription: input.metaDescription?.trim() || null,
       sortOrder: input.sortOrder ?? 0,
     },
   });
@@ -450,6 +479,8 @@ export async function updateCategory(
     slug: string;
     navLabel: string;
     description: string;
+    metaTitle: string | null;
+    metaDescription: string | null;
     sortOrder: number;
   }>
 ) {
@@ -460,6 +491,11 @@ export async function updateCategory(
   if (typeof data.navLabel === "string") data.navLabel = data.navLabel.trim();
   if (typeof data.description === "string") data.description = data.description.trim();
   if (typeof data.slug === "string") data.slug = slugify(data.slug);
+  // Empty string clears the override so the generated fallback takes over again.
+  if (data.metaTitle !== undefined) data.metaTitle = data.metaTitle?.trim() || null;
+  if (data.metaDescription !== undefined) {
+    data.metaDescription = data.metaDescription?.trim() || null;
+  }
 
   try {
     return await prisma.category.update({ where: { id }, data });
@@ -545,6 +581,8 @@ export async function createSubcategory(input: {
   categoryId: number;
   label: string;
   slug?: string;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   sortOrder?: number;
 }) {
   const prisma = getPrisma();
@@ -554,6 +592,8 @@ export async function createSubcategory(input: {
       categoryId: input.categoryId,
       label: input.label.trim(),
       slug: slugify(input.slug || input.label),
+      metaTitle: input.metaTitle?.trim() || null,
+      metaDescription: input.metaDescription?.trim() || null,
       sortOrder: input.sortOrder ?? 0,
     },
   });
@@ -561,7 +601,14 @@ export async function createSubcategory(input: {
 
 export async function updateSubcategory(
   id: number,
-  input: Partial<{ categoryId: number; label: string; slug: string; sortOrder: number }>
+  input: Partial<{
+    categoryId: number;
+    label: string;
+    slug: string;
+    metaTitle: string | null;
+    metaDescription: string | null;
+    sortOrder: number;
+  }>
 ) {
   const prisma = getPrisma();
   if (!prisma) return null;
@@ -569,6 +616,11 @@ export async function updateSubcategory(
   const data: typeof input = { ...input };
   if (typeof data.label === "string") data.label = data.label.trim();
   if (typeof data.slug === "string") data.slug = slugify(data.slug);
+  // Empty string clears the override so the generated fallback takes over again.
+  if (data.metaTitle !== undefined) data.metaTitle = data.metaTitle?.trim() || null;
+  if (data.metaDescription !== undefined) {
+    data.metaDescription = data.metaDescription?.trim() || null;
+  }
 
   try {
     return await prisma.subcategory.update({ where: { id }, data });

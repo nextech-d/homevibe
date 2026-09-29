@@ -35,7 +35,9 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
     : undefined;
 
   return {
-    title,
+    // `absolute` stops the root layout's "%s | siteName" template appending the
+    // site name a second time — the title above already carries it.
+    title: { absolute: title },
     description: input.description,
     alternates: { canonical },
     ...(input.noIndex && {

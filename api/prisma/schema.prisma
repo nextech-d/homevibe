@@ -40,25 +40,29 @@ model Brand {
 }
 
 model Category {
-  id            Int           @id @default(autoincrement())
-  slug          String        @unique
-  label         String
-  navLabel      String        @map("nav_label")
-  description   String
-  sortOrder     Int           @default(0) @map("sort_order")
-  subcategories Subcategory[]
+  id              Int           @id @default(autoincrement())
+  slug            String        @unique
+  label           String
+  navLabel        String        @map("nav_label")
+  description     String
+  metaTitle       String?       @map("meta_title")
+  metaDescription String?       @map("meta_description")
+  sortOrder       Int           @default(0) @map("sort_order")
+  subcategories   Subcategory[]
 
   @@map("categories")
 }
 
 model Subcategory {
-  id         Int       @id @default(autoincrement())
-  categoryId Int       @map("category_id")
-  slug       String
-  label      String
-  sortOrder  Int       @default(0) @map("sort_order")
-  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  products   Product[]
+  id              Int       @id @default(autoincrement())
+  categoryId      Int       @map("category_id")
+  slug            String
+  label           String
+  metaTitle       String?   @map("meta_title")
+  metaDescription String?   @map("meta_description")
+  sortOrder       Int       @default(0) @map("sort_order")
+  category        Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  products        Product[]
 
   @@unique([categoryId, slug])
   @@map("subcategories")
