@@ -5,6 +5,7 @@ import { buildPageMetadata } from "../../lib/seo";
 import { getSeoContext } from "../../lib/seo.server";
 import { brandMetaFallback } from "../../lib/seo-fallbacks";
 import { getBrandBySlugFromDb } from "../../lib/brands.server";
+import BreadcrumbJsonLd from "../../components/BreadcrumbJsonLd";
 
 type BrandPageProps = {
   params: Promise<{ slug: string }>;
@@ -38,5 +39,12 @@ export default async function BrandPage({ params }: BrandPageProps) {
   const brand = await getBrandBySlugFromDb(slug);
   if (!brand) notFound();
 
-  return <BrandCatalog brand={brand} />;
+  return (
+    <>
+      <BreadcrumbJsonLd
+        crumbs={[{ name: "Home", path: "/" }, { name: brand.name }]}
+      />
+      <BrandCatalog brand={brand} />
+    </>
+  );
 }

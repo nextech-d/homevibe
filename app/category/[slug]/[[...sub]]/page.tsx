@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import CategoryCatalog from "../../../components/CategoryCatalog";
-import { getSubcategory } from "../../../data/categories";
+import { categoryHref, getSubcategory } from "../../../data/categories";
+import BreadcrumbJsonLd from "../../../components/BreadcrumbJsonLd";
+import type { Crumb } from "../../../lib/breadcrumbs";
 import { getCategoryBySlugFromDb } from "../../../lib/categories.server";
 import { buildPageMetadata } from "../../../lib/seo";
 import { getSeoContext } from "../../../lib/seo.server";
@@ -56,6 +58,22 @@ export default async function CategoryPage({ params }: Props) {
   if (!category) notFound();
 
   const subSlug = sub?.[0];
+  const subcategory = getSubcategory(slug, subSlug, category);
 
-  return <CategoryCatalog category={category} subSlug={subSlug} />;
+  // Mirrors the visible trail in CategoryCatalog: the category is a link only
+  // once a subcategory sits below it.
+  const crumbs: Crumb[] = [{ name: "Home", path: "/" }];
+  if (subcategory) {
+    crumbs.push({ name: category.label, path: categoryHref(category.slug) });
+    crumbs.push({ name: subcategory.label });
+  } else {
+    crumbs.push({ name: category.label });
+  }
+
+  return (
+    <>
+      <BreadcrumbJsonLd crumbs={crumbs} />
+      <CategoryCatalog category={category} subSlug={subSlug} />
+    </>
+  );
 }

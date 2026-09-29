@@ -6,6 +6,9 @@ import { getSeoContext } from "../../lib/seo.server";
 import { productMetaFallback } from "../../lib/seo-fallbacks";
 import { getProductDetailImage } from "../../lib/productImages";
 import { productHref } from "../../data/products";
+import { categoryHref, getCategorySlug, getSubcategoryLabel } from "../../data/categories";
+import BreadcrumbJsonLd from "../../components/BreadcrumbJsonLd";
+import type { Crumb } from "../../lib/breadcrumbs";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -44,6 +47,24 @@ export default async function ProductLayout({ children, params }: Props) {
     redirect(productHref(product));
   }
 
+  // Mirrors the visible trail in page.tsx exactly - same slug helpers, same
+  // rule for when the subcategory crumb is shown.
+  const crumbs: Crumb[] = [];
+  if (product) {
+    const categorySlug = getCategorySlug(product.category);
+    crumbs.push({ name: "Home", path: "/" });
+    crumbs.push({ name: product.category, path: categoryHref(categorySlug) });
+
+    if (product.subcategory.toLowerCase() !== categorySlug.toLowerCase()) {
+      crumbs.push({
+        name: getSubcategoryLabel(categorySlug, product.subcategory),
+        path: categoryHref(categorySlug, product.subcategory),
+      });
+    }
+
+    crumbs.push({ name: product.name });
+  }
+
   const jsonLd = product
     ? {
         "@context": "https://schema.org",
@@ -68,6 +89,7 @@ export default async function ProductLayout({ children, params }: Props) {
 
   return (
     <>
+      <BreadcrumbJsonLd crumbs={crumbs} />
       {jsonLd && (
         <script
           type="application/ld+json"
