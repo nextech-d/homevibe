@@ -12,6 +12,14 @@ import { useNavCategories } from "../context/CategoriesContext";
 const linkClass =
   "block px-4 py-2 text-xs font-semibold text-black transition hover:bg-neutral-100 hover:text-black";
 
+/** Top-level nav item. The active one is a filled pill, as in the design. */
+function itemClass(active: boolean): string {
+  return [
+    "flex items-center gap-1 whitespace-nowrap rounded-full px-4 py-2 font-bold transition",
+    active ? "bg-black text-white" : "text-black hover:bg-neutral-100",
+  ].join(" ");
+}
+
 function NavDropdown({
   label,
   children,
@@ -38,15 +46,17 @@ function NavDropdown({
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className={`flex items-center gap-1 px-2 py-1 font-bold text-black transition hover:text-black ${
-          active ? "underline underline-offset-4" : ""
-        }`}
+        className={itemClass(Boolean(active))}
       >
         {label}
-        <ChevronDown className={`h-3 w-3 text-black transition-transform ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""} ${
+            active ? "text-white" : "text-black"
+          }`}
+        />
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 max-h-80 min-w-[200px] overflow-y-auto overflow-hidden rounded-xl border border-neutral-200 bg-white py-2 shadow-lg">
+        <div className="absolute left-0 top-full z-50 mt-1.5 max-h-80 min-w-[200px] overflow-y-auto overflow-hidden rounded-xl border border-neutral-200 bg-white py-2 shadow-lg">
           {children}
         </div>
       )}
@@ -60,13 +70,8 @@ export default function NavMenu() {
   const navCategories = useNavCategories();
 
   return (
-    <nav className="hidden items-center space-x-1 text-xs font-bold tracking-wider lg:flex">
-      <Link
-        href="/"
-        className={`px-2 py-1 font-bold text-black transition hover:text-black ${
-          pathname === "/" ? "underline underline-offset-4" : ""
-        }`}
-      >
+    <nav className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-xs font-bold tracking-wider">
+      <Link href="/" className={itemClass(pathname === "/")}>
         Home
       </Link>
 
