@@ -7,6 +7,7 @@ import {
 } from "../lib/storefront.js";
 import { getSeoSettings } from "../lib/seo.js";
 import { listPublishedContentPosts, getPublishedContentPostBySlug } from "../lib/content.js";
+import { getGoogleReviews } from "../lib/google-reviews.js";
 
 export const storefrontRoute = new Hono();
 
@@ -97,6 +98,16 @@ storefrontRoute.get("/faq", async (c) => {
     return c.json({ success: true, items });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load FAQ.";
+    return c.json({ success: false, message }, 503);
+  }
+});
+
+storefrontRoute.get("/reviews", async (c) => {
+  try {
+    const reviews = await getGoogleReviews();
+    return c.json({ success: true, reviews });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to load Google reviews.";
     return c.json({ success: false, message }, 503);
   }
 });
