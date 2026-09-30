@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { Fragment, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
@@ -64,56 +64,89 @@ function NavDropdown({
   );
 }
 
+/**
+ * Hairline between top-level items. Decorative only, so it is hidden from
+ * assistive tech - the nav landmark already conveys the grouping.
+ */
+function NavDivider() {
+  return <span aria-hidden="true" className="mx-1.5 h-3.5 w-px shrink-0 bg-neutral-300/70" />;
+}
+
 export default function NavMenu() {
   const pathname = usePathname();
   const navBrands = useNavBrands();
   const navCategories = useNavCategories();
 
-  return (
-    <nav className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1 text-xs font-bold tracking-wider">
-      <Link href="/" className={itemClass(pathname === "/")}>
-        Home
-      </Link>
+  const navItems: React.ReactNode[] = [
+    <Link key="home" href="/" className={itemClass(pathname === "/")}>
+      Home
+    </Link>,
+    <NavDropdown key="brands" label="Brands" active={pathname.startsWith("/brand/")}>
+      {navBrands.map((brand) => (
+        <Link
+          key={brand.slug}
+          href={brandHref(brand.slug)}
+          className={`${linkClass} ${pathname === brandHref(brand.slug) ? "font-bold" : ""}`}
+        >
+          {brand.name}
+        </Link>
+      ))}
+    </NavDropdown>,
+    ...navCategories.map((cat) => {
+      const catActive = pathname.startsWith(`/category/${cat.slug}`);
+      const subs = cat.subcategories;
 
-      <NavDropdown label="Brands" active={pathname.startsWith("/brand/")}>
-        {navBrands.map((brand) => (
-          <Link
-            key={brand.slug}
-            href={brandHref(brand.slug)}
-            className={`${linkClass} ${pathname === brandHref(brand.slug) ? "font-bold" : ""}`}
-          >
-            {brand.name}
-          </Link>
-        ))}
-      </NavDropdown>
+      // A lone subcategory echoing its parent (TVs > TVs) makes a dropdown
+      // pointless - link straight to the category instead.
+      const onlySubEchoesCategory =
+        subs.length === 1 &&
+        subs[0].label.trim().toLowerCase() === cat.label.trim().toLowerCase();
 
-      {navCategories.map((cat) => {
-        const catActive = pathname.startsWith(`/category/${cat.slug}`);
-
+      if (subs.length === 0 || onlySubEchoesCategory) {
         return (
-          <NavDropdown key={cat.slug} label={cat.navLabel} active={catActive}>
+          <Link key={cat.slug} href={categoryHref(cat.slug)} className={itemClass(catActive)}>
+            {cat.navLabel}
+          </Link>
+        );
+      }
+
+      return (
+        <NavDropdown key={cat.slug} label={cat.navLabel} active={catActive}>
+          {/* "All X" only earns its place when there is more than one child. */}
+          {subs.length > 1 && (
             <Link
               href={categoryHref(cat.slug)}
               className={`${linkClass} border-b border-neutral-100 font-bold uppercase tracking-wider`}
             >
               All {cat.label}
             </Link>
-            {cat.subcategories.map((sub) => {
-              const href = subcategoryHref(cat, sub);
-              const isActive = pathname === href;
-              return (
-                <Link
-                  key={sub.slug}
-                  href={href}
-                  className={`${linkClass} ${isActive ? "font-bold" : ""}`}
-                >
-                  {sub.label}
-                </Link>
-              );
-            })}
-          </NavDropdown>
-        );
-      })}
+          )}
+          {subs.map((sub) => {
+            const href = subcategoryHref(cat, sub);
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={sub.slug}
+                href={href}
+                className={`${linkClass} ${isActive ? "font-bold" : ""}`}
+              >
+                {sub.label}
+              </Link>
+            );
+          })}
+        </NavDropdown>
+      );
+    }),
+  ];
+
+  return (
+    <nav className="flex flex-wrap items-center justify-center gap-y-1 text-xs font-bold tracking-wider">
+      {navItems.map((item, index) => (
+        <Fragment key={index}>
+          {index > 0 && <NavDivider />}
+          {item}
+        </Fragment>
+      ))}
     </nav>
   );
 }
