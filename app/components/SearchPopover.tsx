@@ -81,7 +81,7 @@ export default function SearchPopover() {
             setShowSearchPop(true);
             setActiveIndex(-1);
           }}
-          className="w-full rounded-xl border border-neutral-300 bg-white px-5 py-2.5 pl-11 text-xs text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black/20"
+          className="w-full rounded-full border border-neutral-300 bg-white px-5 py-2.5 pl-11 text-xs text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black/20"
         />
         <Search className="absolute left-4 top-3 h-4 w-4 text-neutral-400" />
         {search && (

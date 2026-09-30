@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { SITE } from "../config/site";
 import { useCart } from "../context/CartContext";
+import { useSiteSettings } from "../context/StorefrontContext";
 import SearchPopover from "./SearchPopover";
 import NavMenu from "./NavMenu";
 import MobileNav from "./MobileNav";
@@ -23,7 +24,7 @@ function BrandLink() {
         className="h-9 w-auto shrink-0 sm:h-10 md:h-11"
         priority
       />
-      <span className="truncate text-lg font-black tracking-tight text-black sm:text-xl md:text-2xl">
+      <span className="truncate text-lg font-black tracking-tight text-black sm:text-xl md:text-2xl lg:overflow-visible">
         Home<span className="font-black">Vibe</span>
       </span>
     </Link>
@@ -32,6 +33,7 @@ function BrandLink() {
 
 export default function Header() {
   const { items, setCartOpen } = useCart();
+  const site = useSiteSettings();
   const cartCount = items.reduce((c, i) => c + i.qty, 0);
 
   const cartButton = (
@@ -62,18 +64,29 @@ export default function Header() {
           <SearchPopover />
         </div>
 
-        {/* Desktop: single row */}
-        <div className="hidden h-20 items-center justify-between gap-4 lg:flex">
+        {/* Desktop: brand + search + actions on top, category nav underneath.
+            A single row made every new category eat into the search box. */}
+        <div className="hidden h-20 items-center gap-6 lg:flex">
+          {/* Brand and actions never shrink, so only the search gives up width. */}
           <div className="flex shrink-0 items-center">
             <BrandLink />
           </div>
-          <div className="mx-4 min-w-0 max-w-lg flex-1">
+          <div className="mx-auto w-full min-w-0 max-w-xl">
             <SearchPopover />
           </div>
-          <div className="flex shrink-0 items-center space-x-3">
-            <NavMenu />
+          <div className="flex shrink-0 items-center gap-3">
+            <a
+              href={`tel:${site.phone.replace(/\s/g, "")}`}
+              className="hidden whitespace-nowrap text-sm font-bold text-black transition hover:text-neutral-600 xl:inline"
+            >
+              {site.phone}
+            </a>
             {cartButton}
           </div>
+        </div>
+
+        <div className="hidden justify-center border-t border-neutral-200/70 py-2.5 lg:flex">
+          <NavMenu />
         </div>
       </div>
     </header>
