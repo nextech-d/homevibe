@@ -29,9 +29,13 @@ export async function getAllCategories(): Promise<Category[]> {
       slug: category.slug,
       navLabel: category.navLabel,
       description: category.description,
+      metaTitle: category.metaTitle,
+      metaDescription: category.metaDescription,
       subcategories: category.subcategories.map((sub) => ({
         label: sub.label,
         slug: sub.slug,
+        metaTitle: sub.metaTitle,
+        metaDescription: sub.metaDescription,
       })),
     }));
   } catch (error) {

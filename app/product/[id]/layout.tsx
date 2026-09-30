@@ -2,8 +2,13 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getPublishedProductByParam } from "../../lib/inventory.server";
 import { buildPageMetadata, absoluteUrl } from "../../lib/seo";
+import { getSeoContext } from "../../lib/seo.server";
+import { productMetaFallback } from "../../lib/seo-fallbacks";
 import { getProductDetailImage } from "../../lib/productImages";
 import { productHref } from "../../data/products";
+import { categoryHref, getCategorySlug, getSubcategoryLabel } from "../../data/categories";
+import BreadcrumbJsonLd from "../../components/BreadcrumbJsonLd";
+import type { Crumb } from "../../lib/breadcrumbs";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -21,18 +26,16 @@ export async function generateMetadata({ params }: Props) {
     });
   }
 
-  const fallbackDescription =
-    product.description.length > 155
-      ? `${product.description.slice(0, 152)}…`
-      : product.description;
+  const ctx = await getSeoContext();
+  const fallback = productMetaFallback(product, ctx);
 
   return buildPageMetadata({
-    title: product.metaTitle?.trim() || product.name,
-    description:
-      product.metaDescription?.trim() ||
-      `${product.brand} ${product.name}. ${fallbackDescription}`,
+    title: product.metaTitle?.trim() || fallback.title,
+    description: product.metaDescription?.trim() || fallback.description,
     path: productHref(product),
     image: getProductDetailImage(product),
+    siteName: ctx.siteName,
+    defaultOgImage: ctx.defaultOgImage,
   });
 }
 
@@ -42,6 +45,24 @@ export default async function ProductLayout({ children, params }: Props) {
 
   if (product?.slug && /^\d+$/.test(id)) {
     redirect(productHref(product));
+  }
+
+  // Mirrors the visible trail in page.tsx exactly - same slug helpers, same
+  // rule for when the subcategory crumb is shown.
+  const crumbs: Crumb[] = [];
+  if (product) {
+    const categorySlug = getCategorySlug(product.category);
+    crumbs.push({ name: "Home", path: "/" });
+    crumbs.push({ name: product.category, path: categoryHref(categorySlug) });
+
+    if (product.subcategory.toLowerCase() !== categorySlug.toLowerCase()) {
+      crumbs.push({
+        name: getSubcategoryLabel(categorySlug, product.subcategory),
+        path: categoryHref(categorySlug, product.subcategory),
+      });
+    }
+
+    crumbs.push({ name: product.name });
   }
 
   const jsonLd = product
@@ -68,6 +89,7 @@ export default async function ProductLayout({ children, params }: Props) {
 
   return (
     <>
+      <BreadcrumbJsonLd crumbs={crumbs} />
       {jsonLd && (
         <script
           type="application/ld+json"

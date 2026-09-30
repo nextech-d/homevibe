@@ -8,6 +8,8 @@ export type SubcategoryDetail = {
   categoryLabel: string;
   label: string;
   slug: string;
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   sortOrder: number;
   productCount?: number;
 };
@@ -43,6 +45,8 @@ export default function SubcategoryForm({
   const [categoryId, setCategoryId] = useState(
     subcategory?.categoryId ?? defaultCategoryId ?? 0
   );
+  const [metaTitle, setMetaTitle] = useState(subcategory?.metaTitle ?? "");
+  const [metaDescription, setMetaDescription] = useState(subcategory?.metaDescription ?? "");
   const [slug, setSlug] = useState(subcategory?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(!!subcategory);
   const [sortOrder, setSortOrder] = useState(String(subcategory?.sortOrder ?? 0));
@@ -82,6 +86,8 @@ export default function SubcategoryForm({
     const payload = {
       label: label.trim(),
       categoryId: Number(categoryId),
+      metaTitle: metaTitle.trim(),
+      metaDescription: metaDescription.trim(),
       slug: slug.trim() || slugify(label),
       sortOrder: Number(sortOrder) || 0,
     };
@@ -155,6 +161,35 @@ export default function SubcategoryForm({
             onChange={(e) => handleLabelChange(e.target.value)}
             className={inputClass}
           />
+        </div>
+
+        <div>
+          <label className={labelClass}>Meta title</label>
+          <input
+            value={metaTitle}
+            onChange={(e) => setMetaTitle(e.target.value)}
+            placeholder="SEO page title"
+            className={inputClass}
+          />
+          <p className="mt-1.5 text-xs text-neutral-600">
+            Leave empty to use the generated title.
+          </p>
+        </div>
+
+        <div>
+          <label className={labelClass}>Meta description</label>
+          <textarea
+            rows={3}
+            value={metaDescription}
+            onChange={(e) => setMetaDescription(e.target.value)}
+            placeholder="Short summary for search results"
+            className={inputClass}
+          />
+          <p className="mt-1.5 text-xs text-neutral-600">
+            {metaDescription
+              ? `${metaDescription.length} characters \u2014 aim for 120-155.`
+              : "Leave empty to use the generated description."}
+          </p>
         </div>
       </div>
 

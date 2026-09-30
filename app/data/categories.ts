@@ -2,6 +2,9 @@ export type SubCategory = {
   label: string;
   slug: string;
   href?: string;
+  /** Admin override; null or absent means the generated fallback is used. */
+  metaTitle?: string | null;
+  metaDescription?: string | null;
 };
 
 export type Category = {
@@ -9,6 +12,9 @@ export type Category = {
   slug: string;
   navLabel: string;
   description: string;
+  /** Admin override; null or absent means the generated fallback is used. */
+  metaTitle?: string | null;
+  metaDescription?: string | null;
   subcategories: SubCategory[];
 };
 

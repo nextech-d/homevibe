@@ -1,9 +1,13 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import CategoryCatalog from "../../../components/CategoryCatalog";
-import { getSubcategory } from "../../../data/categories";
+import { categoryHref, getSubcategory } from "../../../data/categories";
+import BreadcrumbJsonLd from "../../../components/BreadcrumbJsonLd";
+import type { Crumb } from "../../../lib/breadcrumbs";
 import { getCategoryBySlugFromDb } from "../../../lib/categories.server";
 import { buildPageMetadata } from "../../../lib/seo";
+import { getSeoContext } from "../../../lib/seo.server";
+import { categoryMetaFallback, subcategoryMetaFallback } from "../../../lib/seo-fallbacks";
 
 export const dynamic = "force-dynamic";
 
@@ -24,19 +28,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const subSlug = sub?.[0];
   const subcategory = getSubcategory(slug, subSlug, category);
+  const ctx = await getSeoContext();
 
   if (subcategory) {
+    const fallback = subcategoryMetaFallback(subcategory, category, ctx);
     return buildPageMetadata({
-      title: `${subcategory.label} — ${category.label}`,
-      description: `Shop ${subcategory.label.toLowerCase()} from ${category.label.toLowerCase()} at HomeVibe. Delivery across ${category.label.toLowerCase()} categories in Nairobi and East Africa.`,
+      title: subcategory.metaTitle?.trim() || fallback.title,
+      description: subcategory.metaDescription?.trim() || fallback.description,
       path: `/category/${slug}/${subSlug}`,
+      siteName: ctx.siteName,
+      defaultOgImage: ctx.defaultOgImage,
     });
   }
 
+  const fallback = categoryMetaFallback(category, ctx);
   return buildPageMetadata({
-    title: category.label,
-    description: category.description,
+    title: category.metaTitle?.trim() || fallback.title,
+    description: category.metaDescription?.trim() || fallback.description,
     path: `/category/${slug}`,
+    siteName: ctx.siteName,
+    defaultOgImage: ctx.defaultOgImage,
   });
 }
 
@@ -47,6 +58,22 @@ export default async function CategoryPage({ params }: Props) {
   if (!category) notFound();
 
   const subSlug = sub?.[0];
+  const subcategory = getSubcategory(slug, subSlug, category);
 
-  return <CategoryCatalog category={category} subSlug={subSlug} />;
+  // Mirrors the visible trail in CategoryCatalog: the category is a link only
+  // once a subcategory sits below it.
+  const crumbs: Crumb[] = [{ name: "Home", path: "/" }];
+  if (subcategory) {
+    crumbs.push({ name: category.label, path: categoryHref(category.slug) });
+    crumbs.push({ name: subcategory.label });
+  } else {
+    crumbs.push({ name: category.label });
+  }
+
+  return (
+    <>
+      <BreadcrumbJsonLd crumbs={crumbs} />
+      <CategoryCatalog category={category} subSlug={subSlug} />
+    </>
+  );
 }
