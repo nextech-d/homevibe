@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import CategoryCatalog from "../../../components/CategoryCatalog";
 import { categoryHref, getSubcategory } from "../../../data/categories";
 import BreadcrumbJsonLd from "../../../components/BreadcrumbJsonLd";
+import CollectionJsonLd from "../../../components/CollectionJsonLd";
 import type { Crumb } from "../../../lib/breadcrumbs";
 import { getCategoryBySlugFromDb } from "../../../lib/categories.server";
 import { getInventory } from "../../../lib/inventory.server";
@@ -82,9 +83,18 @@ export default async function CategoryPage({ params }: Props) {
     crumbs.push({ name: category.label });
   }
 
+  // Mirrors the <h1> CategoryCatalog renders.
+  const heading = subcategory ? subcategory.label : `${category.label} Collection`;
+
   return (
     <>
       <BreadcrumbJsonLd crumbs={crumbs} />
+      <CollectionJsonLd
+        name={heading}
+        path={subcategory ? `/category/${slug}/${subSlug}` : categoryHref(category.slug)}
+        description={category.description}
+        products={products}
+      />
       <CategoryCatalog category={category} subSlug={subSlug} products={products} />
     </>
   );

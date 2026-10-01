@@ -8,6 +8,7 @@ import { getBrandBySlugFromDb } from "../../lib/brands.server";
 import { getInventory } from "../../lib/inventory.server";
 import { productsForBrand, toCatalogProduct } from "../../lib/inventory";
 import BreadcrumbJsonLd from "../../components/BreadcrumbJsonLd";
+import CollectionJsonLd from "../../components/CollectionJsonLd";
 
 type BrandPageProps = {
   params: Promise<{ slug: string }>;
@@ -53,6 +54,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
       <BreadcrumbJsonLd
         crumbs={[{ name: "Home", path: "/" }, { name: brand.name }]}
       />
+      <CollectionJsonLd name={brand.name} path={`/brand/${slug}`} products={products} />
       <BrandCatalog brand={brand} products={products} />
     </>
   );
