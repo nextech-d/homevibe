@@ -8,8 +8,10 @@ import { getProductDetailImage } from "../../lib/productImages";
 import { productHref } from "../../data/products";
 import { categoryHref, getCategorySlug, getSubcategoryLabel } from "../../data/categories";
 import BreadcrumbJsonLd from "../../components/BreadcrumbJsonLd";
+import ProductOpenGraph from "../../components/ProductOpenGraph";
 import type { Crumb } from "../../lib/breadcrumbs";
 import { serializeJsonLd } from "../../lib/json-ld";
+import { isOutOfStock } from "../../lib/inventory";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -37,6 +39,7 @@ export async function generateMetadata({ params }: Props) {
     image: getProductDetailImage(product),
     siteName: ctx.siteName,
     defaultOgImage: ctx.defaultOgImage,
+    ogType: "product",
   });
 }
 
@@ -80,16 +83,16 @@ export default async function ProductLayout({ children, params }: Props) {
           url: absoluteUrl(productHref(product)),
           priceCurrency: "KES",
           price: product.price,
-          availability:
-            product.status.toLowerCase().includes("out")
-              ? "https://schema.org/OutOfStock"
-              : "https://schema.org/InStock",
+          availability: isOutOfStock(product)
+            ? "https://schema.org/OutOfStock"
+            : "https://schema.org/InStock",
         },
       }
     : null;
 
   return (
     <>
+      {product && <ProductOpenGraph product={product} />}
       <BreadcrumbJsonLd crumbs={crumbs} />
       {jsonLd && (
         <script

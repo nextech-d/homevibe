@@ -18,6 +18,15 @@ export type CatalogProduct = Pick<
   imageSet: Pick<ProductImageSet, "thumbnail" | "card">;
 };
 
+/**
+ * Stock is stored as a label ("In Stock" / "Low Stock" / "Out of Stock"), so the
+ * rule lives here rather than being re-spelled wherever availability is needed -
+ * the product page states it in two places, its markup and its OpenGraph tags.
+ */
+export function isOutOfStock(product: { status: string }): boolean {
+  return product.status.toLowerCase().includes("out");
+}
+
 export function toCatalogProduct(product: Appliance): CatalogProduct {
   return {
     id: product.id,
