@@ -48,7 +48,7 @@ export const getBrandsFromDb = cache(async (): Promise<Brand[] | null> => {
   try {
     const rows = await prisma.brand.findMany({
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-      select: { name: true, slug: true, tier: true, origin: true },
+      select: { name: true, slug: true, tier: true, origin: true, isFeatured: true },
     });
 
     if (rows.length === 0) {
