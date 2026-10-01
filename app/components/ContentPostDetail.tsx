@@ -8,6 +8,7 @@ import {
 } from "../lib/content.server";
 import { buildPageMetadata, absoluteUrl } from "../lib/seo";
 import { formatContentDate, renderMarkdown } from "../lib/markdown";
+import { serializeJsonLd } from "../lib/json-ld";
 
 type Props = {
   type: ContentPostType;
@@ -69,7 +70,7 @@ export default async function ContentPostDetail({
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       <article className="mx-auto max-w-3xl px-6 py-12">
         <nav className="mb-8 text-sm text-neutral-500">
           <Link href="/" className="hover:text-neutral-900">

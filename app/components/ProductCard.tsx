@@ -4,8 +4,8 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
-import type { Appliance } from "../data/products";
 import { productHref } from "../data/products";
+import type { CatalogProduct } from "../lib/inventory";
 import { formatPrice } from "../lib/formatPrice";
 import {
   getProductCardImage,
@@ -13,8 +13,8 @@ import {
 } from "../lib/productImages";
 
 type ProductCardProps = {
-  appliance: Appliance;
-  onAddToCart?: (e: React.MouseEvent, appliance: Appliance) => void;
+  appliance: CatalogProduct;
+  onAddToCart?: (e: React.MouseEvent, appliance: CatalogProduct) => void;
   added?: boolean;
   compact?: boolean;
   imageSizes?: string;

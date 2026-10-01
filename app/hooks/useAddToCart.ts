@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useCart } from "../context/CartContext";
-import type { Appliance } from "../data/products";
+import type { CatalogProduct } from "../lib/inventory";
 import { getProductThumbnail } from "../lib/productImages";
 
 export function useAddToCart() {
@@ -10,7 +10,7 @@ export function useAddToCart() {
   const [addedIds, setAddedIds] = useState<Record<number, boolean>>({});
 
   const handleAddToCart = useCallback(
-    (e: React.MouseEvent, appliance: Appliance, qty = 1) => {
+    (e: React.MouseEvent, appliance: CatalogProduct, qty = 1) => {
       e.stopPropagation();
       addItem(
         {

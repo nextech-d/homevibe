@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { APPLIANCES_INVENTORY, type Appliance } from "../data/products";
 import { getPrisma } from "./db";
 import { mapDbProductToAppliance } from "./mapProduct";
@@ -9,8 +11,12 @@ const productInclude = {
   subcategory: { include: { category: true } },
 } as const;
 
-/** Load published products from Postgres, with static fallback when DB is unavailable. */
-export async function getInventory(): Promise<Appliance[]> {
+/**
+ * Load published products from Postgres, with static fallback when DB is
+ * unavailable. Memoised per request: a category page renders the grid and the
+ * structured data describing it from one query.
+ */
+export const getInventory = cache(async (): Promise<Appliance[]> => {
   if (!process.env.DATABASE_URL) {
     return APPLIANCES_INVENTORY;
   }
@@ -36,9 +42,9 @@ export async function getInventory(): Promise<Appliance[]> {
     console.error("Failed to load inventory from database:", error);
     return APPLIANCES_INVENTORY;
   }
-}
+});
 
-export async function getPublishedProduct(id: number): Promise<Appliance | null> {
+export const getPublishedProduct = cache(async (id: number): Promise<Appliance | null> => {
   if (!process.env.DATABASE_URL) {
     return APPLIANCES_INVENTORY.find((item) => item.id === id) ?? null;
   }
@@ -58,9 +64,10 @@ export async function getPublishedProduct(id: number): Promise<Appliance | null>
     console.error("Failed to load product from database:", error);
     return null;
   }
-}
+});
 
-export async function getPublishedProductByParam(param: string): Promise<Appliance | null> {
+/** Memoised too - the product layout and page each resolve the same param. */
+export const getPublishedProductByParam = cache(async (param: string): Promise<Appliance | null> => {
   const trimmed = param.trim();
   if (!trimmed) return null;
   if (/^\d+$/.test(trimmed)) {
@@ -86,4 +93,4 @@ export async function getPublishedProductByParam(param: string): Promise<Applian
     console.error("Failed to load product from database:", error);
     return null;
   }
-}
+});

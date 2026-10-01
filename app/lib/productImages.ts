@@ -62,7 +62,11 @@ export function buildProductImageSet(
   };
 }
 
-type ImageSource = { imageSet?: ProductImageSet; image: string };
+/**
+ * Partial, so a trimmed catalog product can carry just the sizes it renders -
+ * every accessor below already falls back to `image`.
+ */
+type ImageSource = { imageSet?: Partial<ProductImageSet>; image: string };
 
 export function getProductThumbnail(source: ImageSource): string {
   return source.imageSet?.thumbnail ?? source.image;

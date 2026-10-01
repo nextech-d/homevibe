@@ -21,6 +21,13 @@ type PageMetadataInput = {
   noIndex?: boolean;
   siteName?: string;
   defaultOgImage?: string;
+  /**
+   * Next's Metadata API types a fixed set of OpenGraph types and "product" is
+   * not among them. Passing it leaves og:type out of the metadata so the page
+   * can render the tag itself - see components/ProductOpenGraph - without a
+   * second, conflicting og:type being emitted here.
+   */
+  ogType?: "website" | "product";
 };
 
 export function buildPageMetadata(input: PageMetadataInput): Metadata {
@@ -49,7 +56,7 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
       url: canonical,
       siteName,
       locale: "en_KE",
-      type: "website",
+      ...(input.ogType !== "product" && { type: "website" as const }),
       ...(ogImage && { images: ogImage }),
     },
     twitter: {

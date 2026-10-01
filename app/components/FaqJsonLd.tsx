@@ -1,5 +1,6 @@
 import { getFaqItemsData } from "../lib/storefront.server";
 import { getSiteUrl } from "../lib/seo";
+import { serializeJsonLd } from "../lib/json-ld";
 
 export default async function FaqJsonLd() {
   const items = await getFaqItemsData();
@@ -22,7 +23,7 @@ export default async function FaqJsonLd() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   );
 }

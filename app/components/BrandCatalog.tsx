@@ -1,23 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { getBrandBySlug, type Brand } from "../data/brands";
+import { type Brand } from "../data/brands";
 import ProductCard from "./ProductCard";
 import { useAddToCart } from "../hooks/useAddToCart";
-import { useInventory } from "../context/ProductsContext";
+import { type CatalogProduct } from "../lib/inventory";
 import { ChevronRight } from "lucide-react";
 
 type BrandCatalogProps = {
   brand: Brand;
+  /** Already filtered to this brand by the page, on the server. */
+  products: CatalogProduct[];
 };
 
-export default function BrandCatalog({ brand }: BrandCatalogProps) {
+export default function BrandCatalog({ brand, products }: BrandCatalogProps) {
   const { handleAddToCart, addedIds } = useAddToCart();
-  const inventory = useInventory();
-
-  const products = inventory.filter(
-    (p) => p.brand.toLowerCase() === brand.name.toLowerCase()
-  );
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">

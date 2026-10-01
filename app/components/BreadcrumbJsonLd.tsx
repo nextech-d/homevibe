@@ -1,4 +1,5 @@
 import { buildBreadcrumbJsonLd, type Crumb } from "../lib/breadcrumbs";
+import { serializeJsonLd } from "../lib/json-ld";
 
 /**
  * Emits BreadcrumbList structured data for the trail shown on the page.
@@ -11,7 +12,7 @@ export default function BreadcrumbJsonLd({ crumbs }: { crumbs: Crumb[] }) {
     <script
       type="application/ld+json"
       dangerouslySetInnerHTML={{
-        __html: JSON.stringify(buildBreadcrumbJsonLd(crumbs)),
+        __html: serializeJsonLd(buildBreadcrumbJsonLd(crumbs)),
       }}
     />
   );
