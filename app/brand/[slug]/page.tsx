@@ -5,6 +5,8 @@ import { buildPageMetadata } from "../../lib/seo";
 import { getSeoContext } from "../../lib/seo.server";
 import { brandMetaFallback } from "../../lib/seo-fallbacks";
 import { getBrandBySlugFromDb } from "../../lib/brands.server";
+import { getInventory } from "../../lib/inventory.server";
+import { productsForBrand, toCatalogProduct } from "../../lib/inventory";
 import BreadcrumbJsonLd from "../../components/BreadcrumbJsonLd";
 
 type BrandPageProps = {
@@ -36,15 +38,22 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
 
 export default async function BrandPage({ params }: BrandPageProps) {
   const { slug } = await params;
-  const brand = await getBrandBySlugFromDb(slug);
+  const [brand, inventory] = await Promise.all([
+    getBrandBySlugFromDb(slug),
+    getInventory(),
+  ]);
   if (!brand) notFound();
+
+  // Selected here rather than in the grid, so the products are in the initial
+  // HTML instead of arriving with the client inventory fetch.
+  const products = productsForBrand(inventory, brand.name).map(toCatalogProduct);
 
   return (
     <>
       <BreadcrumbJsonLd
         crumbs={[{ name: "Home", path: "/" }, { name: brand.name }]}
       />
-      <BrandCatalog brand={brand} />
+      <BrandCatalog brand={brand} products={products} />
     </>
   );
 }

@@ -10,17 +10,18 @@ import {
 } from "../data/categories";
 import ProductCard from "./ProductCard";
 import { useAddToCart } from "../hooks/useAddToCart";
-import { useInventory } from "../context/ProductsContext";
+import { type CatalogProduct } from "../lib/inventory";
 import { ChevronRight, SlidersHorizontal, ArrowUpDown } from "lucide-react";
 
 type CategoryCatalogProps = {
   category: Category;
   subSlug?: string;
+  /** Already filtered to this category and subcategory by the page, on the server. */
+  products: CatalogProduct[];
 };
 
-export default function CategoryCatalog({ category, subSlug }: CategoryCatalogProps) {
+export default function CategoryCatalog({ category, subSlug, products }: CategoryCatalogProps) {
   const { handleAddToCart, addedIds } = useAddToCart();
-  const inventory = useInventory();
   const subcategoryMeta = subSlug ? getSubcategory(category.slug, subSlug, category) : undefined;
   const [sortBy, setSortBy] = useState<string>("default");
   const subNavItems =
@@ -29,18 +30,10 @@ export default function CategoryCatalog({ category, subSlug }: CategoryCatalogPr
       ? []
       : category.subcategories;
 
-  const categoryProducts = useMemo(() => {
-    return inventory.filter(
-      (p) => p.category.toLowerCase() === category.label.toLowerCase()
-    );
-  }, [category.label, inventory]);
-
+  // Sorting is the only client-side concern left; the selection happens on the
+  // server so the grid is in the initial HTML.
   const filteredProducts = useMemo(() => {
-    let result = [...categoryProducts];
-
-    if (subSlug) {
-      result = result.filter((p) => p.subcategory === subSlug);
-    }
+    const result = [...products];
 
     if (sortBy === "price-asc") {
       result.sort((a, b) => a.price - b.price);
@@ -51,7 +44,7 @@ export default function CategoryCatalog({ category, subSlug }: CategoryCatalogPr
     }
 
     return result;
-  }, [categoryProducts, subSlug, sortBy]);
+  }, [products, sortBy]);
 
   const activeSubLabel = subSlug ? getSubcategoryLabel(category.slug, subSlug, category) : null;
 

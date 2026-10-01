@@ -5,6 +5,8 @@ import { categoryHref, getSubcategory } from "../../../data/categories";
 import BreadcrumbJsonLd from "../../../components/BreadcrumbJsonLd";
 import type { Crumb } from "../../../lib/breadcrumbs";
 import { getCategoryBySlugFromDb } from "../../../lib/categories.server";
+import { getInventory } from "../../../lib/inventory.server";
+import { productsInCategory, productsInSubcategory, toCatalogProduct } from "../../../lib/inventory";
 import { buildPageMetadata } from "../../../lib/seo";
 import { getSeoContext } from "../../../lib/seo.server";
 import { categoryMetaFallback, subcategoryMetaFallback } from "../../../lib/seo-fallbacks";
@@ -53,12 +55,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { slug, sub } = await params;
-  const category = await getCategoryBySlugFromDb(slug);
+  const [category, inventory] = await Promise.all([
+    getCategoryBySlugFromDb(slug),
+    getInventory(),
+  ]);
 
   if (!category) notFound();
 
   const subSlug = sub?.[0];
   const subcategory = getSubcategory(slug, subSlug, category);
+
+  // Selected here rather than in the grid, so the products are in the initial
+  // HTML instead of arriving with the client inventory fetch.
+  const products = productsInSubcategory(
+    productsInCategory(inventory, category.label),
+    subSlug
+  ).map(toCatalogProduct);
 
   // Mirrors the visible trail in CategoryCatalog: the category is a link only
   // once a subcategory sits below it.
@@ -73,7 +85,7 @@ export default async function CategoryPage({ params }: Props) {
   return (
     <>
       <BreadcrumbJsonLd crumbs={crumbs} />
-      <CategoryCatalog category={category} subSlug={subSlug} />
+      <CategoryCatalog category={category} subSlug={subSlug} products={products} />
     </>
   );
 }

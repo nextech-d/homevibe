@@ -1,7 +1,62 @@
 import { APPLIANCES_INVENTORY, type Appliance } from "../data/products";
+import type { ProductImageSet } from "./productImages";
 import { apiUrl } from "./api-client";
 
 export type { Appliance };
+
+/**
+ * What a catalog card and its add-to-cart button actually read. Grids are handed
+ * this rather than whole products: a 53-item brand page would otherwise ship
+ * every description, spec sheet and gallery URL it never renders, twice - once
+ * in the HTML and again in the flight payload.
+ */
+export type CatalogProduct = Pick<
+  Appliance,
+  "id" | "slug" | "name" | "price"
+> & {
+  image: string;
+  imageSet: Pick<ProductImageSet, "thumbnail" | "card">;
+};
+
+export function toCatalogProduct(product: Appliance): CatalogProduct {
+  return {
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    price: product.price,
+    image: product.image,
+    imageSet: {
+      thumbnail: product.imageSet.thumbnail,
+      card: product.imageSet.card,
+    },
+  };
+}
+
+/**
+ * The catalog grids' selection rules. Shared so the server page that renders a
+ * grid and the JSON-LD describing it select the same products - a list that
+ * disagrees with the markup is what gets the enhancement dropped.
+ */
+export function productsInCategory(
+  inventory: Appliance[],
+  categoryLabel: string
+): Appliance[] {
+  const label = categoryLabel.trim().toLowerCase();
+  return inventory.filter((product) => product.category.toLowerCase() === label);
+}
+
+export function productsInSubcategory(
+  products: Appliance[],
+  subSlug: string | undefined
+): Appliance[] {
+  if (!subSlug) return products;
+  return products.filter((product) => product.subcategory === subSlug);
+}
+
+export function productsForBrand(inventory: Appliance[], brandName: string): Appliance[] {
+  const name = brandName.trim().toLowerCase();
+  return inventory.filter((product) => product.brand.toLowerCase() === name);
+}
 
 /** Client-side fetch of inventory via the products API. */
 export async function fetchInventoryClient(): Promise<Appliance[]> {
