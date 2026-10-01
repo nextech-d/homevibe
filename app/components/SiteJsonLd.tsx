@@ -1,5 +1,6 @@
 import { absoluteUrl, getSiteUrl } from "../lib/seo";
 import { getSeoContext } from "../lib/seo.server";
+import { serializeJsonLd } from "../lib/json-ld";
 
 export default async function SiteJsonLd() {
   const ctx = await getSeoContext();
@@ -36,7 +37,7 @@ export default async function SiteJsonLd() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   );
 }

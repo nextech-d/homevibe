@@ -9,6 +9,7 @@ import { productHref } from "../../data/products";
 import { categoryHref, getCategorySlug, getSubcategoryLabel } from "../../data/categories";
 import BreadcrumbJsonLd from "../../components/BreadcrumbJsonLd";
 import type { Crumb } from "../../lib/breadcrumbs";
+import { serializeJsonLd } from "../../lib/json-ld";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -93,7 +94,7 @@ export default async function ProductLayout({ children, params }: Props) {
       {jsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
         />
       )}
       {children}
