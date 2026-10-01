@@ -13,17 +13,16 @@ const linkClass =
   "block px-4 py-2 text-xs font-semibold text-black transition hover:bg-neutral-100 hover:text-black";
 
 /**
- * Top-level nav item. The active one is the brand copper with a rounded rule
- * under it; the rule is a pseudo-element inheriting the text colour, so the two
- * can never disagree.
+ * Top-level nav item. The active one keeps the row's ink and takes a rounded
+ * rule beneath it; the rule is a pseudo-element inheriting the text colour, so
+ * the two can never disagree.
  */
 function itemClass(active: boolean): string {
   return [
     "relative flex items-center gap-1 whitespace-nowrap rounded-full px-4 py-2 font-bold transition",
     "after:absolute after:inset-x-3 after:bottom-0.5 after:h-[3px] after:rounded-full",
-    active
-      ? "text-accent after:bg-current"
-      : "text-black hover:bg-neutral-100 after:bg-transparent",
+    "text-black",
+    active ? "after:bg-current" : "hover:bg-neutral-100 after:bg-transparent",
   ].join(" ");
 }
 
