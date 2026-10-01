@@ -26,8 +26,11 @@ export const getCategoriesFromDb = cache(async (): Promise<Category[] | null> =>
 
   try {
     const rows = await prisma.category.findMany({
-      include: { subcategories: { orderBy: { sortOrder: "asc" } } },
-      orderBy: { sortOrder: "asc" },
+      // id breaks the tie: sort_order defaults to 0, so without it any two
+      // categories left at the default come back in whatever order Postgres
+      // feels like, and the nav row reshuffles for no visible reason.
+      include: { subcategories: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } },
+      orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
     });
 
     if (rows.length === 0) {

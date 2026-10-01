@@ -328,8 +328,10 @@ export async function listCategoriesForStorefront(): Promise<StorefrontCategory[
   if (!prisma) return [];
 
   const rows = await prisma.category.findMany({
-    include: { subcategories: { orderBy: { sortOrder: "asc" } } },
-    orderBy: { sortOrder: "asc" },
+    // Same tie-break as the storefront's own loader, so both agree when two
+    // categories sit at the default sort_order.
+    include: { subcategories: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } },
+    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
   });
 
   return rows.map((category) => ({
