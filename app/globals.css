@@ -8,6 +8,11 @@
   --surface-2: #f5f5f5;
 }
 
+@theme {
+  /* Copper from the logo mark, darkened to clear 4.5:1 on --bg for small text. */
+  --color-accent: #a85410;
+}
+
 body {
   background-color: var(--bg);
   color: var(--fg);

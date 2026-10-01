@@ -12,11 +12,18 @@ import { useNavCategories } from "../context/CategoriesContext";
 const linkClass =
   "block px-4 py-2 text-xs font-semibold text-black transition hover:bg-neutral-100 hover:text-black";
 
-/** Top-level nav item. The active one is a filled pill, as in the design. */
+/**
+ * Top-level nav item. The active one is the brand copper with a rounded rule
+ * under it; the rule is a pseudo-element inheriting the text colour, so the two
+ * can never disagree.
+ */
 function itemClass(active: boolean): string {
   return [
-    "flex items-center gap-1 whitespace-nowrap rounded-full px-4 py-2 font-bold transition",
-    active ? "bg-black text-white" : "text-black hover:bg-neutral-100",
+    "relative flex items-center gap-1 whitespace-nowrap rounded-full px-4 py-2 font-bold transition",
+    "after:absolute after:inset-x-3 after:bottom-0.5 after:h-[3px] after:rounded-full",
+    active
+      ? "text-accent after:bg-current"
+      : "text-black hover:bg-neutral-100 after:bg-transparent",
   ].join(" ");
 }
 
@@ -50,9 +57,7 @@ function NavDropdown({
       >
         {label}
         <ChevronDown
-          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""} ${
-            active ? "text-white" : "text-black"
-          }`}
+          className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && (
