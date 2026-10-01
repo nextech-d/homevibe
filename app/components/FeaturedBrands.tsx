@@ -1,16 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { SIGNATURE_BRANDS, PARTNER_BRANDS, brandHref, type Brand } from "../data/brands";
+import { brandHref, type Brand } from "../data/brands";
 import { useInventory } from "../context/ProductsContext";
-import { apiUrl } from "../lib/api-client";
-
-type StorefrontBrand = Brand & {
-  id?: number;
-  logoUrl?: string | null;
-  isFeatured?: boolean;
-};
+import { useNavBrands } from "../context/BrandsContext";
 
 function productCountForBrand(brandName: string, inventory: { brand: string }[]): number {
   return inventory.filter((p) => p.brand.toLowerCase() === brandName.toLowerCase()).length;
@@ -20,7 +13,7 @@ function SignatureBrandCard({
   brand,
   productCount,
 }: {
-  brand: StorefrontBrand;
+  brand: Brand;
   productCount: number;
 }) {
   return (
@@ -43,23 +36,13 @@ function SignatureBrandCard({
 
 export default function FeaturedBrands() {
   const inventory = useInventory();
-  const [brands, setBrands] = useState<StorefrontBrand[] | null>(null);
+  // Same brands as the nav, loaded server-side, so the cards and chips are in
+  // the initial HTML. This used to fetch /catalog/brands itself and render an
+  // empty section whenever that failed.
+  const brands = useNavBrands();
 
-  useEffect(() => {
-    const endpoint = apiUrl("/catalog/brands") || "/api/catalog/brands";
-    fetch(endpoint, { cache: "no-store" })
-      .then((res) => res.json())
-      .then((data: { success?: boolean; brands?: StorefrontBrand[] }) => {
-        if (data.success && Array.isArray(data.brands)) setBrands(data.brands);
-        else setBrands([]);
-      })
-      .catch(() => setBrands([]));
-  }, []);
-
-  const featured = (brands ?? []).filter((brand) => brand.isFeatured);
-  const others = (brands ?? []).filter((brand) => !brand.isFeatured);
-  const featuredCards = featured.length > 0 ? featured : SIGNATURE_BRANDS;
-  const partnerChips = brands ? others : PARTNER_BRANDS;
+  const featuredCards = brands.filter((brand) => brand.isFeatured);
+  const partnerChips = brands.filter((brand) => !brand.isFeatured);
 
   return (
     <section id="featured-brands" className="mx-auto mt-24 max-w-5xl">

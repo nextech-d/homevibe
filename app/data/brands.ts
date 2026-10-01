@@ -3,6 +3,8 @@ export type Brand = {
   slug: string;
   tier: "signature" | "partner";
   origin: string;
+  /** Admin flag; absent on the static fallback brands, which show as chips. */
+  isFeatured?: boolean;
 };
 
 /** Fallback when the catalog API is unavailable — keep in sync with live DB brands. */
@@ -29,6 +31,3 @@ export function getProductsByBrandSlug(
     (p) => p.brand.toLowerCase() === brand.name.toLowerCase()
   );
 }
-
-export const SIGNATURE_BRANDS = FEATURED_BRANDS.filter((b) => b.tier === "signature");
-export const PARTNER_BRANDS = FEATURED_BRANDS.filter((b) => b.tier === "partner");

@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { getBrandBySlug, type Brand } from "../data/brands";
 import { getPrisma } from "./db";
 
@@ -25,6 +27,40 @@ function mapDbBrand(brand: {
     metaDescription: brand.metaDescription,
   };
 }
+
+/**
+ * Nav brands straight from Postgres, or null when the database is unavailable.
+ * Returns the same list, in the same order, that /catalog/brands serves the
+ * client, so the dropdown reads identically whichever path filled it.
+ *
+ * Memoised per request, like {@link getCategoriesFromDb}.
+ */
+export const getBrandsFromDb = cache(async (): Promise<Brand[] | null> => {
+  if (!process.env.DATABASE_URL) {
+    return null;
+  }
+
+  const prisma = getPrisma();
+  if (!prisma) {
+    return null;
+  }
+
+  try {
+    const rows = await prisma.brand.findMany({
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: { name: true, slug: true, tier: true, origin: true, isFeatured: true },
+    });
+
+    if (rows.length === 0) {
+      return null;
+    }
+
+    return rows;
+  } catch (error) {
+    console.error("Failed to load brands from database:", error);
+    return null;
+  }
+});
 
 export async function listBrandsForSitemap(): Promise<{ slug: string }[]> {
   if (!process.env.DATABASE_URL) {

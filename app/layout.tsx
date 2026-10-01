@@ -14,6 +14,8 @@ import { BrandsProvider } from "./context/BrandsContext";
 import { CategoriesProvider } from "./context/CategoriesContext";
 import { StorefrontProvider } from "./context/StorefrontContext";
 import { buildRootMetadataFromContext } from "./lib/seo";
+import { getCategoriesFromDb } from "./lib/categories.server";
+import { getBrandsFromDb } from "./lib/brands.server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,11 +37,18 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildRootMetadataFromContext();
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Server-rendered so the nav ships its real categories and brands in the
+  // initial HTML rather than the static lists the client fetch used to patch in.
+  const [navCategories, navBrands] = await Promise.all([
+    getCategoriesFromDb(),
+    getBrandsFromDb(),
+  ]);
+
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-black">
@@ -47,8 +56,8 @@ export default function RootLayout({
         <FaqJsonLd />
         <CartProvider>
           <ProductsProvider>
-            <CategoriesProvider>
-              <BrandsProvider>
+            <CategoriesProvider initial={navCategories}>
+              <BrandsProvider initial={navBrands}>
               <StorefrontProvider>
                 <Header />
                 <CartDrawer />

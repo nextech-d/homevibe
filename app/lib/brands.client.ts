@@ -9,10 +9,22 @@ export async function fetchBrandsClient(): Promise<Brand[]> {
     if (!res.ok) return FEATURED_BRANDS;
     const data = (await res.json()) as {
       success?: boolean;
-      brands?: Array<{ name: string; slug: string; tier: Brand["tier"]; origin: string }>;
+      brands?: Array<{
+        name: string;
+        slug: string;
+        tier: Brand["tier"];
+        origin: string;
+        isFeatured?: boolean;
+      }>;
     };
     if (data.success && Array.isArray(data.brands) && data.brands.length > 0) {
-      return data.brands.map(({ name, slug, tier, origin }) => ({ name, slug, tier, origin }));
+      return data.brands.map(({ name, slug, tier, origin, isFeatured }) => ({
+        name,
+        slug,
+        tier,
+        origin,
+        isFeatured,
+      }));
     }
   } catch {
     /* fall through */
