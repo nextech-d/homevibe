@@ -1,17 +1,27 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { ALL_CATEGORIES, type Category } from "../data/categories";
 import { getPrisma } from "./db";
 
-/** Load categories from Postgres, with static fallback when DB is unavailable. */
-export async function getAllCategories(): Promise<Category[]> {
+/**
+ * Categories straight from Postgres, or null when the database is unavailable.
+ * Callers that render UI want {@link getAllCategories}; the null is for the
+ * root layout, which hands the nav its data and needs to know whether the
+ * client should still fetch for itself.
+ *
+ * Memoised per request, so the layout, footer, category page and sitemap share
+ * one query rather than running the same findMany three or four times.
+ */
+export const getCategoriesFromDb = cache(async (): Promise<Category[] | null> => {
   if (!process.env.DATABASE_URL) {
-    return ALL_CATEGORIES;
+    return null;
   }
 
   const prisma = getPrisma();
   if (!prisma) {
-    return ALL_CATEGORIES;
+    return null;
   }
 
   try {
@@ -21,7 +31,7 @@ export async function getAllCategories(): Promise<Category[]> {
     });
 
     if (rows.length === 0) {
-      return ALL_CATEGORIES;
+      return null;
     }
 
     return rows.map((category) => ({
@@ -40,8 +50,13 @@ export async function getAllCategories(): Promise<Category[]> {
     }));
   } catch (error) {
     console.error("Failed to load categories from database:", error);
-    return ALL_CATEGORIES;
+    return null;
   }
+});
+
+/** Load categories from Postgres, with static fallback when DB is unavailable. */
+export async function getAllCategories(): Promise<Category[]> {
+  return (await getCategoriesFromDb()) ?? ALL_CATEGORIES;
 }
 
 export async function getNavCategories(): Promise<Category[]> {
