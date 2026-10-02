@@ -9,6 +9,7 @@ import { productHref } from "../../data/products";
 import { categoryHref, getCategorySlug, getSubcategoryLabel } from "../../data/categories";
 import BreadcrumbJsonLd from "../../components/BreadcrumbJsonLd";
 import ProductOpenGraph from "../../components/ProductOpenGraph";
+import FaqJsonLd from "../../components/FaqJsonLd";
 import type { Crumb } from "../../lib/breadcrumbs";
 import { serializeJsonLd } from "../../lib/json-ld";
 import { isOutOfStock } from "../../lib/inventory";
@@ -93,6 +94,9 @@ export default async function ProductLayout({ children, params }: Props) {
   return (
     <>
       {product && <ProductOpenGraph product={product} />}
+      {product?.faqs && product.faqs.length > 0 && (
+        <FaqJsonLd items={product.faqs} url={absoluteUrl(productHref(product))} />
+      )}
       <BreadcrumbJsonLd crumbs={crumbs} />
       {jsonLd && (
         <script

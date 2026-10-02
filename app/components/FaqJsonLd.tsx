@@ -1,17 +1,18 @@
 import { getSiteUrl } from "../lib/seo";
 import { serializeJsonLd } from "../lib/json-ld";
-import type { FaqItemData } from "../lib/storefront";
+
+type FaqEntry = { question: string; answer: string };
 
 /**
- * FAQPage markup for the homepage FAQ.
+ * FAQPage markup for a page that shows an FAQ - the homepage's, or a
+ * product's.
  *
- * It used to sit in the root layout, so every route - products, categories,
- * the cart - claimed to be an FAQ page about questions that were nowhere in
- * their markup. Structured data has to describe the page it is on, and the
- * questions only appear on the homepage. Takes the items the page renders, so
- * the two cannot diverge.
+ * It used to sit in the root layout, so every route claimed to be an FAQ page
+ * about questions that were nowhere in its markup. Structured data has to
+ * describe the page it is on, which is why this takes the items that page
+ * renders and a url to match.
  */
-export default function FaqJsonLd({ items }: { items: FaqItemData[] }) {
+export default function FaqJsonLd({ items, url }: { items: FaqEntry[]; url?: string }) {
   if (items.length === 0) return null;
 
   const data = {
@@ -25,7 +26,7 @@ export default function FaqJsonLd({ items }: { items: FaqItemData[] }) {
         text: item.answer,
       },
     })),
-    url: getSiteUrl(),
+    url: url ?? getSiteUrl(),
   };
 
   return (

@@ -68,6 +68,9 @@ export default function ProductForm({
 
   const [name, setName] = useState(product?.name ?? "");
   const [longForm, setLongForm] = useState(product?.body ?? "");
+  const [faqs, setFaqs] = useState<{ question: string; answer: string }[]>(
+    product?.faqs ?? []
+  );
   const [metaTitle, setMetaTitle] = useState(product?.metaTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(product?.metaDescription ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
@@ -106,6 +109,7 @@ export default function ProductForm({
       id: product?.id,
       name,
       body: longForm.trim() || null,
+      faqs,
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
       slug: slug || undefined,
@@ -195,6 +199,60 @@ export default function ProductForm({
               placeholder={"## What fits this\n\n- Runs on standard 13A\n- Needs 5cm clearance at the back"}
               className={`${storefrontInputClass} font-mono text-xs`}
             />
+          </StorefrontField>
+          <StorefrontField
+            label="Questions & answers"
+            hint="Shown on the product page and described to Google as an FAQ. Blank rows are ignored."
+          >
+            <div className="space-y-3">
+              {faqs.map((faq, index) => (
+                <div key={index} className="rounded-lg border border-[#262626] bg-[#0d0d0d] p-3">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 space-y-2">
+                      <input
+                        value={faq.question}
+                        onChange={(e) =>
+                          setFaqs((rows) =>
+                            rows.map((row, i) =>
+                              i === index ? { ...row, question: e.target.value } : row
+                            )
+                          )
+                        }
+                        placeholder="Does it need a stabiliser?"
+                        className={storefrontInputClass}
+                      />
+                      <textarea
+                        rows={2}
+                        value={faq.answer}
+                        onChange={(e) =>
+                          setFaqs((rows) =>
+                            rows.map((row, i) =>
+                              i === index ? { ...row, answer: e.target.value } : row
+                            )
+                          )
+                        }
+                        placeholder="Answer shown when the question is opened."
+                        className={storefrontInputClass}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setFaqs((rows) => rows.filter((_, i) => i !== index))}
+                      className="rounded-lg border border-[#333] px-2 py-1 text-xs text-neutral-400 hover:bg-[#1a1a1a]"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setFaqs((rows) => [...rows, { question: "", answer: "" }])}
+                className="rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-[#1a1a1a]"
+              >
+                Add question
+              </button>
+            </div>
           </StorefrontField>
           <ProductImageField
             label="Main image"

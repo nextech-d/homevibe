@@ -35,6 +35,7 @@ export type AdminProductDetail = {
   highlights: string[];
   primaryPhotoId: string;
   galleryPhotoIds: string[];
+  faqs: { question: string; answer: string }[];
 };
 
 export type ProductFormInput = {
@@ -54,6 +55,8 @@ export type ProductFormInput = {
   highlights?: string[];
   primaryPhotoId: string;
   galleryPhotoIds: string[];
+  /** Replaces the product's questions wholesale when present. */
+  faqs?: { question: string; answer: string }[];
 };
 
 export type BrandOption = { id: number; name: string };
@@ -106,6 +109,7 @@ function mapDetail(product: {
   galleryPhotoIds: unknown;
   brand: { name: string };
   subcategory: { label: string; categoryId: number; category: { label: string } };
+  faqs?: { question: string; answer: string }[];
 }): AdminProductDetail {
   return {
     id: product.id,
@@ -130,6 +134,7 @@ function mapDetail(product: {
     galleryPhotoIds: Array.isArray(product.galleryPhotoIds)
       ? (product.galleryPhotoIds as string[])
       : [],
+    faqs: (product.faqs ?? []).map((faq) => ({ question: faq.question, answer: faq.answer })),
   };
 }
 
@@ -222,7 +227,11 @@ export async function getProductForAdmin(id: number): Promise<AdminProductDetail
 
   const product = await prisma.product.findUnique({
     where: { id },
-    include: { brand: true, subcategory: { include: { category: true } } },
+    include: {
+      brand: true,
+      subcategory: { include: { category: true } },
+      faqs: { orderBy: { sortOrder: "asc" } },
+    },
   });
 
   return product ? mapDetail(product) : null;
@@ -279,6 +288,17 @@ export async function listSubcategoryOptions(): Promise<SubcategoryOption[]> {
   return options;
 }
 
+/** Drops blank rows and trims, so an empty editor row never becomes a question. */
+function cleanFaqs(faqs: { question: string; answer: string }[] | undefined) {
+  return (faqs ?? [])
+    .map((faq, index) => ({
+      question: faq.question.trim(),
+      answer: faq.answer.trim(),
+      sortOrder: index,
+    }))
+    .filter((faq) => faq.question && faq.answer);
+}
+
 export async function createProductForAdmin(input: ProductFormInput): Promise<AdminProductDetail> {
   const prisma = getPrisma();
   if (!prisma) throw new Error("Database unavailable");
@@ -304,8 +324,13 @@ export async function createProductForAdmin(input: ProductFormInput): Promise<Ad
       highlights: input.highlights ?? [],
       primaryPhotoId: input.primaryPhotoId.trim(),
       galleryPhotoIds: input.galleryPhotoIds,
+      faqs: { create: cleanFaqs(input.faqs) },
     },
-    include: { brand: true, subcategory: { include: { category: true } } },
+    include: {
+      brand: true,
+      subcategory: { include: { category: true } },
+      faqs: { orderBy: { sortOrder: "asc" } },
+    },
   });
 
   return mapDetail(product);
@@ -337,13 +362,34 @@ export async function updateProductForAdmin(
   if (input.primaryPhotoId !== undefined) data.primaryPhotoId = input.primaryPhotoId.trim();
   if (input.galleryPhotoIds !== undefined) data.galleryPhotoIds = input.galleryPhotoIds;
 
-  if (Object.keys(data).length === 0) return getProductForAdmin(id);
+  if (Object.keys(data).length === 0 && input.faqs === undefined) {
+    return getProductForAdmin(id);
+  }
 
   try {
-    const product = await prisma.product.update({
-      where: { id },
-      data,
-      include: { brand: true, subcategory: { include: { category: true } } },
+    // The questions are edited as a list, so they are replaced as a list: the
+    // alternative is tracking row ids through a form that only ever shows the
+    // whole set.
+    const product = await prisma.$transaction(async (tx) => {
+      if (input.faqs !== undefined) {
+        await tx.productFaq.deleteMany({ where: { productId: id } });
+        const faqs = cleanFaqs(input.faqs);
+        if (faqs.length > 0) {
+          await tx.productFaq.createMany({
+            data: faqs.map((faq) => ({ ...faq, productId: id })),
+          });
+        }
+      }
+
+      return tx.product.update({
+        where: { id },
+        data,
+        include: {
+          brand: true,
+          subcategory: { include: { category: true } },
+          faqs: { orderBy: { sortOrder: "asc" } },
+        },
+      });
     });
     return mapDetail(product);
   } catch {

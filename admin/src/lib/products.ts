@@ -45,4 +45,5 @@ export type AdminProductDetail = {
   highlights: string[];
   primaryPhotoId: string;
   galleryPhotoIds: string[];
+  faqs: { question: string; answer: string }[];
 };

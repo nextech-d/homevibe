@@ -15,6 +15,7 @@ import {
   PRODUCT_IMAGE_SIZES,
 } from "../../lib/productImages";
 import ProductCard from "../../components/ProductCard";
+import ProductFaq from "../../components/ProductFaq";
 import QuantitySelector from "../../components/QuantitySelector";
 import TrustBadges from "../../components/TrustBadges";
 import { ShoppingCart, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -260,6 +261,8 @@ export default function ProductDetail({ product }: { product: Appliance }) {
             <div dangerouslySetInnerHTML={{ __html: renderMarkdown(product.body) }} />
           </div>
         ) : null}
+
+        <ProductFaq items={product.faqs ?? []} />
 
         {/*
         <div className="mt-24 max-w-4xl">

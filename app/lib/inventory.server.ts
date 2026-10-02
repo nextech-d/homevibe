@@ -11,6 +11,12 @@ const productInclude = {
   subcategory: { include: { category: true } },
 } as const;
 
+/** One product, for its own page - the list query has no use for the FAQs. */
+const productDetailInclude = {
+  ...productInclude,
+  faqs: { orderBy: { sortOrder: "asc" } },
+} as const;
+
 /**
  * Load published products from Postgres. Memoised per request: a category page
  * renders the grid and the structured data describing it from one query.
@@ -85,7 +91,7 @@ export const getPublishedProduct = cache(async (id: number): Promise<Appliance |
   try {
     const row = await prisma.product.findFirst({
       where: { id, isPublished: true },
-      include: productInclude,
+      include: productDetailInclude,
     });
     return row ? mapDbProductToAppliance(row) : null;
   } catch (error) {
@@ -114,7 +120,7 @@ export const getPublishedProductByParam = cache(async (param: string): Promise<A
   try {
     const row = await prisma.product.findFirst({
       where: { slug: trimmed.toLowerCase(), isPublished: true },
-      include: productInclude,
+      include: productDetailInclude,
     });
     return row ? mapDbProductToAppliance(row) : null;
   } catch (error) {
