@@ -47,6 +47,31 @@ export const getInventory = cache(async (): Promise<Appliance[]> => {
   }
 });
 
+/**
+ * Slugs and modification dates for the sitemap. A separate query from
+ * getInventory because the sitemap wants two columns per product and no images,
+ * descriptions or relations.
+ */
+export const listProductsForSitemap = cache(
+  async (): Promise<{ slug: string; id: number; updatedAt: Date }[]> => {
+    if (!process.env.DATABASE_URL) return [];
+
+    const prisma = getPrisma();
+    if (!prisma) return [];
+
+    try {
+      return await prisma.product.findMany({
+        where: { isPublished: true },
+        select: { slug: true, id: true, updatedAt: true },
+        orderBy: { id: "asc" },
+      });
+    } catch (error) {
+      console.error("Failed to load products for sitemap:", error);
+      return [];
+    }
+  }
+);
+
 export const getPublishedProduct = cache(async (id: number): Promise<Appliance | null> => {
   if (!process.env.DATABASE_URL) {
     return null;

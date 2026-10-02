@@ -84,6 +84,8 @@ model Product {
   highlights      Json
   primaryPhotoId  String             @map("primary_photo_id")
   galleryPhotoIds Json               @map("gallery_photo_ids")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
   brand           Brand              @relation(fields: [brandId], references: [id])
   subcategory     Subcategory        @relation(fields: [subcategoryId], references: [id])
   featuredTop     FeaturedHomeSlot[] @relation("FeaturedTop")

@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { categoryHref, visibleSubcategories } from "./data/categories";
 import { listBrandsForSitemap } from "./lib/brands.server";
 import { getAllCategories } from "./lib/categories.server";
-import { getInventory } from "./lib/inventory.server";
+import { listProductsForSitemap } from "./lib/inventory.server";
 import { productHref } from "./data/products";
 import { getSiteUrl } from "./lib/seo";
 import { contentPostPath, listAllPublishedPostsForSitemap } from "./lib/content.server";
@@ -11,7 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = getSiteUrl();
   const now = new Date();
   const [products, categoriesList, brandsList] = await Promise.all([
-    getInventory(),
+    listProductsForSitemap(),
     getAllCategories(),
     listBrandsForSitemap(),
   ]);
@@ -62,7 +62,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const productPages: MetadataRoute.Sitemap = products.map((product) => ({
     url: `${base}${productHref(product)}`,
-    lastModified: now,
+    // The product's own timestamp, not this file's: a date that never moves
+    // tells a crawler nothing about what is worth re-reading.
+    lastModified: product.updatedAt,
     changeFrequency: "weekly",
     priority: 0.7,
   }));
