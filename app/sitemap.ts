@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { categoryHref } from "./data/categories";
+import { categoryHref, visibleSubcategories } from "./data/categories";
 import { listBrandsForSitemap } from "./lib/brands.server";
 import { getAllCategories } from "./lib/categories.server";
 import { getInventory } from "./lib/inventory.server";
@@ -40,7 +40,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.8,
       },
     ];
-    for (const sub of category.subcategories) {
+    // Empty subcategories are left out: a page with no products is thin, and
+    // the nav doesn't link them either.
+    for (const sub of visibleSubcategories(category)) {
       entries.push({
         url: `${base}${categoryHref(category.slug, sub.slug)}`,
         lastModified: now,

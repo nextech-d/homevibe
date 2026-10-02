@@ -6,6 +6,7 @@ import {
   getSubcategory,
   getSubcategoryLabel,
   categoryHref,
+  visibleSubcategories,
   type Category,
 } from "../data/categories";
 import ProductCard from "./ProductCard";
@@ -24,11 +25,12 @@ export default function CategoryCatalog({ category, subSlug, products }: Categor
   const { handleAddToCart, addedIds } = useAddToCart();
   const subcategoryMeta = subSlug ? getSubcategory(category.slug, subSlug, category) : undefined;
   const [sortBy, setSortBy] = useState<string>("default");
+  // Same rule as the nav: a subcategory with nothing in it is not worth a pill.
+  const shownSubcategories = visibleSubcategories(category);
   const subNavItems =
-    category.subcategories.length === 1 &&
-    category.subcategories[0].slug === category.slug
+    shownSubcategories.length === 1 && shownSubcategories[0].slug === category.slug
       ? []
-      : category.subcategories;
+      : shownSubcategories;
 
   // Sorting is the only client-side concern left; the selection happens on the
   // server so the grid is in the initial HTML.
