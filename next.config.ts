@@ -46,6 +46,16 @@ const nextConfig: NextConfig = {
         destination: "/category/kitchen/dishwashers",
         permanent: true,
       },
+      // The Hisense 50Q6QKEN was in the catalogue twice, at two prices. The
+      // kept row now serves the unsuffixed slug; this is the URL the duplicate
+      // was sitting on.
+      {
+        source:
+          "/product/hisense-50q6qken-50-inch-qled-4k-uhd-smart-frameless-tv-dolby-vision-dolby-atmos-and-vidaa-os-1",
+        destination:
+          "/product/hisense-50q6qken-50-inch-qled-4k-uhd-smart-frameless-tv-dolby-vision-dolby-atmos-and-vidaa-os",
+        permanent: true,
+      },
     ];
   },
   images: {

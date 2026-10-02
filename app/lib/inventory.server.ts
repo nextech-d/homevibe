@@ -2,7 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 
-import { APPLIANCES_INVENTORY, type Appliance } from "../data/products";
+import { type Appliance } from "../data/products";
 import { getPrisma } from "./db";
 import { mapDbProductToAppliance } from "./mapProduct";
 
@@ -12,18 +12,21 @@ const productInclude = {
 } as const;
 
 /**
- * Load published products from Postgres, with static fallback when DB is
- * unavailable. Memoised per request: a category page renders the grid and the
- * structured data describing it from one query.
+ * Load published products from Postgres. Memoised per request: a category page
+ * renders the grid and the structured data describing it from one query.
+ *
+ * An unreachable database yields an empty catalogue, not the demo one: these
+ * results are server-rendered, and a page of invented products at invented
+ * prices is worse than a page with none.
  */
 export const getInventory = cache(async (): Promise<Appliance[]> => {
   if (!process.env.DATABASE_URL) {
-    return APPLIANCES_INVENTORY;
+    return [];
   }
 
   const prisma = getPrisma();
   if (!prisma) {
-    return APPLIANCES_INVENTORY;
+    return [];
   }
 
   try {
@@ -34,24 +37,24 @@ export const getInventory = cache(async (): Promise<Appliance[]> => {
     });
 
     if (rows.length === 0) {
-      return APPLIANCES_INVENTORY;
+      return [];
     }
 
     return rows.map(mapDbProductToAppliance);
   } catch (error) {
     console.error("Failed to load inventory from database:", error);
-    return APPLIANCES_INVENTORY;
+    return [];
   }
 });
 
 export const getPublishedProduct = cache(async (id: number): Promise<Appliance | null> => {
   if (!process.env.DATABASE_URL) {
-    return APPLIANCES_INVENTORY.find((item) => item.id === id) ?? null;
+    return null;
   }
 
   const prisma = getPrisma();
   if (!prisma) {
-    return APPLIANCES_INVENTORY.find((item) => item.id === id) ?? null;
+    return null;
   }
 
   try {
@@ -75,12 +78,12 @@ export const getPublishedProductByParam = cache(async (param: string): Promise<A
   }
 
   if (!process.env.DATABASE_URL) {
-    return APPLIANCES_INVENTORY.find((item) => item.slug === trimmed.toLowerCase()) ?? null;
+    return null;
   }
 
   const prisma = getPrisma();
   if (!prisma) {
-    return APPLIANCES_INVENTORY.find((item) => item.slug === trimmed.toLowerCase()) ?? null;
+    return null;
   }
 
   try {

@@ -1,4 +1,3 @@
-import { APPLIANCES_INVENTORY } from "../data/products";
 import type { Appliance } from "../data/products";
 
 function filterByQuery(inventory: Appliance[], query: string): Appliance[] {
@@ -17,14 +16,14 @@ function filterByQuery(inventory: Appliance[], query: string): Appliance[] {
 export function searchProducts(
   query: string,
   limit = 5,
-  inventory: Appliance[] = APPLIANCES_INVENTORY
+  inventory: Appliance[]
 ): Appliance[] {
   return filterByQuery(inventory, query).slice(0, limit);
 }
 
 export function getAllSearchResults(
   query: string,
-  inventory: Appliance[] = APPLIANCES_INVENTORY
+  inventory: Appliance[]
 ): Appliance[] {
   return filterByQuery(inventory, query);
 }

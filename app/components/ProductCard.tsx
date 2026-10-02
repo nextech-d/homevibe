@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { ShoppingCart } from "lucide-react";
 import { productHref } from "../data/products";
 import type { CatalogProduct } from "../lib/inventory";
@@ -27,17 +27,16 @@ export default function ProductCard({
   compact = false,
   imageSizes = PRODUCT_IMAGE_SIZES.card,
 }: ProductCardProps) {
-  const router = useRouter();
   const cardImage = getProductCardImage(appliance);
 
   const cardShell = compact
-    ? "group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-3 shadow-sm transition hover:shadow-md"
-    : "group flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-4 shadow-sm transition hover:shadow-md";
+    ? "group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-3 shadow-sm transition hover:shadow-md"
+    : "group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-4 shadow-sm transition hover:shadow-md";
 
   const contentPadding = compact ? "px-3" : "px-4";
 
   return (
-    <div onClick={() => router.push(productHref(appliance))} className={cardShell}>
+    <div className={cardShell}>
       <div className="relative aspect-square w-full shrink-0 overflow-hidden bg-white">
         <Image
           src={cardImage}
@@ -54,7 +53,11 @@ export default function ProductCard({
             compact ? "min-h-[2.25rem] text-xs" : "min-h-[2.5rem] text-sm"
           }`}
         >
-          {appliance.name}
+          {/* The name is the link text, and the pseudo-element stretches the
+              anchor over the whole card so the card stays clickable. */}
+          <Link href={productHref(appliance)} className="after:absolute after:inset-0">
+            {appliance.name}
+          </Link>
         </h3>
 
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
@@ -70,7 +73,8 @@ export default function ProductCard({
             <button
               onClick={(e) => onAddToCart(e, appliance)}
               disabled={added}
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-semibold transition active:scale-[0.98] ${
+              // Above the stretched anchor, so Add to Cart stays a button.
+              className={`relative z-10 inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-semibold transition active:scale-[0.98] ${
                 added
                   ? "bg-emerald-500 text-white"
                   : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
