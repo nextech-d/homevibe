@@ -35,7 +35,13 @@ export type AdminProductDetail = {
   highlights: string[];
   primaryPhotoId: string;
   galleryPhotoIds: string[];
-  faqs: { question: string; answer: string }[];
+  faqs: { question: string; answer: string; sortOrder: number }[];
+};
+
+export type ProductFaqInput = {
+  question: string;
+  answer: string;
+  sortOrder?: number;
 };
 
 export type ProductFormInput = {
@@ -56,7 +62,7 @@ export type ProductFormInput = {
   primaryPhotoId: string;
   galleryPhotoIds: string[];
   /** Replaces the product's questions wholesale when present. */
-  faqs?: { question: string; answer: string }[];
+  faqs?: ProductFaqInput[];
 };
 
 export type BrandOption = { id: number; name: string };
@@ -109,7 +115,7 @@ function mapDetail(product: {
   galleryPhotoIds: unknown;
   brand: { name: string };
   subcategory: { label: string; categoryId: number; category: { label: string } };
-  faqs?: { question: string; answer: string }[];
+  faqs?: { question: string; answer: string; sortOrder: number }[];
 }): AdminProductDetail {
   return {
     id: product.id,
@@ -134,7 +140,11 @@ function mapDetail(product: {
     galleryPhotoIds: Array.isArray(product.galleryPhotoIds)
       ? (product.galleryPhotoIds as string[])
       : [],
-    faqs: (product.faqs ?? []).map((faq) => ({ question: faq.question, answer: faq.answer })),
+    faqs: (product.faqs ?? []).map((faq) => ({
+      question: faq.question,
+      answer: faq.answer,
+      sortOrder: faq.sortOrder,
+    })),
   };
 }
 
@@ -288,13 +298,17 @@ export async function listSubcategoryOptions(): Promise<SubcategoryOption[]> {
   return options;
 }
 
-/** Drops blank rows and trims, so an empty editor row never becomes a question. */
-function cleanFaqs(faqs: { question: string; answer: string }[] | undefined) {
+/**
+ * Drops blank rows and trims, so an empty editor row never becomes a question.
+ * Takes the sort order the editor sends; falls back to row position for callers
+ * that don't set one.
+ */
+function cleanFaqs(faqs: ProductFaqInput[] | undefined) {
   return (faqs ?? [])
     .map((faq, index) => ({
       question: faq.question.trim(),
       answer: faq.answer.trim(),
-      sortOrder: index,
+      sortOrder: typeof faq.sortOrder === "number" ? faq.sortOrder : index,
     }))
     .filter((faq) => faq.question && faq.answer);
 }

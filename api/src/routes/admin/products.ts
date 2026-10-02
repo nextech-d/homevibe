@@ -9,6 +9,7 @@ import {
   updateProductForAdmin,
   getProductForAdmin,
   type ProductFormInput,
+  type ProductFaqInput,
 } from "../../lib/products.js";
 import { validateProductImageRefs } from "../../lib/uploads.js";
 import { scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
@@ -33,13 +34,19 @@ function parseOptionalString(value: unknown): string | null | undefined {
   return trimmed || null;
 }
 
-function parseFaqs(value: unknown): { question: string; answer: string }[] | undefined {
+function parseFaqs(value: unknown): ProductFaqInput[] | undefined {
   if (!Array.isArray(value)) return undefined;
   return value.flatMap((entry) => {
     if (!entry || typeof entry !== "object") return [];
-    const { question, answer } = entry as Record<string, unknown>;
+    const { question, answer, sortOrder } = entry as Record<string, unknown>;
     if (typeof question !== "string" || typeof answer !== "string") return [];
-    return [{ question, answer }];
+    return [
+      {
+        question,
+        answer,
+        sortOrder: typeof sortOrder === "number" ? sortOrder : undefined,
+      },
+    ];
   });
 }
 
