@@ -245,10 +245,9 @@ export default function ProductDetail({ product }: { product: Appliance }) {
           </div>
         </div>
 
-        {/* One column for both, so they stay matched and the measure stays
-            readable: the full 1232px column runs ~153 characters a line on a
-            wide monitor, against a comfortable 45-90. */}
-        <div className="mt-16 w-full max-w-2xl">
+        {/* One column for both, so the description and the long-form section
+            stay matched by construction rather than by two classes agreeing. */}
+        <div className="mt-16 w-full">
         {product.description.trim() ? (
           <div className="w-full">
             <h4 className="mb-8 text-[10px] font-black uppercase tracking-widest text-neutral-500">

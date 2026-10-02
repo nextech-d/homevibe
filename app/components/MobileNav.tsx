@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
@@ -43,7 +44,16 @@ export default function MobileNav() {
         <Menu className="h-5 w-5" />
       </button>
 
-      {open && (
+      {/*
+        Rendered into <body>, not where it sits in the tree. The header carries
+        backdrop-blur, and a backdrop-filter makes an element the containing
+        block for fixed-position descendants - so inset-y-0 resolved against the
+        115px header instead of the viewport, leaving the drawer 114px tall with
+        45px of a 713px menu visible.
+      */}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
         <>
           <button
             type="button"
@@ -183,8 +193,9 @@ export default function MobileNav() {
               </div>
             </nav>
           </div>
-        </>
-      )}
+        </>,
+          document.body
+        )}
     </div>
   );
 }
