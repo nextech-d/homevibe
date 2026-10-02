@@ -33,6 +33,16 @@ function parseOptionalString(value: unknown): string | null | undefined {
   return trimmed || null;
 }
 
+function parseFaqs(value: unknown): { question: string; answer: string }[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const { question, answer } = entry as Record<string, unknown>;
+    if (typeof question !== "string" || typeof answer !== "string") return [];
+    return [{ question, answer }];
+  });
+}
+
 function parseProductBody(body: Record<string, unknown>): ProductFormInput | null {
   if (
     typeof body.name !== "string" ||
@@ -63,6 +73,8 @@ function parseProductBody(body: Record<string, unknown>): ProductFormInput | nul
     isFeatured: body.isFeatured === true,
     specs: body.specs,
     description: body.description,
+    body: parseOptionalString(body.body),
+    faqs: parseFaqs(body.faqs),
     metaTitle: parseOptionalString(body.metaTitle),
     metaDescription: parseOptionalString(body.metaDescription),
     primaryPhotoId: body.primaryPhotoId,

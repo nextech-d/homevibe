@@ -3,6 +3,11 @@ import {
   type ProductImageSet,
 } from "../lib/productImages";
 
+export type ProductFaqItem = {
+  question: string;
+  answer: string;
+};
+
 export type Appliance = {
   id: number;
   slug: string;
@@ -19,6 +24,10 @@ export type Appliance = {
   specs: string;
   brand: string;
   description: string;
+  /** Long-form markdown shown under the description; absent on most products. */
+  body?: string | null;
+  /** Questions answered on this product's page; only loaded for the page itself. */
+  faqs?: ProductFaqItem[];
   highlights: string[];
   metaTitle?: string | null;
   metaDescription?: string | null;

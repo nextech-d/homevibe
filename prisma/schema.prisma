@@ -79,22 +79,39 @@ model Product {
   isFeatured      Boolean            @default(false) @map("is_featured")
   specs           String
   description     String
+  /// Long-form markdown shown below the description on the product page.
+  body            String?
   metaTitle       String?            @map("meta_title")
   metaDescription String?            @map("meta_description")
   highlights      Json
   primaryPhotoId  String             @map("primary_photo_id")
   galleryPhotoIds Json               @map("gallery_photo_ids")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  updatedAt       DateTime           @updatedAt @map("updated_at")
   brand           Brand              @relation(fields: [brandId], references: [id])
   subcategory     Subcategory        @relation(fields: [subcategoryId], references: [id])
   featuredTop     FeaturedHomeSlot[] @relation("FeaturedTop")
   featuredBottom  FeaturedHomeSlot[] @relation("FeaturedBottom")
   orderItems      OrderItem[]
+  faqs            ProductFaq[]
 
   @@index([brandId])
   @@index([subcategoryId])
   @@index([isPublished])
   @@index([isFeatured])
   @@map("products")
+}
+
+model ProductFaq {
+  id        Int     @id @default(autoincrement())
+  productId Int     @map("product_id")
+  question  String
+  answer    String
+  sortOrder Int     @default(0) @map("sort_order")
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_faqs")
 }
 
 model FeaturedHomeSlot {

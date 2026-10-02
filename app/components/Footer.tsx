@@ -77,6 +77,8 @@ export default async function Footer() {
             <h3 className="text-[10px] font-black uppercase tracking-widest text-black/50">Support</h3>
             <ul className="mt-3 space-y-2">
               <li><Link href="/#faq" className="text-xs font-semibold text-black hover:text-black/70">FAQ</Link></li>
+              <li><Link href="/blog" className="text-xs font-semibold text-black hover:text-black/70">Blog</Link></li>
+              <li><Link href="/articles" className="text-xs font-semibold text-black hover:text-black/70">Buying Guides</Link></li>
               <li><Link href="/cart" className="text-xs font-semibold text-black hover:text-black/70">Your Cart</Link></li>
               <li><Link href="/checkout" className="text-xs font-semibold text-black hover:text-black/70">Checkout</Link></li>
               <li><Link href="/track-order" className="text-xs font-semibold text-black hover:text-black/70">Track Order</Link></li>

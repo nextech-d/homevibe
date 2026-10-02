@@ -1,10 +1,12 @@
-import type { Brand, Product, Subcategory, Category, StockStatus } from "@prisma/client";
+import type { Brand, Product, ProductFaq, Subcategory, Category, StockStatus } from "@prisma/client";
 import type { Appliance } from "../data/products";
 import { buildProductImageSet } from "./productImages";
 
 export type ProductWithRelations = Product & {
   brand: Brand;
   subcategory: Subcategory & { category: Category };
+  /** Present only for the single-product queries, which include them. */
+  faqs?: ProductFaq[];
 };
 
 function stockStatusLabel(status: StockStatus): string {
@@ -38,6 +40,8 @@ export function mapDbProductToAppliance(product: ProductWithRelations): Applianc
     brand: product.brand.name,
     specs: product.specs,
     description: product.description,
+    body: product.body,
+    faqs: product.faqs?.map((faq) => ({ question: faq.question, answer: faq.answer })),
     highlights: product.highlights as string[],
     metaTitle: product.metaTitle,
     metaDescription: product.metaDescription,

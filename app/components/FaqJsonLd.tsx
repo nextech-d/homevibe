@@ -1,9 +1,18 @@
-import { getFaqItemsData } from "../lib/storefront.server";
 import { getSiteUrl } from "../lib/seo";
 import { serializeJsonLd } from "../lib/json-ld";
 
-export default async function FaqJsonLd() {
-  const items = await getFaqItemsData();
+type FaqEntry = { question: string; answer: string };
+
+/**
+ * FAQPage markup for a page that shows an FAQ - the homepage's, or a
+ * product's.
+ *
+ * It used to sit in the root layout, so every route claimed to be an FAQ page
+ * about questions that were nowhere in its markup. Structured data has to
+ * describe the page it is on, which is why this takes the items that page
+ * renders and a url to match.
+ */
+export default function FaqJsonLd({ items, url }: { items: FaqEntry[]; url?: string }) {
   if (items.length === 0) return null;
 
   const data = {
@@ -17,7 +26,7 @@ export default async function FaqJsonLd() {
         text: item.answer,
       },
     })),
-    url: getSiteUrl(),
+    url: url ?? getSiteUrl(),
   };
 
   return (

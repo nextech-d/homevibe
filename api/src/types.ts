@@ -25,6 +25,8 @@ export type Appliance = {
   specs: string;
   brand: string;
   description: string;
+  body?: string | null;
+  faqs?: { question: string; answer: string }[];
   highlights: string[];
   isFeatured?: boolean;
 };

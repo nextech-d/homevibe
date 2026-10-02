@@ -11,6 +11,12 @@ const productInclude = {
   subcategory: { include: { category: true } },
 } as const;
 
+/** One product, for its own page - the list query has no use for the FAQs. */
+const productDetailInclude = {
+  ...productInclude,
+  faqs: { orderBy: { sortOrder: "asc" } },
+} as const;
+
 /**
  * Load published products from Postgres. Memoised per request: a category page
  * renders the grid and the structured data describing it from one query.
@@ -47,6 +53,31 @@ export const getInventory = cache(async (): Promise<Appliance[]> => {
   }
 });
 
+/**
+ * Slugs and modification dates for the sitemap. A separate query from
+ * getInventory because the sitemap wants two columns per product and no images,
+ * descriptions or relations.
+ */
+export const listProductsForSitemap = cache(
+  async (): Promise<{ slug: string; id: number; updatedAt: Date }[]> => {
+    if (!process.env.DATABASE_URL) return [];
+
+    const prisma = getPrisma();
+    if (!prisma) return [];
+
+    try {
+      return await prisma.product.findMany({
+        where: { isPublished: true },
+        select: { slug: true, id: true, updatedAt: true },
+        orderBy: { id: "asc" },
+      });
+    } catch (error) {
+      console.error("Failed to load products for sitemap:", error);
+      return [];
+    }
+  }
+);
+
 export const getPublishedProduct = cache(async (id: number): Promise<Appliance | null> => {
   if (!process.env.DATABASE_URL) {
     return null;
@@ -60,7 +91,7 @@ export const getPublishedProduct = cache(async (id: number): Promise<Appliance |
   try {
     const row = await prisma.product.findFirst({
       where: { id, isPublished: true },
-      include: productInclude,
+      include: productDetailInclude,
     });
     return row ? mapDbProductToAppliance(row) : null;
   } catch (error) {
@@ -89,7 +120,7 @@ export const getPublishedProductByParam = cache(async (param: string): Promise<A
   try {
     const row = await prisma.product.findFirst({
       where: { slug: trimmed.toLowerCase(), isPublished: true },
-      include: productInclude,
+      include: productDetailInclude,
     });
     return row ? mapDbProductToAppliance(row) : null;
   } catch (error) {

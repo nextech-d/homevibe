@@ -7,7 +7,6 @@ import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import CartToast from "./components/CartToast";
 import SiteJsonLd from "./components/SiteJsonLd";
-import FaqJsonLd from "./components/FaqJsonLd";
 import { CartProvider } from "./context/CartContext";
 import { ProductsProvider } from "./context/ProductsContext";
 import { BrandsProvider } from "./context/BrandsContext";
@@ -53,7 +52,6 @@ export default async function RootLayout({
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-black">
         <SiteJsonLd />
-        <FaqJsonLd />
         <CartProvider>
           <ProductsProvider>
             <CategoriesProvider initial={navCategories}>

@@ -7,6 +7,12 @@ const productInclude = {
   subcategory: { include: { category: true } },
 } as const;
 
+/** One product, for its own page - the list query has no use for the FAQs. */
+const productDetailInclude = {
+  ...productInclude,
+  faqs: { orderBy: { sortOrder: "asc" } },
+} as const;
+
 export async function getInventory(): Promise<Appliance[]> {
   const prisma = getPrisma();
   if (!prisma) {
@@ -30,7 +36,7 @@ export async function getPublishedProduct(id: number): Promise<Appliance | null>
 
   const row = await prisma.product.findFirst({
     where: { id, isPublished: true },
-    include: productInclude,
+    include: productDetailInclude,
   });
 
   return row ? mapDbProductToAppliance(row) : null;
@@ -50,7 +56,7 @@ export async function getPublishedProductByParam(param: string): Promise<Applian
 
   const row = await prisma.product.findFirst({
     where: { slug: trimmed.toLowerCase(), isPublished: true },
-    include: productInclude,
+    include: productDetailInclude,
   });
 
   return row ? mapDbProductToAppliance(row) : null;
