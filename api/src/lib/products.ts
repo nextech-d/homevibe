@@ -29,6 +29,7 @@ export type AdminProductDetail = {
   isFeatured: boolean;
   specs: string;
   description: string;
+  body: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
   highlights: string[];
@@ -47,6 +48,7 @@ export type ProductFormInput = {
   isFeatured?: boolean;
   specs: string;
   description: string;
+  body?: string | null;
   metaTitle?: string | null;
   metaDescription?: string | null;
   highlights?: string[];
@@ -96,6 +98,7 @@ function mapDetail(product: {
   isFeatured: boolean;
   specs: string;
   description: string;
+  body: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
   highlights: unknown;
@@ -119,6 +122,7 @@ function mapDetail(product: {
     isFeatured: product.isFeatured,
     specs: product.specs,
     description: product.description,
+    body: product.body,
     metaTitle: product.metaTitle,
     metaDescription: product.metaDescription,
     highlights: Array.isArray(product.highlights) ? (product.highlights as string[]) : [],
@@ -294,6 +298,7 @@ export async function createProductForAdmin(input: ProductFormInput): Promise<Ad
       isFeatured: input.isFeatured ?? false,
       specs: input.specs.trim(),
       description: input.description.trim(),
+      body: input.body?.trim() || null,
       metaTitle: input.metaTitle?.trim() || null,
       metaDescription: input.metaDescription?.trim() || null,
       highlights: input.highlights ?? [],
@@ -324,6 +329,8 @@ export async function updateProductForAdmin(
   if (input.isFeatured !== undefined) data.isFeatured = input.isFeatured;
   if (input.specs !== undefined) data.specs = input.specs.trim();
   if (input.description !== undefined) data.description = input.description.trim();
+  // An empty editor clears the section rather than storing a blank string.
+  if (input.body !== undefined) data.body = input.body?.trim() || null;
   if (input.metaTitle !== undefined) data.metaTitle = input.metaTitle?.trim() || null;
   if (input.metaDescription !== undefined) data.metaDescription = input.metaDescription?.trim() || null;
   if (input.highlights !== undefined) data.highlights = input.highlights;

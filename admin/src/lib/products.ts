@@ -39,6 +39,7 @@ export type AdminProductDetail = {
   isFeatured: boolean;
   specs: string;
   description: string;
+  body: string | null;
   metaTitle: string | null;
   metaDescription: string | null;
   highlights: string[];

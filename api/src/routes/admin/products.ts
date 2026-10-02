@@ -63,6 +63,7 @@ function parseProductBody(body: Record<string, unknown>): ProductFormInput | nul
     isFeatured: body.isFeatured === true,
     specs: body.specs,
     description: body.description,
+    body: parseOptionalString(body.body),
     metaTitle: parseOptionalString(body.metaTitle),
     metaDescription: parseOptionalString(body.metaDescription),
     primaryPhotoId: body.primaryPhotoId,

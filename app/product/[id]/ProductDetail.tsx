@@ -19,6 +19,7 @@ import QuantitySelector from "../../components/QuantitySelector";
 import TrustBadges from "../../components/TrustBadges";
 import { ShoppingCart, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import { renderMarkdown } from "../../lib/markdown";
 import {
   descriptionLooksLikeHtml,
   sanitizeDescriptionHtml,
@@ -249,6 +250,14 @@ export default function ProductDetail({ product }: { product: Appliance }) {
               Product Description
             </h4>
             <ProductDescriptionBody text={product.description} />
+          </div>
+        ) : null}
+
+        {product.body?.trim() ? (
+          <div className="mt-16 w-full max-w-3xl">
+            {/* Markdown, rendered by the same converter the blog uses - which
+                escapes the source before formatting it. */}
+            <div dangerouslySetInnerHTML={{ __html: renderMarkdown(product.body) }} />
           </div>
         ) : null}
 

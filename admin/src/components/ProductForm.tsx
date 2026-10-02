@@ -67,6 +67,7 @@ export default function ProductForm({
   const [error, setError] = useState("");
 
   const [name, setName] = useState(product?.name ?? "");
+  const [longForm, setLongForm] = useState(product?.body ?? "");
   const [metaTitle, setMetaTitle] = useState(product?.metaTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(product?.metaDescription ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
@@ -104,6 +105,7 @@ export default function ProductForm({
     const body = {
       id: product?.id,
       name,
+      body: longForm.trim() || null,
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
       slug: slug || undefined,
@@ -182,6 +184,18 @@ export default function ProductForm({
             />
           </StorefrontField>
           <DescriptionEditor value={description} onChange={setDescription} />
+          <StorefrontField
+            label="Long-form content"
+            hint="Markdown, shown below the description on the product page. ## for headings, - for bullets. Leave empty to hide the section."
+          >
+            <textarea
+              rows={12}
+              value={longForm}
+              onChange={(e) => setLongForm(e.target.value)}
+              placeholder={"## What fits this\n\n- Runs on standard 13A\n- Needs 5cm clearance at the back"}
+              className={`${storefrontInputClass} font-mono text-xs`}
+            />
+          </StorefrontField>
           <ProductImageField
             label="Main image"
             required={isPublished}

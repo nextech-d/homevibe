@@ -19,6 +19,8 @@ export type Appliance = {
   specs: string;
   brand: string;
   description: string;
+  /** Long-form markdown shown under the description; absent on most products. */
+  body?: string | null;
   highlights: string[];
   metaTitle?: string | null;
   metaDescription?: string | null;
