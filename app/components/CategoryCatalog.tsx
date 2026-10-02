@@ -72,7 +72,7 @@ export default function CategoryCatalog({ category, subSlug, products }: Categor
   return (
     <div className="min-h-screen bg-[var(--bg)] pb-24">
       <div className="mx-auto max-w-7xl px-6 py-8">
-        <nav className="mb-8 flex flex-wrap items-center justify-center gap-2 text-center text-xs font-bold uppercase tracking-widest text-neutral-500">
+        <nav className="mb-8 flex flex-wrap items-center justify-center gap-2 text-center text-xs font-semibold tracking-wide text-neutral-500">
           <Link href="/" className="transition hover:text-neutral-900">
             Home
           </Link>

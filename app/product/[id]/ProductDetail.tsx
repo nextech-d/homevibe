@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { getCategorySlug, getSubcategoryLabel, categoryHref } from "../../data/categories";
 import { useCart } from "../../context/CartContext";
-import { useInventory } from "../../context/ProductsContext";
-import type { Appliance } from "../../lib/inventory";
+import type { Appliance, CatalogProduct } from "../../lib/inventory";
 import { formatPrice } from "../../lib/formatPrice";
 import { buildWhatsAppUrl } from "../../lib/whatsapp";
 import {
@@ -48,9 +47,15 @@ function ProductDescriptionBody({ text }: { text: string }) {
  * server and handed in, so the markup below is present in the initial HTML
  * rather than appearing only after hydration.
  */
-export default function ProductDetail({ product }: { product: Appliance }) {
+export default function ProductDetail({
+  product,
+  related,
+}: {
+  product: Appliance;
+  /** Chosen on the server, so the rail renders with the rest of the page. */
+  related: CatalogProduct[];
+}) {
   const { addItem } = useCart();
-  const inventory = useInventory();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -83,10 +88,6 @@ export default function ProductDetail({ product }: { product: Appliance }) {
 
   const whatsappUrl = buildWhatsAppUrl(`I'm interested in the ${product.name} (Quantity: ${qty})`);
 
-  const relatedProducts = inventory.filter(
-    (p) => p.category === product.category && p.id !== product.id
-  ).slice(0, 5);
-
   const categorySlug = getCategorySlug(product.category);
   const showSubcategoryCrumb =
     product.subcategory.toLowerCase() !== categorySlug.toLowerCase();
@@ -94,7 +95,10 @@ export default function ProductDetail({ product }: { product: Appliance }) {
   return (
     <div className="min-h-screen bg-[var(--bg)] font-sans pb-24">
       <div className="mx-auto max-w-7xl px-6 py-8">
-        <nav className="mb-12 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold uppercase tracking-widest text-neutral-500">
+        {/* Reads as written rather than shouted: a product name in caps -
+            "HISENSE 205L DOUBLE DOOR FRIDGE REF205DR (WATER DISPENSER)" - is
+            hard to scan and loses the casing the catalogue stores. */}
+        <nav className="mb-12 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold tracking-wide text-neutral-500">
           <Link href="/" className="hover:text-neutral-900 transition">Home</Link>
           <span className="text-neutral-400">/</span>
           <Link href={`/category/${categorySlug}`} className="hover:text-neutral-900 transition">
@@ -287,7 +291,7 @@ export default function ProductDetail({ product }: { product: Appliance }) {
         </div>
         */}
 
-        {relatedProducts.length > 0 && (
+        {related.length > 0 && (
           <div className="mt-24 pt-12 border-t border-neutral-300/70 w-full">
             <div className="mb-8">
               <h2 className="text-2xl font-bold tracking-tight text-neutral-950">Related Collections</h2>
@@ -296,7 +300,7 @@ export default function ProductDetail({ product }: { product: Appliance }) {
               </p>
             </div>
             <div className="grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4">
-              {relatedProducts.map((rp) => (
+              {related.map((rp) => (
                 <ProductCard key={rp.id} appliance={rp} compact />
               ))}
             </div>

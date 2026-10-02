@@ -21,6 +21,20 @@ export type CatalogProduct = Pick<
 };
 
 /**
+ * The product page's related rail: same category, never the product itself,
+ * capped at five. Lives here so the page can select them server-side rather
+ * than the rail filtering a client-fetched catalogue.
+ */
+export function relatedProducts(
+  inventory: Appliance[],
+  product: { id: number; category: string }
+): Appliance[] {
+  return inventory
+    .filter((item) => item.category === product.category && item.id !== product.id)
+    .slice(0, 5);
+}
+
+/**
  * Stock is stored as a label ("In Stock" / "Low Stock" / "Out of Stock"), so the
  * rule lives here rather than being re-spelled wherever availability is needed -
  * the product page states it in two places, its markup and its OpenGraph tags.
