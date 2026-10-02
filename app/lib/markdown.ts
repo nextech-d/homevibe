@@ -14,7 +14,42 @@ function inlineMarkdown(text: string): string {
     .replace(/`([^`]+)`/g, '<code class="rounded bg-neutral-100 px-1 py-0.5 text-sm">$1</code>');
 }
 
-/** Minimal markdown → HTML for content posts (headings, lists, paragraphs, links). */
+/** A table's second line: |---|:--:|---:| with optional colons for alignment. */
+const TABLE_DELIMITER = /^\|?[\s:-]*-[\s:|-]*\|?$/;
+
+function splitRow(line: string): string[] {
+  return line
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((cell) => cell.trim());
+}
+
+/** Column alignment from the delimiter row; left is the default and needs no style. */
+function columnAlignments(delimiter: string): (string | null)[] {
+  return splitRow(delimiter).map((cell) => {
+    const left = cell.startsWith(":");
+    const right = cell.endsWith(":");
+    if (left && right) return "center";
+    if (right) return "right";
+    return null;
+  });
+}
+
+function cell(tag: "th" | "td", text: string, align: string | null | undefined): string {
+  const classes =
+    tag === "th"
+      ? "border-b border-neutral-300 px-3 py-2 font-semibold text-neutral-900"
+      : "border-b border-neutral-200 px-3 py-2 align-top";
+  const style = align ? ` style="text-align:${align}"` : "";
+  return `<${tag} class="${classes}"${style}>${inlineMarkdown(escapeHtml(text))}</${tag}>`;
+}
+
+/**
+ * Minimal markdown → HTML for content posts and product long-form copy
+ * (headings, lists, paragraphs, links, tables).
+ */
 export function renderMarkdown(source: string): string {
   const lines = source.replace(/\r\n/g, "\n").split("\n");
   const html: string[] = [];
@@ -27,12 +62,47 @@ export function renderMarkdown(source: string): string {
     }
   }
 
-  for (const rawLine of lines) {
-    const line = rawLine.trimEnd();
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index].trimEnd();
     const trimmed = line.trim();
 
     if (!trimmed) {
       closeList();
+      continue;
+    }
+
+    // A pipe row followed by a delimiter row starts a table. Everything else
+    // containing a pipe is left alone and renders as an ordinary paragraph.
+    const next = lines[index + 1]?.trim();
+    if (trimmed.includes("|") && next && TABLE_DELIMITER.test(next) && next.includes("-")) {
+      closeList();
+      const headers = splitRow(trimmed);
+      const aligns = columnAlignments(next);
+      index += 2;
+
+      const rows: string[][] = [];
+      while (index < lines.length && lines[index].trim().includes("|")) {
+        rows.push(splitRow(lines[index].trim()));
+        index++;
+      }
+      index--; // the loop's own increment takes us past the last row
+
+      const headerCells = headers.map((text, i) => cell("th", text, aligns[i])).join("");
+      const bodyRows = rows
+        .map((row) => {
+          const cells = headers
+            // Ragged rows are padded or trimmed to the header, so the markup
+            // stays valid whatever was pasted in.
+            .map((_, i) => cell("td", row[i] ?? "", aligns[i]))
+            .join("");
+          return `<tr>${cells}</tr>`;
+        })
+        .join("");
+
+      // Scrolls in its own box: a wide table must not make the page scroll.
+      html.push(
+        `<div class="my-6 overflow-x-auto"><table class="w-full border-collapse text-left text-sm text-neutral-700"><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></div>`
+      );
       continue;
     }
 
