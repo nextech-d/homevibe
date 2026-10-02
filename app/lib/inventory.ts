@@ -16,6 +16,8 @@ export type CatalogProduct = Pick<
 > & {
   image: string;
   imageSet: Pick<ProductImageSet, "thumbnail" | "card">;
+  /** Drives the homepage grid's choice of layout. */
+  isFeatured?: boolean;
 };
 
 /**
@@ -38,7 +40,31 @@ export function toCatalogProduct(product: Appliance): CatalogProduct {
       thumbnail: product.imageSet.thumbnail,
       card: product.imageSet.card,
     },
+    isFeatured: product.isFeatured,
   };
+}
+
+/**
+ * What the homepage's featured section actually renders: the flagged products
+ * if there are any, otherwise the ones the configured columns point at. Shared
+ * with FeaturedProductsGrid's own branch so the page sends exactly the products
+ * the grid will use - 117 products in the payload to render four is not a trade
+ * worth making.
+ */
+export function featuredSelection(
+  inventory: Appliance[],
+  columns: { topProductId: number; bottomProductId: number | null }[]
+): Appliance[] {
+  const flagged = inventory.filter((product) => product.isFeatured);
+  if (flagged.length > 0) return flagged;
+
+  const byId = new Map(inventory.map((product) => [product.id, product]));
+  return columns.flatMap((column) =>
+    [column.topProductId, column.bottomProductId]
+      .filter((id): id is number => typeof id === "number")
+      .map((id) => byId.get(id))
+      .filter((product): product is Appliance => product !== undefined)
+  );
 }
 
 /**

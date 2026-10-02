@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
-import type { Appliance } from "../data/products";
+import type { CatalogProduct } from "../lib/inventory";
 import type { FeaturedColumnIds } from "../lib/storefront";
 import FeaturedColumnGrid from "./FeaturedColumnGrid";
 
 type FeaturedProductsGridProps = {
-  inventory: Appliance[];
+  inventory: CatalogProduct[];
   featuredColumns: FeaturedColumnIds[];
-  renderItem: (appliance: Appliance) => ReactNode;
+  renderItem: (appliance: CatalogProduct) => ReactNode;
   itemClassName?: string;
 };
 
