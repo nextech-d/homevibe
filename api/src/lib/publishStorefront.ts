@@ -1,3 +1,15 @@
+/**
+ * Refresh the storefront after a write, without making the write wait for it or
+ * fail with it. Used by every admin route that changes something the storefront
+ * caches - which, since the sitemap is prerendered, means anything that changes
+ * the set of URLs or what they contain.
+ */
+export function scheduleStorefrontPublish(reason: string): void {
+  void publishStorefront().catch((error) => {
+    console.error(`Storefront publish failed after ${reason}:`, error);
+  });
+}
+
 export type PublishResult = {
   revalidated: boolean;
   deployed: boolean;

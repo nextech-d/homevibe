@@ -7,15 +7,9 @@ import {
   listContentPosts,
   updateContentPost,
 } from "../../lib/content.js";
-import { publishStorefront } from "../../lib/publishStorefront.js";
+import { scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
 
 export const adminContentRoute = new Hono();
-
-function scheduleStorefrontPublish() {
-  void publishStorefront().catch((error) => {
-    console.error("Storefront publish failed:", error);
-  });
-}
 
 function parseType(value: string | undefined): ContentPostType | null {
   if (value === "blog" || value === "article") return value;
@@ -77,7 +71,7 @@ adminContentRoute.post("/posts", async (c) => {
       isPublished: typeof body.isPublished === "boolean" ? body.isPublished : undefined,
       publishedAt: typeof body.publishedAt === "string" ? body.publishedAt : null,
     });
-    scheduleStorefrontPublish();
+    scheduleStorefrontPublish("content post");
     return c.json({ success: true, post });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to create post.";
@@ -115,7 +109,7 @@ adminContentRoute.patch("/posts/:id", async (c) => {
           : undefined,
     });
     if (!post) return c.json({ success: false, message: "Post not found." }, 404);
-    scheduleStorefrontPublish();
+    scheduleStorefrontPublish("content post");
     return c.json({ success: true, post });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to update post.";
@@ -132,7 +126,7 @@ adminContentRoute.delete("/posts/:id", async (c) => {
   try {
     const deleted = await deleteContentPost(id);
     if (!deleted) return c.json({ success: false, message: "Post not found." }, 404);
-    scheduleStorefrontPublish();
+    scheduleStorefrontPublish("content post");
     return c.json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to delete post.";
