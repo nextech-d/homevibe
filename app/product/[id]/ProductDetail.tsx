@@ -245,8 +245,12 @@ export default function ProductDetail({ product }: { product: Appliance }) {
           </div>
         </div>
 
+        {/* One column for both, so they stay matched and the measure stays
+            readable: the full 1232px column runs ~153 characters a line on a
+            wide monitor, against a comfortable 45-90. */}
+        <div className="mt-16 w-full max-w-2xl">
         {product.description.trim() ? (
-          <div className="mt-16 w-full">
+          <div className="w-full">
             <h4 className="mb-8 text-[10px] font-black uppercase tracking-widest text-neutral-500">
               Product Description
             </h4>
@@ -255,12 +259,16 @@ export default function ProductDetail({ product }: { product: Appliance }) {
         ) : null}
 
         {product.body?.trim() ? (
-          <div className="mt-16 w-full max-w-3xl">
+          // Continues the description rather than starting a new block: small
+          // gap, and the renderer's own top margin on the first heading zeroed
+          // so the two don't stack up to ~100px of air.
+          <div className="mt-6 w-full [&>div>:first-child]:mt-0">
             {/* Markdown, rendered by the same converter the blog uses - which
                 escapes the source before formatting it. */}
             <div dangerouslySetInnerHTML={{ __html: renderMarkdown(product.body) }} />
           </div>
         ) : null}
+        </div>
 
         <ProductFaq items={product.faqs ?? []} />
 
