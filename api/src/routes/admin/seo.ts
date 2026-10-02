@@ -1,14 +1,8 @@
 import { Hono } from "hono";
 import { getSeoOverview, getSeoSettings, updateSeoSettings } from "../../lib/seo.js";
-import { publishStorefront } from "../../lib/publishStorefront.js";
+import { publishStorefront, scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
 
 export const adminSeoRoute = new Hono();
-
-function scheduleStorefrontPublish() {
-  void publishStorefront().catch((error) => {
-    console.error("Storefront publish failed:", error);
-  });
-}
 
 adminSeoRoute.get("/overview", async (c) => {
   try {
@@ -48,7 +42,7 @@ adminSeoRoute.patch("/global", async (c) => {
           ? body.googleSiteVerification
           : undefined,
     });
-    scheduleStorefrontPublish();
+    scheduleStorefrontPublish("seo settings");
     return c.json({ success: true, settings });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to update SEO settings.";

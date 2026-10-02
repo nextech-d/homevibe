@@ -10,15 +10,9 @@ import {
   updateSiteSettings,
 } from "../../lib/storefront.js";
 import { listProductsFiltered } from "../../lib/products.js";
-import { publishStorefront } from "../../lib/publishStorefront.js";
+import { publishStorefront, scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
 
 export const adminStorefrontRoute = new Hono();
-
-function scheduleStorefrontPublish() {
-  void publishStorefront().catch((error) => {
-    console.error("Storefront publish failed:", error);
-  });
-}
 
 adminStorefrontRoute.post("/publish", async (c) => {
   try {
@@ -66,7 +60,7 @@ adminStorefrontRoute.patch("/featured", async (c) => {
 
   try {
     const updated = await updateFeaturedSlots(slots as NonNullable<(typeof slots)[number]>[]);
-    scheduleStorefrontPublish();
+    scheduleStorefrontPublish("storefront settings");
     return c.json({ success: true, slots: updated });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to update featured slots.";
@@ -99,7 +93,7 @@ adminStorefrontRoute.patch("/settings", async (c) => {
       instagramUrl: typeof body.instagramUrl === "string" ? body.instagramUrl : undefined,
       tiktokUrl: typeof body.tiktokUrl === "string" ? body.tiktokUrl : undefined,
     });
-    scheduleStorefrontPublish();
+    scheduleStorefrontPublish("storefront settings");
     return c.json({ success: true, settings });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to update settings.";
@@ -129,7 +123,7 @@ adminStorefrontRoute.post("/faq", async (c) => {
       answer: body.answer,
       sortOrder: typeof body.sortOrder === "number" ? body.sortOrder : undefined,
     });
-    scheduleStorefrontPublish();
+    scheduleStorefrontPublish("storefront settings");
     return c.json({ success: true, item });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to create FAQ item.";
@@ -151,7 +145,7 @@ adminStorefrontRoute.patch("/faq/:id", async (c) => {
       sortOrder: typeof body.sortOrder === "number" ? body.sortOrder : undefined,
     });
     if (!item) return c.json({ success: false, message: "FAQ item not found." }, 404);
-    scheduleStorefrontPublish();
+    scheduleStorefrontPublish("storefront settings");
     return c.json({ success: true, item });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to update FAQ item.";
@@ -167,6 +161,6 @@ adminStorefrontRoute.delete("/faq/:id", async (c) => {
 
   const deleted = await deleteFaqItem(id);
   if (!deleted) return c.json({ success: false, message: "FAQ item not found." }, 404);
-  scheduleStorefrontPublish();
+  scheduleStorefrontPublish("storefront settings");
   return c.json({ success: true });
 });

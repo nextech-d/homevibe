@@ -20,6 +20,7 @@ import {
   updateSubcategory,
 } from "../../lib/catalog.js";
 import { isValidBrandLogoRef } from "../../lib/uploads.js";
+import { scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
 
 export const adminCatalogRoute = new Hono();
 
@@ -96,6 +97,7 @@ adminCatalogRoute.post("/brands", async (c) => {
       return c.json({ success: false, message: "name and origin are required." }, 400);
     }
     const brand = await createBrand(parsed);
+    scheduleStorefrontPublish("brand create");
     return c.json({ success: true, brand });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid brand data.";
@@ -138,6 +140,7 @@ adminCatalogRoute.patch("/brands/:id", async (c) => {
 
     const brand = await updateBrand(id, patch);
     if (!brand) return c.json({ success: false, message: "Brand not found." }, 404);
+    scheduleStorefrontPublish("brand update");
     return c.json({ success: true, brand });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Invalid brand data.";
@@ -149,6 +152,7 @@ adminCatalogRoute.delete("/brands/:id", async (c) => {
   const id = Number(c.req.param("id"));
   const result = await deleteBrand(id);
   if (!result.ok) return c.json({ success: false, message: result.message }, 400);
+  scheduleStorefrontPublish("brand delete");
   return c.json({ success: true });
 });
 
@@ -180,6 +184,7 @@ adminCatalogRoute.post("/categories", async (c) => {
     metaDescription: parseOptionalString(body.metaDescription),
     sortOrder: body.sortOrder,
   });
+  scheduleStorefrontPublish("category create");
   return c.json({ success: true, category });
 });
 
@@ -195,6 +200,7 @@ adminCatalogRoute.patch("/categories/:id", async (c) => {
   const body = await c.req.json();
   const category = await updateCategory(id, body);
   if (!category) return c.json({ success: false, message: "Category not found." }, 404);
+  scheduleStorefrontPublish("category update");
   return c.json({ success: true, category });
 });
 
@@ -202,6 +208,7 @@ adminCatalogRoute.delete("/categories/:id", async (c) => {
   const id = Number(c.req.param("id"));
   const result = await deleteCategory(id);
   if (!result.ok) return c.json({ success: false, message: result.message }, 400);
+  scheduleStorefrontPublish("category delete");
   return c.json({ success: true });
 });
 
@@ -230,6 +237,7 @@ adminCatalogRoute.post("/subcategories", async (c) => {
     metaDescription: parseOptionalString(body.metaDescription),
     sortOrder: body.sortOrder,
   });
+  scheduleStorefrontPublish("subcategory create");
   return c.json({ success: true, subcategory });
 });
 
@@ -245,6 +253,7 @@ adminCatalogRoute.patch("/subcategories/:id", async (c) => {
   const body = await c.req.json();
   const subcategory = await updateSubcategory(id, body);
   if (!subcategory) return c.json({ success: false, message: "Subcategory not found." }, 404);
+  scheduleStorefrontPublish("subcategory update");
   return c.json({ success: true, subcategory });
 });
 
@@ -252,5 +261,6 @@ adminCatalogRoute.delete("/subcategories/:id", async (c) => {
   const id = Number(c.req.param("id"));
   const result = await deleteSubcategory(id);
   if (!result.ok) return c.json({ success: false, message: result.message }, 400);
+  scheduleStorefrontPublish("subcategory delete");
   return c.json({ success: true });
 });
