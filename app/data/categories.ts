@@ -53,6 +53,7 @@ export const CATEGORIES: Category[] = [
       { label: "Microwaves", slug: "microwaves" },
       { label: "Refrigerators", slug: "refrigerators" },
       { label: "Freezers", slug: "freezers" },
+      { label: "Water Dispensers", slug: "water-dispensers" },
       { label: "Wine Cellars", slug: "wine-cellars" },
       { label: "Dishwashers", slug: "dishwashers" },
       { label: "Espresso Machines", slug: "espresso-machines" },
