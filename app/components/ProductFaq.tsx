@@ -14,11 +14,13 @@ export default function ProductFaq({ items }: { items: ProductFaqItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <section className="mt-24 w-full max-w-3xl border-t border-neutral-300/70 pt-12">
+    <section className="mt-24 w-full border-t border-neutral-300/70 pt-12">
       <h2 className="mb-8 text-2xl font-bold tracking-tight text-neutral-950">
         Questions about this product
       </h2>
-      <div className="space-y-3">
+      {/* Two columns from md up, as the homepage FAQ does: a stack of short
+          questions wastes the width the rest of the page uses. */}
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:items-start">
         {items.map((faq, i) => (
           <div
             key={`${faq.question}-${i}`}
