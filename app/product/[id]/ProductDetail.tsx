@@ -255,7 +255,10 @@ export default function ProductDetail({ product }: { product: Appliance }) {
         ) : null}
 
         {product.body?.trim() ? (
-          <div className="mt-16 w-full max-w-3xl">
+          // Continues the description rather than starting a new block: same
+          // width, small gap, and the renderer's own top margin on the first
+          // heading zeroed so the two don't stack up to ~100px of air.
+          <div className="mt-6 w-full [&>div>:first-child]:mt-0">
             {/* Markdown, rendered by the same converter the blog uses - which
                 escapes the source before formatting it. */}
             <div dangerouslySetInnerHTML={{ __html: renderMarkdown(product.body) }} />
