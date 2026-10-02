@@ -156,151 +156,156 @@ export default function ProductForm({
       )}
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-        <StorefrontSection
-          title="Product content"
-          description="Name, SEO, description, and images for the storefront product page."
-          icon={FileText}
-          accent="green"
-        >
-          <StorefrontField label="Name">
-            <input
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={storefrontInputClass}
-            />
-          </StorefrontField>
-          <StorefrontField label="Meta title">
-            <input
-              value={metaTitle}
-              onChange={(e) => setMetaTitle(e.target.value)}
-              placeholder="SEO page title (defaults to product name)"
-              className={storefrontInputClass}
-            />
-          </StorefrontField>
-          <StorefrontField label="Meta description" hint={`${metaDescription.length} characters`}>
-            <textarea
-              rows={3}
-              value={metaDescription}
-              onChange={(e) => setMetaDescription(e.target.value)}
-              placeholder="Short summary for search results"
-              className={storefrontInputClass}
-            />
-          </StorefrontField>
-          <DescriptionEditor value={description} onChange={setDescription} />
-          <StorefrontField
-            label="Long-form content"
-            hint="Markdown, shown below the description on the product page. ## for headings, - for bullets. Leave empty to hide the section."
+        {/* Left column. The grid has two tracks - content here, catalog
+            settings in the 320px rail - so a new section has to go inside
+            one of them rather than alongside as a third child. */}
+        <div className="space-y-6">
+          <StorefrontSection
+            title="Product content"
+            description="Name, SEO, description, and images for the storefront product page."
+            icon={FileText}
+            accent="green"
           >
-            <textarea
-              rows={12}
-              value={longForm}
-              onChange={(e) => setLongForm(e.target.value)}
-              placeholder={"## What fits this\n\n- Runs on standard 13A\n- Needs 5cm clearance at the back"}
-              className={`${storefrontInputClass} font-mono text-xs`}
+            <StorefrontField label="Name">
+              <input
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={storefrontInputClass}
+              />
+            </StorefrontField>
+            <StorefrontField label="Meta title">
+              <input
+                value={metaTitle}
+                onChange={(e) => setMetaTitle(e.target.value)}
+                placeholder="SEO page title (defaults to product name)"
+                className={storefrontInputClass}
+              />
+            </StorefrontField>
+            <StorefrontField label="Meta description" hint={`${metaDescription.length} characters`}>
+              <textarea
+                rows={3}
+                value={metaDescription}
+                onChange={(e) => setMetaDescription(e.target.value)}
+                placeholder="Short summary for search results"
+                className={storefrontInputClass}
+              />
+            </StorefrontField>
+            <DescriptionEditor value={description} onChange={setDescription} />
+            <StorefrontField
+              label="Long-form content"
+              hint="Markdown, shown below the description on the product page. ## for headings, - for bullets. Leave empty to hide the section."
+            >
+              <textarea
+                rows={12}
+                value={longForm}
+                onChange={(e) => setLongForm(e.target.value)}
+                placeholder={"## What fits this\n\n- Runs on standard 13A\n- Needs 5cm clearance at the back"}
+                className={`${storefrontInputClass} font-mono text-xs`}
+              />
+            </StorefrontField>
+            <ProductImageField
+              label="Main image"
+              required={isPublished}
+              value={mainImage}
+              onChange={setMainImage}
+              hint={
+                isPublished ? undefined : "Optional for drafts — required before publishing."
+              }
             />
-          </StorefrontField>
-          <ProductImageField
-            label="Main image"
-            required={isPublished}
-            value={mainImage}
-            onChange={setMainImage}
-            hint={
-              isPublished ? undefined : "Optional for drafts — required before publishing."
-            }
-          />
-          <ProductGalleryField
-            label="Secondary images"
-            value={secondaryImages}
-            onChange={setSecondaryImages}
-          />
-        </StorefrontSection>
+            <ProductGalleryField
+              label="Secondary images"
+              value={secondaryImages}
+              onChange={setSecondaryImages}
+            />
+          </StorefrontSection>
 
-        <StorefrontSection
-          title="Questions & answers"
-          description="Shown on the product page and described to Google as an FAQ for that page. Blank rows are ignored."
-          icon={MessagesSquare}
-          accent="green"
-        >
-          <div className="space-y-3">
-            {faqs.length === 0 && (
-              <p className="text-xs text-neutral-500">
-                No questions yet. Add the ones buyers actually ask about this product.
-              </p>
-            )}
-            {faqs.map((faq, index) => (
-              <div key={index} className="rounded-lg border border-[#262626] bg-[#0d0d0d] p-3">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1 space-y-2">
-                    <input
-                      value={faq.question}
-                      onChange={(e) =>
-                        setFaqs((rows) =>
-                          rows.map((row, i) =>
-                            i === index ? { ...row, question: e.target.value } : row
-                          )
-                        )
-                      }
-                      placeholder="Does it need a stabiliser?"
-                      className={storefrontInputClass}
-                    />
-                    <textarea
-                      rows={3}
-                      value={faq.answer}
-                      onChange={(e) =>
-                        setFaqs((rows) =>
-                          rows.map((row, i) =>
-                            i === index ? { ...row, answer: e.target.value } : row
-                          )
-                        )
-                      }
-                      placeholder="Answer shown when the question is opened."
-                      className={storefrontInputClass}
-                    />
-                  </div>
-                  <div className="flex w-24 shrink-0 flex-col gap-2">
-                    <label className="text-[10px] uppercase tracking-wider text-neutral-500">
-                      Sort order
+          <StorefrontSection
+            title="Questions & answers"
+            description="Shown on the product page and described to Google as an FAQ for that page. Blank rows are ignored."
+            icon={MessagesSquare}
+            accent="green"
+          >
+            <div className="space-y-3">
+              {faqs.length === 0 && (
+                <p className="text-xs text-neutral-500">
+                  No questions yet. Add the ones buyers actually ask about this product.
+                </p>
+              )}
+              {faqs.map((faq, index) => (
+                <div key={index} className="rounded-lg border border-[#262626] bg-[#0d0d0d] p-3">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 space-y-2">
                       <input
-                        type="number"
-                        value={faq.sortOrder}
+                        value={faq.question}
                         onChange={(e) =>
                           setFaqs((rows) =>
                             rows.map((row, i) =>
-                              i === index
-                                ? { ...row, sortOrder: Number(e.target.value) || 0 }
-                                : row
+                              i === index ? { ...row, question: e.target.value } : row
                             )
                           )
                         }
-                        className={`${storefrontInputClass} mt-1`}
+                        placeholder="Does it need a stabiliser?"
+                        className={storefrontInputClass}
                       />
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setFaqs((rows) => rows.filter((_, i) => i !== index))}
-                      className="rounded-lg border border-[#333] px-2 py-1 text-xs text-neutral-400 hover:bg-[#1a1a1a]"
-                    >
-                      Remove
-                    </button>
+                      <textarea
+                        rows={3}
+                        value={faq.answer}
+                        onChange={(e) =>
+                          setFaqs((rows) =>
+                            rows.map((row, i) =>
+                              i === index ? { ...row, answer: e.target.value } : row
+                            )
+                          )
+                        }
+                        placeholder="Answer shown when the question is opened."
+                        className={storefrontInputClass}
+                      />
+                    </div>
+                    <div className="flex w-24 shrink-0 flex-col gap-2">
+                      <label className="text-[10px] uppercase tracking-wider text-neutral-500">
+                        Sort order
+                        <input
+                          type="number"
+                          value={faq.sortOrder}
+                          onChange={(e) =>
+                            setFaqs((rows) =>
+                              rows.map((row, i) =>
+                                i === index
+                                  ? { ...row, sortOrder: Number(e.target.value) || 0 }
+                                  : row
+                              )
+                            )
+                          }
+                          className={`${storefrontInputClass} mt-1`}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setFaqs((rows) => rows.filter((_, i) => i !== index))}
+                        className="rounded-lg border border-[#333] px-2 py-1 text-xs text-neutral-400 hover:bg-[#1a1a1a]"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={() =>
-                setFaqs((rows) => [
-                  ...rows,
-                  { question: "", answer: "", sortOrder: rows.length },
-                ])
-              }
-              className="rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-[#1a1a1a]"
-            >
-              Add question
-            </button>
-          </div>
-        </StorefrontSection>
+              ))}
+              <button
+                type="button"
+                onClick={() =>
+                  setFaqs((rows) => [
+                    ...rows,
+                    { question: "", answer: "", sortOrder: rows.length },
+                  ])
+                }
+                className="rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-[#1a1a1a]"
+              >
+                Add question
+              </button>
+            </div>
+          </StorefrontSection>
+        </div>
 
         <StorefrontSection
           title="Catalog settings"
