@@ -123,6 +123,28 @@ export default function MobileNav() {
               {navCategories.map((cat) => {
                 const isExpanded = expanded === cat.slug;
                 const catActive = pathname.startsWith(`/category/${cat.slug}`);
+                const subs = visibleSubcategories(cat);
+
+                // The desktop nav's rules, which mobile never got: a lone
+                // subcategory echoing its parent (TVs > TVs) makes the whole
+                // expander pointless, so the category is a plain link instead.
+                const onlySubEchoesCategory =
+                  subs.length === 1 &&
+                  subs[0].label.trim().toLowerCase() === cat.label.trim().toLowerCase();
+
+                if (subs.length === 0 || onlySubEchoesCategory) {
+                  return (
+                    <Link
+                      key={cat.slug}
+                      href={categoryHref(cat.slug)}
+                      className={`mt-1 block rounded-lg px-3 py-3 text-sm font-bold text-black ${
+                        catActive ? "bg-neutral-100" : "hover:bg-neutral-50"
+                      }`}
+                    >
+                      {cat.navLabel}
+                    </Link>
+                  );
+                }
 
                 return (
                   <div key={cat.slug} className="mt-1">
@@ -145,13 +167,17 @@ export default function MobileNav() {
 
                     {isExpanded && (
                       <div className="mb-2 ml-2 border-l border-neutral-200 pl-2">
-                        <Link
-                          href={categoryHref(cat.slug)}
-                          className="block rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-800 hover:bg-neutral-50"
-                        >
-                          All {cat.label}
-                        </Link>
-                        {visibleSubcategories(cat).map((sub) => {
+                        {/* "All X" only earns its place when there is more than
+                            one child to be "all" of. */}
+                        {subs.length > 1 && (
+                          <Link
+                            href={categoryHref(cat.slug)}
+                            className="block rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-800 hover:bg-neutral-50"
+                          >
+                            All {cat.label}
+                          </Link>
+                        )}
+                        {subs.map((sub) => {
                           const href = subcategoryHref(cat, sub);
                           return (
                             <Link
