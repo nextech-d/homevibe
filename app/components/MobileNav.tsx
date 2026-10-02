@@ -7,6 +7,7 @@ import { ChevronDown, Menu, X } from "lucide-react";
 import {
   categoryHref,
   subcategoryHref,
+  visibleSubcategories,
 } from "../data/categories";
 import { brandHref } from "../data/brands";
 import { useNavBrands } from "../context/BrandsContext";
@@ -140,7 +141,7 @@ export default function MobileNav() {
                         >
                           All {cat.label}
                         </Link>
-                        {cat.subcategories.map((sub) => {
+                        {visibleSubcategories(cat).map((sub) => {
                           const href = subcategoryHref(cat, sub);
                           return (
                             <Link

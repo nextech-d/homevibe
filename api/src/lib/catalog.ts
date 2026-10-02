@@ -320,6 +320,8 @@ export type StorefrontCategory = {
     slug: string;
     metaTitle: string | null;
     metaDescription: string | null;
+    /** Published products, so the storefront nav can hide empty subcategories. */
+    productCount: number;
   }[];
 };
 
@@ -330,7 +332,12 @@ export async function listCategoriesForStorefront(): Promise<StorefrontCategory[
   const rows = await prisma.category.findMany({
     // Same tie-break as the storefront's own loader, so both agree when two
     // categories sit at the default sort_order.
-    include: { subcategories: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } },
+    include: {
+      subcategories: {
+        include: { _count: { select: { products: { where: { isPublished: true } } } } },
+        orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+      },
+    },
     orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
   });
 
@@ -346,6 +353,7 @@ export async function listCategoriesForStorefront(): Promise<StorefrontCategory[
       slug: sub.slug,
       metaTitle: sub.metaTitle,
       metaDescription: sub.metaDescription,
+      productCount: sub._count.products,
     })),
   }));
 }
@@ -552,7 +560,12 @@ export async function resolveSubcategoryIdForCategory(categoryId: number): Promi
 
   const category = await prisma.category.findUnique({
     where: { id: categoryId },
-    include: { subcategories: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } },
+    include: {
+      subcategories: {
+        include: { _count: { select: { products: { where: { isPublished: true } } } } },
+        orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+      },
+    },
   });
   if (!category) throw new Error("Category not found");
 

@@ -4,7 +4,7 @@ import { Fragment, useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
-import { categoryHref, subcategoryHref } from "../data/categories";
+import { categoryHref, subcategoryHref, visibleSubcategories } from "../data/categories";
 import { brandHref } from "../data/brands";
 import { useNavBrands } from "../context/BrandsContext";
 import { useNavCategories } from "../context/CategoriesContext";
@@ -98,7 +98,7 @@ export default function NavMenu() {
     </NavDropdown>,
     ...navCategories.map((cat) => {
       const catActive = pathname.startsWith(`/category/${cat.slug}`);
-      const subs = cat.subcategories;
+      const subs = visibleSubcategories(cat);
 
       // A lone subcategory echoing its parent (TVs > TVs) makes a dropdown
       // pointless - link straight to the category instead.

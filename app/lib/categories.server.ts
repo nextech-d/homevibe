@@ -29,7 +29,14 @@ export const getCategoriesFromDb = cache(async (): Promise<Category[] | null> =>
       // id breaks the tie: sort_order defaults to 0, so without it any two
       // categories left at the default come back in whatever order Postgres
       // feels like, and the nav row reshuffles for no visible reason.
-      include: { subcategories: { orderBy: [{ sortOrder: "asc" }, { id: "asc" }] } },
+      include: {
+        subcategories: {
+          // Counted here so the nav can drop subcategories with nothing in them,
+          // without a second query per category.
+          include: { _count: { select: { products: { where: { isPublished: true } } } } },
+          orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+        },
+      },
       orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
     });
 
@@ -49,6 +56,7 @@ export const getCategoriesFromDb = cache(async (): Promise<Category[] | null> =>
         slug: sub.slug,
         metaTitle: sub.metaTitle,
         metaDescription: sub.metaDescription,
+        productCount: sub._count.products,
       })),
     }));
   } catch (error) {

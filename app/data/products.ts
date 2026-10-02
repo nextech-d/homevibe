@@ -59,7 +59,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 1,
     name: "AeroCook 9000 Smart Oven",
-    category: "Cooking",
+    category: "Kitchen",
     subcategory: "ovens-ranges",
     price: 325000,
     status: "In Stock",
@@ -83,7 +83,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 2,
     name: "Preserva Dual-Zone Refrigerator",
-    category: "Refrigeration",
+    category: "Kitchen",
     subcategory: "refrigerators",
     price: 637000,
     status: "Low Stock",
@@ -106,7 +106,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 3,
     name: "Barista Pro Induction Espresso Engine",
-    category: "Coffee Tech",
+    category: "Kitchen",
     subcategory: "espresso-machines",
     price: 195000,
     status: "In Stock",
@@ -131,7 +131,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 4,
     name: "Lumina Whisper-Quiet Dishwasher",
-    category: "Cleaning",
+    category: "Kitchen",
     subcategory: "dishwashers",
     price: 143000,
     status: "In Stock",
@@ -154,7 +154,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 5,
     name: "Vortex Pro Gas Rangetop",
-    category: "Cooking",
+    category: "Kitchen",
     subcategory: "rangetops",
     price: 429000,
     status: "In Stock",
@@ -178,7 +178,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 6,
     name: "Celsius Smart Wine Cellar",
-    category: "Refrigeration",
+    category: "Kitchen",
     subcategory: "wine-cellars",
     price: 286000,
     status: "Low Stock",
@@ -321,7 +321,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 13,
     name: "FlameLine Induction Cooktop",
-    category: "Cooking",
+    category: "Kitchen",
     subcategory: "cooktops",
     price: 245000,
     status: "In Stock",
@@ -341,7 +341,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 14,
     name: "QuickHeat Built-In Microwave",
-    category: "Cooking",
+    category: "Kitchen",
     subcategory: "microwaves",
     price: 89000,
     status: "In Stock",
@@ -361,7 +361,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 15,
     name: "FrostGuard Chest Freezer",
-    category: "Refrigeration",
+    category: "Kitchen",
     subcategory: "freezers",
     price: 112000,
     status: "In Stock",
@@ -421,7 +421,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 18,
     name: "GrindMaster Burr Grinder",
-    category: "Coffee Tech",
+    category: "Kitchen",
     subcategory: "grinders",
     price: 68000,
     status: "In Stock",
@@ -441,7 +441,7 @@ export const APPLIANCES_INVENTORY: Appliance[] = [
   defineAppliance({
     id: 19,
     name: "PourCraft Drip Brewer",
-    category: "Coffee Tech",
+    category: "Kitchen",
     subcategory: "brewers",
     price: 42000,
     status: "In Stock",

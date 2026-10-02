@@ -90,9 +90,7 @@ async function main() {
 
   console.log("Seeding products…");
   for (const item of APPLIANCES_INVENTORY) {
-    const categorySlug = item.category.toLowerCase() === "coffee tech"
-      ? "coffee-tech"
-      : item.category.toLowerCase().replace(/\s+/g, "-");
+    const categorySlug = item.category.toLowerCase().replace(/\s+/g, "-");
 
     const subcategoryId = subcategoryByKey.get(`${categorySlug}:${item.subcategory}`);
     const brandId = brandByName.get(item.brand.toLowerCase());

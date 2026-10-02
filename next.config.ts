@@ -28,6 +28,26 @@ assertCheckoutApiUrlForProductionBuild();
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pg"],
+  /**
+   * Cooking became Kitchen, and Refrigeration, Coffee and Cleaning's dishwashers
+   * moved under it. These are the URLs that move with them - permanent, so the
+   * ranking they have earned transfers rather than 404ing.
+   */
+  async redirects() {
+    return [
+      { source: "/category/cooking", destination: "/category/kitchen", permanent: true },
+      { source: "/category/cooking/:sub", destination: "/category/kitchen/:sub", permanent: true },
+      { source: "/category/refrigeration", destination: "/category/kitchen", permanent: true },
+      { source: "/category/refrigeration/:sub", destination: "/category/kitchen/:sub", permanent: true },
+      { source: "/category/coffee-tech", destination: "/category/kitchen", permanent: true },
+      { source: "/category/coffee-tech/:sub", destination: "/category/kitchen/:sub", permanent: true },
+      {
+        source: "/category/cleaning/dishwashers",
+        destination: "/category/kitchen/dishwashers",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

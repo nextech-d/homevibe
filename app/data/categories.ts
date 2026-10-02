@@ -5,6 +5,12 @@ export type SubCategory = {
   /** Admin override; null or absent means the generated fallback is used. */
   metaTitle?: string | null;
   metaDescription?: string | null;
+  /**
+   * Published products in this subcategory, counted when the list comes from
+   * the database. Absent on the static fallback below, which has no way to
+   * know - so absent means "show it".
+   */
+  productCount?: number;
 };
 
 export type Category = {
@@ -35,48 +41,33 @@ export const GYM_CATEGORY: Category = {
 
 export const CATEGORIES: Category[] = [
   {
-    label: "Cooking",
-    slug: "cooking",
-    navLabel: "Cooking",
-    description: "Professional ovens, rangetops, and smart cooking suites.",
+    label: "Kitchen",
+    slug: "kitchen",
+    navLabel: "Kitchen",
+    description:
+      "Ovens, cooktops, microwaves, fridges, freezers and coffee machines for the whole kitchen.",
     subcategories: [
       { label: "Ovens & Ranges", slug: "ovens-ranges" },
       { label: "Rangetops", slug: "rangetops" },
       { label: "Cooktops", slug: "cooktops" },
       { label: "Microwaves", slug: "microwaves" },
-    ],
-  },
-  {
-    label: "Refrigeration",
-    slug: "refrigeration",
-    navLabel: "Refrigeration",
-    description: "Refrigerators, wine cellars, and precision cooling systems.",
-    subcategories: [
       { label: "Refrigerators", slug: "refrigerators" },
-      { label: "Wine Cellars", slug: "wine-cellars" },
       { label: "Freezers", slug: "freezers" },
+      { label: "Wine Cellars", slug: "wine-cellars" },
+      { label: "Dishwashers", slug: "dishwashers" },
+      { label: "Espresso Machines", slug: "espresso-machines" },
+      { label: "Grinders", slug: "grinders" },
+      { label: "Brewers", slug: "brewers" },
     ],
   },
   {
     label: "Cleaning",
     slug: "cleaning",
     navLabel: "Cleaning",
-    description: "Quiet dishwashers and premium cleaning appliances.",
+    description: "Washing machines and premium cleaning appliances.",
     subcategories: [
-      { label: "Dishwashers", slug: "dishwashers" },
       { label: "Laundry", slug: "laundry" },
       { label: "Vacuums", slug: "vacuums" },
-    ],
-  },
-  {
-    label: "Coffee Tech",
-    slug: "coffee-tech",
-    navLabel: "Coffee",
-    description: "Espresso engines, grinders, and barista-grade brewers.",
-    subcategories: [
-      { label: "Espresso Machines", slug: "espresso-machines" },
-      { label: "Grinders", slug: "grinders" },
-      { label: "Brewers", slug: "brewers" },
     ],
   },
 ];
@@ -86,6 +77,17 @@ export const NAV_CATEGORIES: Category[] = [GYM_CATEGORY, ...CATEGORIES];
 
 /** Every browsable category including Gym */
 export const ALL_CATEGORIES: Category[] = NAV_CATEGORIES;
+
+/**
+ * Subcategories worth linking to: one with no published products is a dead end
+ * for a shopper and a thin page for Google. Shared by the nav, the category
+ * page's own sub-nav and the sitemap so the three cannot disagree. A count of
+ * undefined means the list came from the static fallback, which knows no
+ * counts - those are shown.
+ */
+export function visibleSubcategories(category: Category): SubCategory[] {
+  return category.subcategories.filter((sub) => sub.productCount !== 0);
+}
 
 export type CategorySlug = (typeof CATEGORIES)[number]["slug"];
 
