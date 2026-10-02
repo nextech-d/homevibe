@@ -31,6 +31,22 @@ function mapSeoSettings(rows: { key: string; value: string }[]): SeoSettings {
   };
 }
 
+/**
+ * Takes what Search Console actually puts on the clipboard.
+ *
+ * It hands you the whole `<meta name="google-site-verification" content="..." />`
+ * tag, and pasting that in produced a tag whose content attribute was itself an
+ * escaped tag - which Google cannot match, so the site silently failed
+ * verification. Pull the token out of a pasted tag, and store the rest trimmed.
+ */
+export function normaliseVerificationToken(value: string): string {
+  const decoded = value.trim().replace(/&quot;/g, '"').replace(/&#0?39;|&apos;/g, "'");
+  if (!decoded) return "";
+
+  const fromTag = decoded.match(/content\s*=\s*["']([^"']+)["']/i);
+  return (fromTag ? fromTag[1] : decoded).trim();
+}
+
 function seoSettingsToDb(settings: Partial<SeoSettings>): Record<string, string> {
   const map: Record<string, string> = {};
   if (settings.homepageTitle !== undefined) map.homepage_title = settings.homepageTitle;
@@ -39,7 +55,7 @@ function seoSettingsToDb(settings: Partial<SeoSettings>): Record<string, string>
   }
   if (settings.defaultOgImageUrl !== undefined) map.default_og_image_url = settings.defaultOgImageUrl;
   if (settings.googleSiteVerification !== undefined) {
-    map.google_site_verification = settings.googleSiteVerification;
+    map.google_site_verification = normaliseVerificationToken(settings.googleSiteVerification);
   }
   return map;
 }
