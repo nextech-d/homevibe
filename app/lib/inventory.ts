@@ -1,4 +1,4 @@
-import { APPLIANCES_INVENTORY, type Appliance } from "../data/products";
+import { type Appliance } from "../data/products";
 import type { ProductImageSet } from "./productImages";
 import { apiUrl } from "./api-client";
 
@@ -72,7 +72,7 @@ export async function fetchInventoryClient(): Promise<Appliance[]> {
   const endpoint = apiUrl("/products") || "/api/products";
   try {
     const res = await fetch(endpoint, { cache: "no-store" });
-    if (!res.ok) return APPLIANCES_INVENTORY;
+    if (!res.ok) return [];
     const data = (await res.json()) as { success?: boolean; products?: Appliance[] };
     if (data.success && Array.isArray(data.products) && data.products.length > 0) {
       return data.products;
@@ -80,7 +80,7 @@ export async function fetchInventoryClient(): Promise<Appliance[]> {
   } catch {
     /* fall through */
   }
-  return APPLIANCES_INVENTORY;
+  return [];
 }
 
 export async function fetchProductByParamClient(param: string): Promise<Appliance | null> {
