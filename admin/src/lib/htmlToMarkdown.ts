@@ -7,6 +7,39 @@
  * understands are produced - headings, bold, italic, links, lists, tables -
  * and anything else degrades to its text.
  */
+/**
+ * Google Docs wraps the entire clipboard in <b style="font-weight:normal"> and
+ * Word wraps runs in similar weight-cancelling tags. An explicit normal weight
+ * is the signal that the tag is structural rather than emphasis.
+ */
+function isFauxBold(el: HTMLElement): boolean {
+  return /font-weight\s*:\s*(normal|400)\b/i.test(el.getAttribute("style") ?? "");
+}
+
+/**
+ * Docs and Word express emphasis as an inline style on a <span> rather than
+ * <strong> or <em>, so the style has to be read or a pasted document arrives
+ * with every bold word flattened.
+ */
+function styledBold(el: HTMLElement): boolean {
+  const weight = /font-weight\s*:\s*([^;]+)/i.exec(el.getAttribute("style") ?? "")?.[1]?.trim().toLowerCase();
+  if (!weight) return false;
+  if (weight === "bold" || weight === "bolder") return true;
+  const numeric = Number(weight);
+  return Number.isFinite(numeric) && numeric >= 600;
+}
+
+function styledItalic(el: HTMLElement): boolean {
+  return /font-style\s*:\s*italic/i.test(el.getAttribute("style") ?? "");
+}
+
+/** Wraps text in a marker without swallowing the spaces that surround it. */
+function wrap(marker: string, inner: string): string {
+  const text = inner.trim();
+  if (!text) return "";
+  return `${inner.match(/^\s*/)![0]}${marker}${text}${marker}${inner.match(/\s*$/)![0]}`;
+}
+
 function inline(node: Node): string {
   if (node.nodeType === Node.TEXT_NODE) {
     return (node.textContent ?? "").replace(/\s+/g, " ");
@@ -22,21 +55,30 @@ function inline(node: Node): string {
       return " ";
     case "STRONG":
     case "B":
-      // Word wraps whole paragraphs in <b>; bolding an empty string produces "****".
-      return text ? `**${text}**` : "";
+      // A weight-cancelling wrapper is not emphasis and passes its children
+      // through unmarked.
+      if (!text) return "";
+      return isFauxBold(el) ? inner : wrap("**", inner);
     case "EM":
     case "I":
-      return text ? `*${text}*` : "";
+      return wrap("*", inner);
     case "CODE":
-      return text ? `\`${text}\`` : "";
+      return wrap("`", inner);
     case "A": {
       const href = el.getAttribute("href");
       return href && text ? `[${text}](${href})` : text;
     }
-    default:
-      return inner;
+    default: {
+      if (!text) return inner;
+      let result = inner;
+      if (styledItalic(el)) result = wrap("*", result);
+      if (styledBold(el)) result = wrap("**", result);
+      return result;
+    }
   }
 }
+
+const BLOCK_TAGS = /^(H[1-6]|UL|OL|TABLE|P|DIV|SECTION|ARTICLE|BLOCKQUOTE)$/;
 
 function cell(el: Element): string {
   return inline(el).trim().replace(/\|/g, "\\|");
@@ -75,23 +117,19 @@ function block(el: Element, out: string[]): void {
     return;
   }
 
-  if (tag === "P" || tag === "DIV" || tag === "SECTION" || tag === "ARTICLE" || tag === "BODY") {
-    // A container holding block children is walked rather than flattened.
-    const hasBlockChildren = Array.from(el.children).some((c) =>
-      /^(H[1-6]|UL|OL|TABLE|P|DIV|SECTION|ARTICLE|BLOCKQUOTE)$/.test(c.tagName)
-    );
-    if (hasBlockChildren) {
-      Array.from(el.children).forEach((child) => block(child, out));
-      return;
-    }
-    const text = inline(el).trim();
-    if (text) out.push(text);
-    return;
-  }
-
   if (tag === "BLOCKQUOTE") {
     const text = inline(el).trim();
     if (text) out.push("> " + text);
+    return;
+  }
+
+  // Everything else is treated as a container: P and DIV, but also the single
+  // <b> Google Docs wraps a whole document in and the <span>/<font> nesting
+  // Word produces. Walking it matters - flattening a wrapper that holds blocks
+  // collapses the entire paste onto one line.
+  const hasBlockChildren = Array.from(el.children).some((c) => BLOCK_TAGS.test(c.tagName));
+  if (hasBlockChildren) {
+    Array.from(el.children).forEach((child) => block(child, out));
     return;
   }
 
