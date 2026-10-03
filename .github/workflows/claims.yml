@@ -1,0 +1,29 @@
+# Fails a push when published copy contradicts what we offer.
+#
+# The same check runs in the Vercel build (npm run build), which covers every
+# deploy. This covers every push and pull request, including branches that
+# never deploy, so a bad claim is caught before review rather than after.
+#
+# Needs a DATABASE_URL secret with read access. Without it the audit skips
+# rather than fails, so the workflow stays green until the secret is added.
+name: Claim audit
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Audit product claims
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npx tsx scripts/audit-claims.ts
