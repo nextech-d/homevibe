@@ -5,6 +5,8 @@ import { api } from "../lib/api";
 import { ProductGalleryField, ProductImageField } from "./ProductImageField";
 import DescriptionEditor from "./DescriptionEditor";
 import { descriptionHasText } from "../lib/descriptionHtml";
+import { parseFaqBlock } from "../lib/parseFaqBlock";
+import { htmlToMarkdown } from "../lib/htmlToMarkdown";
 import {
   StorefrontField,
   StorefrontSection,
@@ -71,6 +73,33 @@ export default function ProductForm({
   const [faqs, setFaqs] = useState<{ question: string; answer: string; sortOrder: number }[]>(
     (product?.faqs ?? []).map((faq, index) => ({ ...faq, sortOrder: index }))
   );
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const parsedBulk = bulkText.trim() ? parseFaqBlock(bulkText) : [];
+  const usableBulk = parsedBulk.filter((row) => !row.warning);
+
+  /**
+   * Pasted formatted text arrives with an HTML flavour alongside the plain one.
+   * Converting it keeps the field markdown while sparing whoever is pasting a
+   * document from retyping every # and **.
+   */
+  function handleLongFormPaste(event: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const html = event.clipboardData.getData("text/html");
+    if (!html) return; // plain text pastes as it always did
+
+    const markdown = htmlToMarkdown(html);
+    if (!markdown) return;
+
+    event.preventDefault();
+    const field = event.currentTarget;
+    const { selectionStart, selectionEnd, value } = field;
+    const next = value.slice(0, selectionStart) + markdown + value.slice(selectionEnd);
+    setLongForm(next);
+    requestAnimationFrame(() => {
+      const caret = selectionStart + markdown.length;
+      field.setSelectionRange(caret, caret);
+    });
+  }
   const [metaTitle, setMetaTitle] = useState(product?.metaTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(product?.metaDescription ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
@@ -194,12 +223,13 @@ export default function ProductForm({
             <DescriptionEditor value={description} onChange={setDescription} />
             <StorefrontField
               label="Long-form content"
-              hint="Markdown, shown below the description on the product page. ## for headings, - for bullets. Leave empty to hide the section."
+              hint="Markdown, shown below the description on the product page. ## for headings, - for bullets, | for tables. Paste from a document and the formatting is converted for you."
             >
               <textarea
                 rows={12}
                 value={longForm}
                 onChange={(e) => setLongForm(e.target.value)}
+                onPaste={handleLongFormPaste}
                 placeholder={"## What fits this\n\n- Runs on standard 13A\n- Needs 5cm clearance at the back"}
                 className={`${storefrontInputClass} font-mono text-xs`}
               />
@@ -291,18 +321,95 @@ export default function ProductForm({
                   </div>
                 </div>
               ))}
-              <button
-                type="button"
-                onClick={() =>
-                  setFaqs((rows) => [
-                    ...rows,
-                    { question: "", answer: "", sortOrder: rows.length },
-                  ])
-                }
-                className="rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-[#1a1a1a]"
-              >
-                Add question
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFaqs((rows) => [
+                      ...rows,
+                      { question: "", answer: "", sortOrder: rows.length },
+                    ])
+                  }
+                  className="rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-[#1a1a1a]"
+                >
+                  Add question
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBulkOpen((open) => !open)}
+                  className="rounded-lg border border-[#333] bg-[#111] px-3 py-2 text-xs font-medium text-neutral-300 hover:bg-[#1a1a1a]"
+                >
+                  {bulkOpen ? "Close paste box" : "Paste several"}
+                </button>
+              </div>
+
+              {bulkOpen && (
+                <div className="space-y-3 rounded-lg border border-[#262626] bg-[#0d0d0d] p-3">
+                  <textarea
+                    rows={10}
+                    value={bulkText}
+                    onChange={(e) => setBulkText(e.target.value)}
+                    placeholder={"Does it need a stabiliser?\nNot required, but a fridge guard is sensible.\n\nIs installation included?\nYes, countrywide."}
+                    className={`${storefrontInputClass} font-mono text-xs`}
+                  />
+                  <p className="text-[11px] text-neutral-500">
+                    One pair per block: first line is the question, the rest is the answer,
+                    blank line starts the next. Q:/A: prefixes, bullets, numbering and
+                    **bold** are stripped.
+                  </p>
+
+                  {/* Preview before anything is added, so a bad paste is visible
+                      rather than saved silently. */}
+                  {parsedBulk.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-semibold text-neutral-400">
+                        Parsed {usableBulk.length} question{usableBulk.length === 1 ? "" : "s"}
+                        {parsedBulk.length !== usableBulk.length &&
+                          ` · ${parsedBulk.length - usableBulk.length} needs attention`}
+                      </p>
+                      <ol className="space-y-2">
+                        {parsedBulk.map((row, index) => (
+                          <li
+                            key={index}
+                            className={`rounded border px-3 py-2 text-xs ${
+                              row.warning
+                                ? "border-amber-900/60 bg-amber-950/20"
+                                : "border-[#262626] bg-[#111]"
+                            }`}
+                          >
+                            <p className="font-semibold text-neutral-200">{row.question}</p>
+                            {row.warning ? (
+                              <p className="mt-1 text-[11px] text-amber-500">{row.warning}</p>
+                            ) : (
+                              <p className="mt-1 text-neutral-400">{row.answer}</p>
+                            )}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={usableBulk.length === 0}
+                    onClick={() => {
+                      setFaqs((rows) => [
+                        ...rows,
+                        ...usableBulk.map((row, index) => ({
+                          question: row.question,
+                          answer: row.answer,
+                          sortOrder: rows.length + index,
+                        })),
+                      ]);
+                      setBulkText("");
+                      setBulkOpen(false);
+                    }}
+                    className="rounded-lg bg-[#00e599] px-3 py-2 text-xs font-semibold text-black disabled:opacity-40"
+                  >
+                    Add {usableBulk.length || ""} to the list
+                  </button>
+                </div>
+              )}
             </div>
           </StorefrontSection>
         </div>
