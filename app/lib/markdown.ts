@@ -48,18 +48,35 @@ function cell(tag: "th" | "td", text: string, align: string | null | undefined):
 
 /**
  * Minimal markdown → HTML for content posts and product long-form copy
- * (headings, lists, paragraphs, links, tables).
+ * (headings, bulleted and numbered lists, blockquotes, paragraphs, links,
+ * tables).
+ *
+ * Ordered lists and blockquotes are here because the admin's paste converter
+ * emits both: without them, "1. Unbox and inspect" rendered as a paragraph
+ * with a literal "1." and a quote kept its ">".
  */
 export function renderMarkdown(source: string): string {
   const lines = source.replace(/\r\n/g, "\n").split("\n");
   const html: string[] = [];
-  let inList = false;
+  let listTag: "ul" | "ol" | null = null;
 
   function closeList() {
-    if (inList) {
-      html.push("</ul>");
-      inList = false;
+    if (listTag) {
+      html.push(`</${listTag}>`);
+      listTag = null;
     }
+  }
+
+  /** Reuses the open list when the marker matches, so one list stays one list. */
+  function openList(tag: "ul" | "ol") {
+    if (listTag === tag) return;
+    closeList();
+    html.push(
+      tag === "ol"
+        ? '<ol class="my-4 list-decimal space-y-2 pl-6 text-neutral-700">'
+        : '<ul class="my-4 list-disc space-y-2 pl-6 text-neutral-700">'
+    );
+    listTag = tag;
   }
 
   for (let index = 0; index < lines.length; index++) {
@@ -122,11 +139,26 @@ export function renderMarkdown(source: string): string {
       continue;
     }
     if (trimmed.startsWith("- ")) {
-      if (!inList) {
-        html.push('<ul class="my-4 list-disc space-y-2 pl-6 text-neutral-700">');
-        inList = true;
-      }
+      openList("ul");
       html.push(`<li>${inlineMarkdown(escapeHtml(trimmed.slice(2)))}</li>`);
+      continue;
+    }
+
+    // "1." and "1)" both count. Only a leading number is a marker; "*" is left
+    // to italics, which would otherwise swallow a line like *most models*.
+    const numbered = trimmed.match(/^\d+[.)]\s+(.*)$/);
+    if (numbered) {
+      openList("ol");
+      html.push(`<li>${inlineMarkdown(escapeHtml(numbered[1]))}</li>`);
+      continue;
+    }
+
+    const quoted = trimmed.match(/^>\s?(.*)$/);
+    if (quoted && quoted[1].trim()) {
+      closeList();
+      html.push(
+        `<blockquote class="my-6 border-l-2 border-neutral-300 pl-4 italic text-neutral-600">${inlineMarkdown(escapeHtml(quoted[1]))}</blockquote>`
+      );
       continue;
     }
 
