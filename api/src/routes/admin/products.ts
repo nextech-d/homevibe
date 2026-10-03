@@ -12,6 +12,7 @@ import {
   type ProductFaqInput,
 } from "../../lib/products.js";
 import { validateProductImageRefs } from "../../lib/uploads.js";
+import { validateProductClaims } from "../../lib/claims.js";
 import { scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
 
 function parseGallery(body: Record<string, unknown>): string[] {
@@ -146,6 +147,11 @@ adminProductsRoute.post("/", async (c) => {
     if (imageError) {
       return c.json({ success: false, message: imageError }, 400);
     }
+    // Checked on publish only, like the image rule: a draft can say anything.
+    const claimError = input.isPublished ? validateProductClaims([input.description, input.body]) : null;
+    if (claimError) {
+      return c.json({ success: false, message: claimError }, 400);
+    }
     const product = await createProductForAdmin(input);
     scheduleStorefrontPublish("product create");
     return c.json({ success: true, product });
@@ -190,6 +196,11 @@ adminProductsRoute.patch("/", async (c) => {
   });
   if (imageError) {
     return c.json({ success: false, message: imageError }, 400);
+  }
+
+  const claimError = input.isPublished ? validateProductClaims([input.description, input.body]) : null;
+  if (claimError) {
+    return c.json({ success: false, message: claimError }, 400);
   }
 
   const product = await updateProductForAdmin(body.id, input);
