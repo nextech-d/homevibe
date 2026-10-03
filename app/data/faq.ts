@@ -7,7 +7,7 @@ export const FAQ_LIST = [
   },
   {
     q: "What is your warranty policy?",
-    a: "Most products come with a 3-year warranty on parts and labour. Need longer cover? Ask us at checkout or on WhatsApp.",
+    a: "Every product carries a 12-month warranty on parts and labour, serviced by our own technicians. Some manufacturers add longer cover on specific components - the product page says so where that applies.",
   },
   {
     q: "Do you ship internationally?",

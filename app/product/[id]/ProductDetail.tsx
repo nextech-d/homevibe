@@ -15,6 +15,7 @@ import {
 } from "../../lib/productImages";
 import ProductCard from "../../components/ProductCard";
 import ProductFaq from "../../components/ProductFaq";
+import WhyBuyFromUs from "../../components/WhyBuyFromUs";
 import QuantitySelector from "../../components/QuantitySelector";
 import TrustBadges from "../../components/TrustBadges";
 import { ShoppingCart, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -271,6 +272,9 @@ export default function ProductDetail({
             <div dangerouslySetInnerHTML={{ __html: renderMarkdown(product.body) }} />
           </div>
         ) : null}
+
+        {/* Inside the prose wrapper, so it lines up with the copy above it. */}
+        <WhyBuyFromUs />
         </div>
 
         <ProductFaq items={product.faqs ?? []} />

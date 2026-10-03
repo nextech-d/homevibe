@@ -138,7 +138,7 @@ export default function CartPage() {
                 <div className="flex gap-4 p-5 bg-white border border-neutral-200/60 rounded-2xl transition-colors">
                   <ShieldCheck className="w-6 h-6 text-neutral-900 shrink-0 stroke-[1.5]" />
                   <div>
-                    <h4 className="text-xs font-bold text-neutral-900">3-Year Warranty</h4>
+                    <h4 className="text-xs font-bold text-neutral-900">12-Month Warranty</h4>
                     <p className="text-[10px] text-neutral-500 mt-1 leading-relaxed">Parts and labour covered — we&apos;ll help if something goes wrong.</p>
                   </div>
                 </div>
