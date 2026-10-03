@@ -4,8 +4,15 @@
 # deploy. This covers every push and pull request, including branches that
 # never deploy, so a bad claim is caught before review rather than after.
 #
-# Needs a DATABASE_URL secret with read access. Without it the audit skips
-# rather than fails, so the workflow stays green until the secret is added.
+# Needs a DATABASE_URL secret with read access to the catalogue. Without it
+# this workflow FAILS: it used to skip, which meant a green tick reported
+# protection that did not exist. The Vercel build still tolerates a missing or
+# unreachable database, because there a Neon timeout would block a deploy for a
+# reason that has nothing to do with the copy. Here, checking is the entire job.
+#
+# Note: secrets are not exposed to pull requests from forks, so a fork PR will
+# fail this check. That is the intended trade-off while this is a private repo
+# with no fork contributors - revisit if that changes.
 name: Claim audit
 
 on:
@@ -16,6 +23,17 @@ jobs:
   audit:
     runs-on: ubuntu-latest
     steps:
+      # Before installing anything: a missing secret is a configuration
+      # problem, and saying so in five seconds beats saying so after an npm ci.
+      - name: Require the DATABASE_URL secret
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error title=DATABASE_URL secret missing::The claim audit cannot read the catalogue, so no claim was checked. Add a DATABASE_URL repository secret with read access (Settings -> Secrets and variables -> Actions -> New repository secret)."
+            exit 1
+          fi
+          echo "DATABASE_URL secret is present."
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
@@ -26,4 +44,4 @@ jobs:
       - name: Audit product claims
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: npx tsx scripts/audit-claims.ts
+        run: npx tsx scripts/audit-claims.ts --require-db
