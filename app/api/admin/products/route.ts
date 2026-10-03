@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { StockStatus } from "@prisma/client";
+import { validateProductClaims } from "../../../lib/claims";
 import {
   createProductForAdmin,
   listProductsForAdmin,
@@ -55,9 +56,25 @@ function parseProductBody(body: Record<string, unknown>): ProductFormInput | nul
     specs: body.specs,
     description: body.description,
     highlights,
+    claimsChecked: body.claimsChecked === true,
     primaryPhotoId: body.primaryPhotoId,
     galleryPhotoIds,
   };
+}
+
+/**
+ * The claim guard, on this path too. The standalone API has had it since the
+ * warranty sweep; this route is the other way into the same table, and an
+ * unchecked box contents list does not care which admin typed it.
+ *
+ * Only description and highlights are checked because they are the only copy
+ * this form can write - the long-form body belongs to the dark admin.
+ */
+function claimErrorFor(input: ProductFormInput): string | null {
+  if (!input.isPublished) return null;
+  return validateProductClaims([input.description, ...input.highlights], {
+    claimsChecked: input.claimsChecked,
+  });
 }
 
 export async function GET() {
@@ -71,6 +88,11 @@ export async function POST(request: Request) {
 
   if (!input) {
     return NextResponse.json({ success: false, message: "Invalid product data." }, { status: 400 });
+  }
+
+  const claimError = claimErrorFor(input);
+  if (claimError) {
+    return NextResponse.json({ success: false, message: claimError }, { status: 400 });
   }
 
   try {
@@ -107,6 +129,11 @@ export async function PATCH(request: Request) {
   const input = parseProductBody({ ...body, id: undefined });
   if (!input) {
     return NextResponse.json({ success: false, message: "Invalid product data." }, { status: 400 });
+  }
+
+  const claimError = claimErrorFor(input);
+  if (claimError) {
+    return NextResponse.json({ success: false, message: claimError }, { status: 400 });
   }
 
   const product = await updateProductForAdmin(body.id, input);

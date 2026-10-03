@@ -69,6 +69,7 @@ export default function ProductForm({
   const [error, setError] = useState("");
 
   const [name, setName] = useState(product?.name ?? "");
+  const [claimsChecked, setClaimsChecked] = useState(Boolean(product?.claimsCheckedAt));
   const [longForm, setLongForm] = useState(product?.body ?? "");
   const [faqs, setFaqs] = useState<{ question: string; answer: string; sortOrder: number }[]>(
     (product?.faqs ?? []).map((faq, index) => ({ ...faq, sortOrder: index }))
@@ -141,6 +142,7 @@ export default function ProductForm({
       faqs,
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
+      claimsChecked,
       slug: slug || undefined,
       brandId: Number(brandId),
       subcategoryId: Number(subcategoryId),
@@ -505,6 +507,29 @@ export default function ProductForm({
               className="rounded border-[#333]"
             />
             Featured on homepage
+          </label>
+          {/* The escape hatch for the publish guard. Copy that promises
+              specific contents - a box list, a free accessory, a price - is
+              refused on publish until someone says they have checked it. */}
+          <label className="flex items-start gap-2 rounded-lg border border-[#2a2a2a] bg-[#111111] px-3.5 py-3 text-xs text-neutral-400">
+            <input
+              type="checkbox"
+              checked={claimsChecked}
+              onChange={(e) => setClaimsChecked(e.target.checked)}
+              className="mt-0.5 rounded border-[#333]"
+            />
+            <span>
+              Promises checked
+              <span className="mt-1 block text-[11px] leading-snug text-neutral-500">
+                Tick only if you have opened a carton or read the manufacturer's spec
+                sheet for the contents and accessories this copy promises.
+                {product?.claimsCheckedAt && (
+                  <span className="mt-1 block text-neutral-600">
+                    Checked {new Date(product.claimsCheckedAt).toLocaleDateString()}
+                  </span>
+                )}
+              </span>
+            </span>
           </label>
           <button
             type="submit"

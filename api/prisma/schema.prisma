@@ -85,6 +85,10 @@ model Product {
   metaTitle       String?            @map("meta_title")
   metaDescription String?            @map("meta_description")
   highlights      Json
+  /// Set when someone confirms the promises in this copy - a box contents
+  /// list, a free accessory, a price - against a carton or the manufacturer's
+  /// spec sheet. NULL means unchecked, and publishing such copy is refused.
+  claimsCheckedAt DateTime?          @map("claims_checked_at")
   primaryPhotoId  String             @map("primary_photo_id")
   galleryPhotoIds Json               @map("gallery_photo_ids")
   createdAt       DateTime           @default(now()) @map("created_at")

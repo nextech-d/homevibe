@@ -19,9 +19,9 @@
  * pattern, just a catalogue that moved. A gate at publish time cannot be
  * outrun that way.
  *
- * Mirrored from app/lib/claims.ts, the way mapProduct.ts is - the standalone
- * API cannot import across the project boundary. Change both together, and
- * change CANONICAL alongside app/components/WhyBuyFromUs.tsx.
+ * Mirrored in api/src/lib/claims.ts for the standalone API, the way
+ * mapProduct.ts is. Change both together, and change CANONICAL alongside
+ * app/components/WhyBuyFromUs.tsx.
  */
 export const CANONICAL = {
   warrantyMonths: 12,

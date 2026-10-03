@@ -35,6 +35,7 @@ export default function ProductForm({ brands, subcategories, product }: ProductF
   const [specs, setSpecs] = useState(product?.specs ?? "");
   const [description, setDescription] = useState(product?.description ?? "");
   const [highlights, setHighlights] = useState(product?.highlights.join("\n") ?? "");
+  const [claimsChecked, setClaimsChecked] = useState(Boolean(product?.claimsCheckedAt));
   const [primaryPhotoId, setPrimaryPhotoId] = useState(product?.primaryPhotoId ?? "");
   const [galleryPhotoIds, setGalleryPhotoIds] = useState(
     product?.galleryPhotoIds.join(", ") ?? ""
@@ -57,6 +58,7 @@ export default function ProductForm({ brands, subcategories, product }: ProductF
       specs,
       description,
       highlights,
+      claimsChecked,
       primaryPhotoId,
       galleryPhotoIds,
     };
@@ -153,6 +155,26 @@ export default function ProductForm({ brands, subcategories, product }: ProductF
       <div>
         <label className={labelClass}>Highlights (one per line)</label>
         <textarea rows={4} value={highlights} onChange={(e) => setHighlights(e.target.value)} className={inputClass} />
+      </div>
+
+      {/* The publish guard refuses copy promising contents nobody has checked;
+          this is the acknowledgement that someone has. */}
+      <div>
+        <label className="flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={claimsChecked}
+            onChange={(e) => setClaimsChecked(e.target.checked)}
+            className="mt-1"
+          />
+          <span>
+            Promises checked
+            <span className="mt-1 block text-xs text-neutral-500">
+              Tick only if you have opened a carton or read the manufacturer&apos;s spec
+              sheet for the contents and accessories this copy promises.
+            </span>
+          </span>
+        </label>
       </div>
 
       <div>

@@ -33,6 +33,8 @@ export type AdminProductDetail = {
   metaTitle: string | null;
   metaDescription: string | null;
   highlights: string[];
+  /** ISO date someone confirmed this copy's promises, or null if nobody has. */
+  claimsCheckedAt: string | null;
   primaryPhotoId: string;
   galleryPhotoIds: string[];
   faqs: { question: string; answer: string; sortOrder: number }[];
@@ -59,6 +61,8 @@ export type ProductFormInput = {
   metaTitle?: string | null;
   metaDescription?: string | null;
   highlights?: string[];
+  /** The admin's "promises checked" tick; stamps claimsCheckedAt. */
+  claimsChecked?: boolean;
   primaryPhotoId: string;
   galleryPhotoIds: string[];
   /** Replaces the product's questions wholesale when present. */
@@ -111,6 +115,7 @@ function mapDetail(product: {
   metaTitle: string | null;
   metaDescription: string | null;
   highlights: unknown;
+  claimsCheckedAt: Date | null;
   primaryPhotoId: string;
   galleryPhotoIds: unknown;
   brand: { name: string };
@@ -136,6 +141,7 @@ function mapDetail(product: {
     metaTitle: product.metaTitle,
     metaDescription: product.metaDescription,
     highlights: Array.isArray(product.highlights) ? (product.highlights as string[]) : [],
+    claimsCheckedAt: product.claimsCheckedAt ? product.claimsCheckedAt.toISOString() : null,
     primaryPhotoId: product.primaryPhotoId,
     galleryPhotoIds: Array.isArray(product.galleryPhotoIds)
       ? (product.galleryPhotoIds as string[])
@@ -336,6 +342,7 @@ export async function createProductForAdmin(input: ProductFormInput): Promise<Ad
       metaTitle: input.metaTitle?.trim() || null,
       metaDescription: input.metaDescription?.trim() || null,
       highlights: input.highlights ?? [],
+      claimsCheckedAt: input.claimsChecked ? new Date() : null,
       primaryPhotoId: input.primaryPhotoId.trim(),
       galleryPhotoIds: input.galleryPhotoIds,
       faqs: { create: cleanFaqs(input.faqs) },
@@ -373,6 +380,19 @@ export async function updateProductForAdmin(
   if (input.metaTitle !== undefined) data.metaTitle = input.metaTitle?.trim() || null;
   if (input.metaDescription !== undefined) data.metaDescription = input.metaDescription?.trim() || null;
   if (input.highlights !== undefined) data.highlights = input.highlights;
+  if (input.claimsChecked !== undefined) {
+    if (input.claimsChecked) {
+      // The column records when the promise was checked, not when the product
+      // was last saved, so an existing date is kept.
+      const existing = await prisma.product.findUnique({
+        where: { id },
+        select: { claimsCheckedAt: true },
+      });
+      data.claimsCheckedAt = existing?.claimsCheckedAt ?? new Date();
+    } else {
+      data.claimsCheckedAt = null;
+    }
+  }
   if (input.primaryPhotoId !== undefined) data.primaryPhotoId = input.primaryPhotoId.trim();
   if (input.galleryPhotoIds !== undefined) data.galleryPhotoIds = input.galleryPhotoIds;
 
