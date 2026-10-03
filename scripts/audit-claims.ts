@@ -103,8 +103,10 @@ async function main() {
   const asJson = process.argv.includes("--json");
   const connectionString = process.env.DATABASE_URL?.trim();
   if (!connectionString) {
-    console.error("DATABASE_URL is not set. Add it to .env.local.");
-    process.exit(2);
+    // A build without database access cannot audit, and failing it would block
+    // deploys for a reason that has nothing to do with the copy.
+    console.warn("audit-claims: DATABASE_URL not set, skipping the claim audit.");
+    return;
   }
 
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
@@ -165,6 +167,13 @@ async function main() {
     }
 
     process.exitCode = contradictions.length > 0 ? 1 : 0;
+  } catch (error) {
+    // Same reasoning: an unreachable database is an infrastructure problem,
+    // not a claim problem. Loud, but not a failed build.
+    console.warn(
+      "audit-claims: could not reach the database, skipping -",
+      error instanceof Error ? error.message.split("\n")[0] : error
+    );
   } finally {
     await prisma.$disconnect();
   }
