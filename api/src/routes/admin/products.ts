@@ -8,6 +8,7 @@ import {
   patchProductPriceStock,
   updateProductForAdmin,
   getProductForAdmin,
+  deleteProductForAdmin,
   type ProductFormInput,
   type ProductFaqInput,
 } from "../../lib/products.js";
@@ -239,4 +240,35 @@ adminProductsRoute.patch("/", async (c) => {
 
   scheduleStorefrontPublish("product update");
   return c.json({ success: true, product });
+});
+
+adminProductsRoute.delete("/:id", async (c) => {
+  const id = Number(c.req.param("id"));
+  if (id === 0 || Number.isNaN(id)) {
+    return c.json({ success: false, message: "Invalid product id." }, 400);
+  }
+
+  const result = await deleteProductForAdmin(id);
+
+  if (result.ok) {
+    scheduleStorefrontPublish("product delete");
+    return c.json({ success: true });
+  }
+
+  if (result.reason === "not_found") {
+    return c.json({ success: false, message: "Product not found." }, 404);
+  }
+
+  if (result.reason === "featured") {
+    const columns = result.columns.map((n) => n + 1).join(", ");
+    return c.json(
+      {
+        success: false,
+        message: `This product fills a featured homepage slot (column ${columns}). Replace it under Featured first, then delete it.`,
+      },
+      409
+    );
+  }
+
+  return c.json({ success: false, message: result.message }, 500);
 });
