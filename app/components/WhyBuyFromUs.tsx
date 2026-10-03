@@ -8,7 +8,7 @@ import { Check } from "lucide-react";
 const POINTS = [
   {
     lead: "We install it properly.",
-    body: "Plumbed in, levelled, transit bolts removed, one cycle run with you. Not a box left at your door.",
+    body: "Delivered, unboxed, positioned, connected and tested with you before we leave. Not a box dropped at your door.",
   },
   {
     lead: "We service what we sell.",
