@@ -101,3 +101,21 @@ manufacturer's own spec sheet where one exists, otherwise against a box.
 | 93 | Hisense | Hisense 55U6KKEN 55-Inch ULED 4K Smart TV | What’s in the Box : Hisense 55U6KKEN TV, Remote Control, 2 × Batteries, Power Cable, Stand, User Manual | manufacturer spec sheet |
 | 94 | Hisense | Hisense 55U6NPro 55-Inch Mini-LED ULED 4K Smart TV | What’s in the Box : Hisense 55U6NPro TV, Remote Control, 2 × Batteries, Power Cable, Stand, User Manual | manufacturer spec sheet |
 | 110 | Hisense | Hisense 85Q6QKEN 85-Inch QLED 4K UHD Smart TV | What’s in the Box: Hisense 85Q6QKEN TV, Remote Control, 2 × Batteries, Power Cable, Stand, User Manual | manufacturer spec sheet |
+| 149 | mika | Mika MRDCD112LSD Double Door Fridge 112L | What's in the Box: Mika MRDCD112LSD Fridge, Egg Tray, Keys, User Manual, Warranty Card | manufacturer spec sheet |
+
+## Why #149 is here and not in the first 95
+
+It was not a missed pattern. Product 149 was created at 13:55 on 3 Oct 2026,
+after the sweep had already enumerated its 95 targets, and published straight
+away - so the sweep removed the lists it had found while a 96th was being
+typed into the admin. Its copy is the canonical shape: one `<p>`, a straight
+apostrophe, "What's in the Box:" followed by a comma-separated list. Any of
+the three passes would have caught it had it existed when they ran.
+
+That is the lesson. A sweep over a snapshot cannot keep a moving catalogue
+clean, and the publish-time guard in `api/src/lib/claims.ts` does not cover
+this: it refuses contradictions only, and an unverified box list is not a
+contradiction. The audit script is the only thing that sees these, and it
+reports rather than blocks. Until the guard refuses box contents on publish,
+the next hand-written product can carry a list - and a Warranty Card promise -
+straight to the storefront, exactly as this one did.

@@ -28,6 +28,23 @@ function parseGallery(body: Record<string, unknown>): string[] {
   return [];
 }
 
+/** One per line in the admin, an array over the wire; blanks are dropped. */
+function parseHighlights(value: unknown): string[] | undefined {
+  if (Array.isArray(value)) {
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  if (typeof value === "string") {
+    return value
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+  }
+  return undefined;
+}
+
 function parseOptionalString(value: unknown): string | null | undefined {
   if (value === undefined) return undefined;
   if (typeof value !== "string") return null;
@@ -85,6 +102,8 @@ function parseProductBody(body: Record<string, unknown>): ProductFormInput | nul
     faqs: parseFaqs(body.faqs),
     metaTitle: parseOptionalString(body.metaTitle),
     metaDescription: parseOptionalString(body.metaDescription),
+    highlights: parseHighlights(body.highlights),
+    claimsChecked: body.claimsChecked === true,
     primaryPhotoId: body.primaryPhotoId,
     galleryPhotoIds: parseGallery(body),
   };
@@ -148,7 +167,12 @@ adminProductsRoute.post("/", async (c) => {
       return c.json({ success: false, message: imageError }, 400);
     }
     // Checked on publish only, like the image rule: a draft can say anything.
-    const claimError = input.isPublished ? validateProductClaims([input.description, input.body]) : null;
+    const claimError = input.isPublished
+    ? validateProductClaims(
+        [input.description, input.body, ...(input.highlights ?? [])],
+        { claimsChecked: input.claimsChecked }
+      )
+    : null;
     if (claimError) {
       return c.json({ success: false, message: claimError }, 400);
     }
@@ -198,7 +222,12 @@ adminProductsRoute.patch("/", async (c) => {
     return c.json({ success: false, message: imageError }, 400);
   }
 
-  const claimError = input.isPublished ? validateProductClaims([input.description, input.body]) : null;
+  const claimError = input.isPublished
+    ? validateProductClaims(
+        [input.description, input.body, ...(input.highlights ?? [])],
+        { claimsChecked: input.claimsChecked }
+      )
+    : null;
   if (claimError) {
     return c.json({ success: false, message: claimError }, 400);
   }

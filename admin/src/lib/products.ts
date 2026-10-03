@@ -43,6 +43,8 @@ export type AdminProductDetail = {
   metaTitle: string | null;
   metaDescription: string | null;
   highlights: string[];
+  /** ISO date someone confirmed this copy's promises, or null if nobody has. */
+  claimsCheckedAt: string | null;
   primaryPhotoId: string;
   galleryPhotoIds: string[];
   faqs: { question: string; answer: string; sortOrder: number }[];

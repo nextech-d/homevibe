@@ -27,6 +27,8 @@ export type AdminProductDetail = {
   specs: string;
   description: string;
   highlights: string[];
+  /** ISO date someone confirmed this copy's promises, or null if nobody has. */
+  claimsCheckedAt: string | null;
   primaryPhotoId: string;
   galleryPhotoIds: string[];
 };
@@ -42,6 +44,8 @@ export type ProductFormInput = {
   specs: string;
   description: string;
   highlights: string[];
+  /** The admin's "promises checked" tick; stamps claimsCheckedAt. */
+  claimsChecked?: boolean;
   primaryPhotoId: string;
   galleryPhotoIds: string[];
 };
@@ -88,6 +92,7 @@ function mapDetail(product: {
   specs: string;
   description: string;
   highlights: unknown;
+  claimsCheckedAt: Date | null;
   primaryPhotoId: string;
   galleryPhotoIds: unknown;
   brand: { name: string };
@@ -108,6 +113,7 @@ function mapDetail(product: {
     specs: product.specs,
     description: product.description,
     highlights: Array.isArray(product.highlights) ? (product.highlights as string[]) : [],
+    claimsCheckedAt: product.claimsCheckedAt ? product.claimsCheckedAt.toISOString() : null,
     primaryPhotoId: product.primaryPhotoId,
     galleryPhotoIds: Array.isArray(product.galleryPhotoIds)
       ? (product.galleryPhotoIds as string[])
@@ -211,6 +217,7 @@ export async function createProductForAdmin(input: ProductFormInput): Promise<Ad
       specs: input.specs.trim(),
       description: input.description.trim(),
       highlights: input.highlights,
+      claimsCheckedAt: input.claimsChecked ? new Date() : null,
       primaryPhotoId: input.primaryPhotoId.trim(),
       galleryPhotoIds: input.galleryPhotoIds,
     },
@@ -238,6 +245,19 @@ export async function updateProductForAdmin(
   if (input.specs !== undefined) data.specs = input.specs.trim();
   if (input.description !== undefined) data.description = input.description.trim();
   if (input.highlights !== undefined) data.highlights = input.highlights;
+  if (input.claimsChecked !== undefined) {
+    if (input.claimsChecked) {
+      // Keeps the original date: the column records when the promise was
+      // checked, not when the product was last saved.
+      const existing = await prisma.product.findUnique({
+        where: { id },
+        select: { claimsCheckedAt: true },
+      });
+      data.claimsCheckedAt = existing?.claimsCheckedAt ?? new Date();
+    } else {
+      data.claimsCheckedAt = null;
+    }
+  }
   if (input.primaryPhotoId !== undefined) data.primaryPhotoId = input.primaryPhotoId.trim();
   if (input.galleryPhotoIds !== undefined) data.galleryPhotoIds = input.galleryPhotoIds;
 
