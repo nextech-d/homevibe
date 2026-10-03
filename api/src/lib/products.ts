@@ -484,3 +484,47 @@ export async function patchProductPriceStock(
     return null;
   }
 }
+
+export type DeleteProductResult =
+  | { ok: true }
+  | { ok: false; reason: "not_found" }
+  | { ok: false; reason: "featured"; columns: number[] }
+  | { ok: false; reason: "error"; message: string };
+
+/**
+ * Deletes a product outright.
+ *
+ * Questions cascade with it. Order items do not: their product reference is
+ * ON DELETE SET NULL and they carry their own name, price and image, so a past
+ * order still reads correctly after the product it sold is gone.
+ *
+ * A featured homepage slot is a required relation, so a product filling one is
+ * refused rather than having the slot quietly emptied - the homepage would
+ * lose a tile and nobody would know why.
+ */
+export async function deleteProductForAdmin(id: number): Promise<DeleteProductResult> {
+  const prisma = getPrisma();
+  if (!prisma) return { ok: false, reason: "error", message: "Database unavailable" };
+
+  const product = await prisma.product.findUnique({ where: { id }, select: { id: true } });
+  if (!product) return { ok: false, reason: "not_found" };
+
+  const slots = await prisma.featuredHomeSlot.findMany({
+    where: { OR: [{ topProductId: id }, { bottomProductId: id }] },
+    select: { columnIndex: true },
+  });
+  if (slots.length > 0) {
+    return { ok: false, reason: "featured", columns: slots.map((slot) => slot.columnIndex) };
+  }
+
+  try {
+    await prisma.product.delete({ where: { id } });
+    return { ok: true };
+  } catch (error) {
+    return {
+      ok: false,
+      reason: "error",
+      message: error instanceof Error ? error.message.split("\n")[0] : "Delete failed",
+    };
+  }
+}

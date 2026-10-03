@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, RefreshCw, Plus, Pencil, Package } from "lucide-react";
+import { Search, RefreshCw, Plus, Pencil, Package, Trash2 } from "lucide-react";
 import { api, formatKes } from "../lib/api";
 import { productThumbUrl, type StockStatus } from "../lib/products";
 import {
@@ -156,6 +156,25 @@ function ProductsListPage() {
       body: JSON.stringify({ id, stockStatus }),
     });
     setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...data.product } : p)));
+  }
+
+  /**
+   * Deleting is the only way a test product leaves the catalogue - there was no
+   * route for it, so scratch rows had to be removed straight from the database.
+   * A product in a featured homepage slot is refused by the API, which says so.
+   */
+  async function deleteProduct(id: number, name: string) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.\n\nPast orders keep the name and price they were sold at.`)) {
+      return;
+    }
+    setError("");
+    try {
+      await api(`/admin/products/${id}`, { method: "DELETE" });
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      await load(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Cannot delete product");
+    }
   }
 
   return (
@@ -383,7 +402,12 @@ function ProductsListPage() {
               </thead>
               <tbody className="divide-y divide-[#262626] bg-[#0a0a0a]">
                 {products.map((product) => (
-                  <ProductRow key={product.id} product={product} onStockChange={quickSaveStock} />
+                  <ProductRow
+                    key={product.id}
+                    product={product}
+                    onStockChange={quickSaveStock}
+                    onDelete={deleteProduct}
+                  />
                 ))}
               </tbody>
             </table>
@@ -397,11 +421,14 @@ function ProductsListPage() {
 function ProductRow({
   product,
   onStockChange,
+  onDelete,
 }: {
   product: Product;
   onStockChange: (id: number, stockStatus: StockStatus) => Promise<void>;
+  onDelete: (id: number, name: string) => Promise<void>;
 }) {
   const [togglingStock, setTogglingStock] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const inStock = product.stockStatus !== "out_of_stock";
 
@@ -478,13 +505,31 @@ function ProductRow({
         </div>
       </td>
       <td className="px-4 py-3">
-        <Link
-          to={`/products/${product.id}/edit`}
-          className="rounded-lg border border-[#333] p-1.5 text-neutral-500 hover:text-white"
-          title="Edit"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </Link>
+        <div className="flex items-center gap-1.5">
+          <Link
+            to={`/products/${product.id}/edit`}
+            className="rounded-lg border border-[#333] p-1.5 text-neutral-500 hover:text-white"
+            title="Edit"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Link>
+          <button
+            type="button"
+            disabled={deleting}
+            onClick={async () => {
+              setDeleting(true);
+              try {
+                await onDelete(product.id, product.name);
+              } finally {
+                setDeleting(false);
+              }
+            }}
+            className="rounded-lg border border-[#333] p-1.5 text-neutral-500 hover:border-red-900/60 hover:text-red-400 disabled:opacity-40"
+            title="Delete"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </td>
     </tr>
   );

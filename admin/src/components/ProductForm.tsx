@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings2, FileText, MessagesSquare } from "lucide-react";
+import { Settings2, FileText, MessagesSquare, ChevronUp, ChevronDown } from "lucide-react";
 import { api } from "../lib/api";
 import { ProductGalleryField, ProductImageField } from "./ProductImageField";
 import DescriptionEditor from "./DescriptionEditor";
@@ -69,15 +69,34 @@ export default function ProductForm({
   const [error, setError] = useState("");
 
   const [name, setName] = useState(product?.name ?? "");
-  const [claimsChecked, setClaimsChecked] = useState(Boolean(product?.claimsCheckedAt));
   const [longForm, setLongForm] = useState(product?.body ?? "");
+  const [highlights, setHighlights] = useState((product?.highlights ?? []).join("\n"));
+  const [claimsChecked, setClaimsChecked] = useState(Boolean(product?.claimsCheckedAt));
   const [faqs, setFaqs] = useState<{ question: string; answer: string; sortOrder: number }[]>(
     (product?.faqs ?? []).map((faq, index) => ({ ...faq, sortOrder: index }))
   );
-  const [bulkOpen, setBulkOpen] = useState(false);
+  // Open on a product with no questions yet: the paste box is how a set of
+  // questions gets entered, so hiding it behind a click only helps once there
+  // is something in the list to protect.
+  const [bulkOpen, setBulkOpen] = useState((product?.faqs ?? []).length === 0);
   const [bulkText, setBulkText] = useState("");
   const parsedBulk = bulkText.trim() ? parseFaqBlock(bulkText) : [];
   const usableBulk = parsedBulk.filter((row) => !row.warning);
+
+  /**
+   * Moves a question and renumbers the set. The list is what the page shows,
+   * in the order it shows it, so the row order is the sort order - a number
+   * box asked someone to keep two things in their head at once.
+   */
+  function moveFaq(index: number, direction: -1 | 1) {
+    setFaqs((rows) => {
+      const target = index + direction;
+      if (target < 0 || target >= rows.length) return rows;
+      const next = [...rows];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next.map((row, i) => ({ ...row, sortOrder: i }));
+    });
+  }
 
   /**
    * Pasted formatted text arrives with an HTML flavour alongside the plain one.
@@ -142,6 +161,10 @@ export default function ProductForm({
       faqs,
       metaTitle: metaTitle || null,
       metaDescription: metaDescription || null,
+      highlights: highlights
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean),
       claimsChecked,
       slug: slug || undefined,
       brandId: Number(brandId),
@@ -236,6 +259,18 @@ export default function ProductForm({
                 className={`${storefrontInputClass} font-mono text-xs`}
               />
             </StorefrontField>
+            <StorefrontField
+              label="Highlights"
+              hint="One per line. Shown as a checked list under the questions on the product page."
+            >
+              <textarea
+                rows={4}
+                value={highlights}
+                onChange={(e) => setHighlights(e.target.value)}
+                placeholder={"Fits a 600mm gap\nRuns on standard 13A\nInverter compressor"}
+                className={storefrontInputClass}
+              />
+            </StorefrontField>
             <ProductImageField
               label="Main image"
               required={isPublished}
@@ -295,26 +330,37 @@ export default function ProductForm({
                       />
                     </div>
                     <div className="flex w-24 shrink-0 flex-col gap-2">
-                      <label className="text-[10px] uppercase tracking-wider text-neutral-500">
-                        Sort order
-                        <input
-                          type="number"
-                          value={faq.sortOrder}
-                          onChange={(e) =>
-                            setFaqs((rows) =>
-                              rows.map((row, i) =>
-                                i === index
-                                  ? { ...row, sortOrder: Number(e.target.value) || 0 }
-                                  : row
-                              )
-                            )
-                          }
-                          className={`${storefrontInputClass} mt-1`}
-                        />
-                      </label>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => moveFaq(index, -1)}
+                          disabled={index === 0}
+                          aria-label="Move question up"
+                          title="Move up"
+                          className="flex-1 rounded-lg border border-[#333] px-2 py-1 text-neutral-400 hover:bg-[#1a1a1a] disabled:opacity-30"
+                        >
+                          <ChevronUp size={14} className="mx-auto" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveFaq(index, 1)}
+                          disabled={index === faqs.length - 1}
+                          aria-label="Move question down"
+                          title="Move down"
+                          className="flex-1 rounded-lg border border-[#333] px-2 py-1 text-neutral-400 hover:bg-[#1a1a1a] disabled:opacity-30"
+                        >
+                          <ChevronDown size={14} className="mx-auto" />
+                        </button>
+                      </div>
                       <button
                         type="button"
-                        onClick={() => setFaqs((rows) => rows.filter((_, i) => i !== index))}
+                        onClick={() =>
+                          setFaqs((rows) =>
+                            rows
+                              .filter((_, i) => i !== index)
+                              .map((row, i) => ({ ...row, sortOrder: i }))
+                          )
+                        }
                         className="rounded-lg border border-[#333] px-2 py-1 text-xs text-neutral-400 hover:bg-[#1a1a1a]"
                       >
                         Remove

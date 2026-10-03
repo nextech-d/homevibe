@@ -15,6 +15,7 @@ import {
 } from "../../lib/productImages";
 import ProductCard from "../../components/ProductCard";
 import ProductFaq from "../../components/ProductFaq";
+import ProductHighlights from "../../components/ProductHighlights";
 import WhyBuyFromUs from "../../components/WhyBuyFromUs";
 import QuantitySelector from "../../components/QuantitySelector";
 import TrustBadges from "../../components/TrustBadges";
@@ -279,21 +280,7 @@ export default function ProductDetail({
 
         <ProductFaq items={product.faqs ?? []} />
 
-        {/*
-        <div className="mt-24 max-w-4xl">
-          <h2 className="text-3xl font-black text-neutral-900 mb-8 uppercase tracking-tight">
-            Why {product.name}
-          </h2>
-          <ul className="list-none space-y-4 pl-0">
-            {product.highlights.map((highlight) => (
-              <li key={highlight} className="flex items-center gap-3">
-                <CheckCircle2 size={18} className="text-neutral-900 shrink-0" />
-                <span className="font-medium text-neutral-800">{highlight}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        */}
+        <ProductHighlights items={product.highlights ?? []} />
 
         {related.length > 0 && (
           <div className="mt-24 pt-12 border-t border-neutral-300/70 w-full">
