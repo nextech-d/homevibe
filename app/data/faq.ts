@@ -3,7 +3,7 @@ import { SITE } from "../config/site";
 export const FAQ_LIST = [
   {
     q: "Do you offer installation services?",
-    a: `Yes. We deliver and install across ${SITE.region}. Our team sets everything up and walks you through how it works — no extra charge on most orders in Nairobi.`,
+    a: `Yes, countrywide. We deliver, install and run it with you before we leave. Delivery is free anywhere in Nairobi; everywhere else we confirm the courier rate with you before dispatch.`,
   },
   {
     q: "What is your warranty policy?",
