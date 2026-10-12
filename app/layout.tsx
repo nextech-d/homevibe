@@ -34,6 +34,15 @@ const playfair = Playfair_Display({
   style: ["normal", "italic"],
 });
 
+/**
+ * The backstop for every page that renders statically: at most 60 seconds
+ * before a page whose on-demand refresh was missed is regenerated. Admin saves
+ * refresh everything at once through /api/revalidate; this is only for what
+ * slips past that. Pages that read cookies or search params stay dynamic -
+ * this does not make anything static.
+ */
+export const revalidate = 60;
+
 export async function generateMetadata(): Promise<Metadata> {
   return buildRootMetadataFromContext();
 }
