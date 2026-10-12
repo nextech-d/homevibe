@@ -16,7 +16,9 @@ export async function proxy(request: NextRequest) {
   const legacyDisabled = process.env.DISABLE_LEGACY_ADMIN === "true";
 
   if (adminAppUrl || legacyDisabled) {
-    if (pathname.startsWith("/api/admin") && !isLoginApi) {
+    // Login included: with every other admin API gone, a session it hands out
+    // opens nothing, and a live password check is only something to probe.
+    if (pathname.startsWith("/api/admin")) {
       return NextResponse.json(
         {
           success: false,
