@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Compiled output of the admin and API packages. Gitignored and rebuilt
+    // on every build; linting it only counts the bundler's code, not ours.
+    "admin/dist/**",
+    "api/dist/**",
   ]),
 ]);
 
