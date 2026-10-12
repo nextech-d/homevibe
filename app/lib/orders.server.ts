@@ -3,8 +3,6 @@ import "server-only";
 import type { OrderStatus, PaymentStatus } from "@prisma/client";
 import type { CartItem } from "../context/CartContext";
 import { getPrisma } from "./db";
-import { sendOrderStatusEmail } from "./email.server";
-import { validateOrderUpdate } from "./order-rules";
 import { normalizeTrackingId, phonesMatch } from "../../shared/order-lookup";
 
 export type OrderPayload = {
@@ -164,57 +162,6 @@ export async function listOrders(): Promise<AdminOrder[]> {
     console.error("Failed to load orders from database:", error);
     return [];
   }
-}
-
-export async function updateOrder(
-  trackingId: string,
-  updates: { status?: OrderStatus; paymentStatus?: PaymentStatus }
-): Promise<AdminOrder | null> {
-  const prisma = getPrisma();
-  if (!prisma) return null;
-
-  const normalized = trackingId.toUpperCase();
-  const existing = await prisma.order.findUnique({ where: { trackingId: normalized } });
-  if (!existing) return null;
-
-  const validation = validateOrderUpdate(existing, updates);
-  if (!validation.ok) {
-    throw new Error(validation.message);
-  }
-
-  const data: { status?: OrderStatus; paymentStatus?: PaymentStatus } = {};
-  if (updates.status) data.status = updates.status;
-  if (updates.paymentStatus) data.paymentStatus = updates.paymentStatus;
-
-  if (!Object.keys(data).length) {
-    const orders = await listOrders();
-    return orders.find((o) => o.trackingId.toUpperCase() === normalized) ?? null;
-  }
-
-  const order = await prisma.order.update({
-    where: { trackingId: normalized },
-    data,
-    include: { items: true },
-  });
-
-  if (updates.status && updates.status !== existing.status) {
-    void sendOrderStatusEmail({
-      trackingId: order.trackingId,
-      status: statusLabel(order.status),
-      customerName: order.customerName,
-      customerEmail: order.customerEmail,
-    });
-  }
-
-  return mapOrderToAdmin(order);
-}
-
-/** @deprecated Use updateOrder */
-export async function updateOrderStatus(
-  trackingId: string,
-  status: OrderStatus
-): Promise<AdminOrder | null> {
-  return updateOrder(trackingId, { status });
 }
 
 export function ordersToCsv(orders: AdminOrder[]): string {
