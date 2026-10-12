@@ -6,9 +6,28 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/**
+ * Whether a link target may become an href: http(s), mailto, tel, or a
+ * relative URL. Checked the way a browser reads it - with tabs, newlines and
+ * other control characters removed, so "jav\tascript:" is caught as
+ * "javascript:". `url` is already HTML-escaped.
+ */
+export function isSafeLinkTarget(url: string): boolean {
+  const compact = url.replace(/[\u0000-\u0020\u007f]/g, "").toLowerCase();
+  const scheme = /^([a-z][a-z0-9+.-]*):/.exec(compact);
+  if (!scheme) return true; // relative: /path, #anchor, ?query, page.html
+  return ["http", "https", "mailto", "tel"].includes(scheme[1]);
+}
+
 function inlineMarkdown(text: string): string {
   return text
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-emerald-600 hover:underline">$1</a>')
+    // Links to anything but http(s), mailto, tel or a relative URL render as
+    // their text alone - a javascript: link in a product body is not a link.
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label: string, url: string) =>
+      isSafeLinkTarget(url)
+        ? `<a href="${url}" class="text-emerald-600 hover:underline">${label}</a>`
+        : label
+    )
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\*([^*]+)\*/g, "<em>$1</em>")
     .replace(/`([^`]+)`/g, '<code class="rounded bg-neutral-100 px-1 py-0.5 text-sm">$1</code>');
