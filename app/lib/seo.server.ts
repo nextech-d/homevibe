@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { SITE } from "../config/site";
 import { getPrisma } from "./db";
 import { getSiteSettingsData, type SiteSettingsData } from "./storefront.server";
@@ -35,7 +37,11 @@ function mapSeoSettings(rows: { key: string; value: string }[]): SeoSettingsData
   };
 }
 
-export async function getSeoSettingsData(): Promise<SeoSettingsData> {
+/**
+ * Memoised per request, like getSiteSettingsData: the root metadata and the
+ * site-wide JSON-LD both ask for it, and ran the same query twice.
+ */
+export const getSeoSettingsData = cache(async (): Promise<SeoSettingsData> => {
   if (!process.env.DATABASE_URL) return DEFAULT_SEO;
 
   const prisma = getPrisma();
@@ -51,7 +57,7 @@ export async function getSeoSettingsData(): Promise<SeoSettingsData> {
     console.error("Failed to load SEO settings:", error);
     return DEFAULT_SEO;
   }
-}
+});
 
 export type SeoContext = {
   site: SiteSettingsData;
