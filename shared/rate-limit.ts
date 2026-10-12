@@ -124,3 +124,22 @@ export function orderLookupRules(ip: string): RateLimitRule[] {
 export function adminLoginRules(ip: string): RateLimitRule[] {
   return [{ name: "admin-login:ip", subject: ip, limit: 5, windowMs: 15 * 60 * 1000 }];
 }
+
+/**
+ * Customer login: 10 per IP and 5 per email per 15 minutes. `emailKey` is
+ * a hash of the normalised email, so addresses never sit in rate_limits.
+ */
+export function customerLoginRules(ip: string, emailKey: string): RateLimitRule[] {
+  return [
+    { name: "customer-login:ip", subject: ip, limit: 10, windowMs: 15 * 60 * 1000 },
+    { name: "customer-login:email", subject: emailKey, limit: 5, windowMs: 15 * 60 * 1000 },
+  ];
+}
+
+/** Customer registration: 5 per IP and 3 per email per hour. */
+export function customerRegisterRules(ip: string, emailKey: string): RateLimitRule[] {
+  return [
+    { name: "customer-register:ip", subject: ip, limit: 5, windowMs: 60 * 60 * 1000 },
+    { name: "customer-register:email", subject: emailKey, limit: 3, windowMs: 60 * 60 * 1000 },
+  ];
+}

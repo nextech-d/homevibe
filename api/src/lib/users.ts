@@ -1,4 +1,9 @@
 import bcrypt from "bcryptjs";
+import {
+  DUMMY_PASSWORD_HASH,
+  LOGIN_FAILED_MESSAGE,
+  REGISTER_FAILED_MESSAGE,
+} from "../../../shared/customer-auth.js";
 import { getPrisma } from "./db.js";
 import type { AuthUser } from "../types.js";
 import { SESSION_MAX_AGE_SECONDS } from "../types.js";
@@ -44,23 +49,34 @@ export async function registerUser(input: {
   if (!prisma) throw new Error("Database unavailable");
 
   const email = normalizeEmail(input.email);
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    throw new Error("An account with this email already exists.");
-  }
-
   if (input.password.length < 8) {
     throw new Error("Password must be at least 8 characters.");
   }
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash: await hashPassword(input.password),
-      name: input.name.trim(),
-      phone: input.phone?.trim() || null,
-    },
-  });
+  // Hashed before looking the email up, so a taken email costs the same
+  // bcrypt time as a new one and the response time says nothing.
+  const passwordHash = await hashPassword(input.password);
+
+  // Taken: the generic message, never "already exists".
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    throw new Error(REGISTER_FAILED_MESSAGE);
+  }
+
+  const user = await prisma.user
+    .create({
+      data: {
+        email,
+        passwordHash,
+        name: input.name.trim(),
+        phone: input.phone?.trim() || null,
+      },
+    })
+    // Two sign-ups racing for one email: the loser gets the same message.
+    .catch((error: unknown) => {
+      if ((error as { code?: string })?.code === "P2002") throw new Error(REGISTER_FAILED_MESSAGE);
+      throw error;
+    });
 
   const sessionToken = await createSession(user.id);
 
@@ -86,8 +102,13 @@ export async function loginUser(
     where: { email: normalizeEmail(email) },
   });
 
-  if (!user || !(await verifyPassword(password, user.passwordHash))) {
-    throw new Error("Invalid email or password.");
+  if (!user) {
+    // Same bcrypt work as a real check, so an unknown email isn't faster.
+    await verifyPassword(password, DUMMY_PASSWORD_HASH);
+    throw new Error(LOGIN_FAILED_MESSAGE);
+  }
+  if (!(await verifyPassword(password, user.passwordHash))) {
+    throw new Error(LOGIN_FAILED_MESSAGE);
   }
 
   const sessionToken = await createSession(user.id);

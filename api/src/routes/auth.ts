@@ -1,7 +1,20 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { verifyAdminToken } from "../lib/admin-jwt.js";
 import { attemptAdminLogin } from "../lib/admin-login.js";
-import { clientIp } from "../../../shared/rate-limit.js";
+import { createHash } from "node:crypto";
+import {
+  checkRateLimits,
+  clientIp,
+  customerLoginRules,
+  customerRegisterRules,
+  type RateLimitRule,
+} from "../../../shared/rate-limit.js";
+import {
+  AUTH_RATE_LIMITED_MESSAGE,
+  LOGIN_FAILED_MESSAGE,
+  REGISTER_FAILED_MESSAGE,
+} from "../../../shared/customer-auth.js";
+import { getPrisma } from "../lib/db.js";
 import {
   deleteSession,
   extractBearerToken,
@@ -40,46 +53,89 @@ authRoute.get("/admin/me", async (c) => {
   return c.json({ success: true });
 });
 
+/** The email as a rate-limit key: hashed, so addresses never sit in rate_limits. */
+function emailKey(email: string): string {
+  return createHash("sha256").update(email.trim().toLowerCase()).digest("hex").slice(0, 32);
+}
+
+/** Counts the request; null to carry on, or the response that refuses it. */
+async function customerAuthLimit(c: Context, rules: RateLimitRule[]): Promise<Response | null> {
+  const prisma = getPrisma();
+  const limit = prisma
+    ? await checkRateLimits(prisma, rules, "closed")
+    : ({ allowed: false, reason: "error" } as const);
+  if (limit.allowed) return null;
+  if (limit.reason === "limited") {
+    c.header("Retry-After", String(limit.retryAfterSeconds));
+    return c.json({ success: false, message: AUTH_RATE_LIMITED_MESSAGE }, 429);
+  }
+  return c.json({ success: false, message: "Temporarily unavailable. Please try again shortly." }, 503);
+}
+
+/** Messages the code itself writes for the customer to read; anything else is hidden. */
+const REGISTER_MESSAGES = new Set([REGISTER_FAILED_MESSAGE, "Password must be at least 8 characters."]);
+
 authRoute.post("/register", async (c) => {
+  let body: { email?: string; password?: string; name?: string; phone?: string };
   try {
-    const body = (await c.req.json()) as {
-      email?: string;
-      password?: string;
-      name?: string;
-      phone?: string;
-    };
+    body = (await c.req.json()) as typeof body;
+  } catch {
+    return c.json({ success: false, message: "Invalid request." }, 400);
+  }
+  if (!body.email || !body.password || !body.name) {
+    return c.json({ success: false, message: "Name, email, and password are required." }, 400);
+  }
 
-    if (!body.email || !body.password || !body.name) {
-      return c.json({ success: false, message: "Name, email, and password are required." }, 400);
-    }
+  const refused = await customerAuthLimit(
+    c,
+    customerRegisterRules(clientIp((name) => c.req.header(name)), emailKey(body.email))
+  );
+  if (refused) return refused;
 
+  try {
     const { user, sessionToken } = await registerUser({
       email: body.email,
       password: body.password,
       name: body.name,
       phone: body.phone,
     });
-
     return c.json({ success: true, user, sessionToken });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Registration failed.";
-    const status = message.includes("already exists") ? 409 : 400;
-    return c.json({ success: false, message }, status);
+    // A taken email is a 400 like any other refusal, never a 409.
+    const message = error instanceof Error && REGISTER_MESSAGES.has(error.message) ? error.message : null;
+    if (!message) console.error("Registration failed unexpectedly:", error);
+    return c.json(
+      { success: false, message: message ?? "We couldn't create your account. Please try again." },
+      400
+    );
   }
 });
 
 authRoute.post("/login", async (c) => {
+  let body: { email?: string; password?: string };
   try {
-    const body = (await c.req.json()) as { email?: string; password?: string };
-    if (!body.email || !body.password) {
-      return c.json({ success: false, message: "Email and password are required." }, 400);
-    }
+    body = (await c.req.json()) as typeof body;
+  } catch {
+    return c.json({ success: false, message: "Invalid request." }, 400);
+  }
+  if (!body.email || !body.password) {
+    return c.json({ success: false, message: "Email and password are required." }, 400);
+  }
 
+  const refused = await customerAuthLimit(
+    c,
+    customerLoginRules(clientIp((name) => c.req.header(name)), emailKey(body.email))
+  );
+  if (refused) return refused;
+
+  try {
     const { user, sessionToken } = await loginUser(body.email, body.password);
     return c.json({ success: true, user, sessionToken });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Login failed.";
-    return c.json({ success: false, message }, 401);
+    if (!(error instanceof Error && error.message === LOGIN_FAILED_MESSAGE)) {
+      console.error("Login failed unexpectedly:", error);
+    }
+    return c.json({ success: false, message: LOGIN_FAILED_MESSAGE }, 401);
   }
 });
 
