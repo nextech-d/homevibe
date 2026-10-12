@@ -7,6 +7,7 @@ import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import CartToast from "./components/CartToast";
 import SiteJsonLd from "./components/SiteJsonLd";
+import MetaPixel from "./components/MetaPixel";
 import { CartProvider } from "./context/CartContext";
 import { ProductsProvider } from "./context/ProductsContext";
 import { BrandsProvider } from "./context/BrandsContext";
@@ -84,6 +85,7 @@ export default async function RootLayout({
           </ProductsProvider>
         </CartProvider>
         <Analytics />
+        <MetaPixel />
       </body>
     </html>
   );

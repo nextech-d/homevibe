@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { readMigrated } from '../lib/storage-migration';
+import { PIXEL_CURRENCY, pixelContentId, trackPixel } from '../lib/pixel';
 
 export type CartItem = {
   id: number;
@@ -96,6 +97,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
       updated = [...items, { ...item, qty: amount }];
     }
     saveItems(updated);
+
+    // Reported here rather than at each button, so every path into the cart -
+    // product page, drawer, anything added later - counts once.
+    trackPixel('AddToCart', {
+      content_type: 'product',
+      content_ids: [pixelContentId(item.id)],
+      content_name: item.name,
+      contents: [{ id: pixelContentId(item.id), quantity: amount, item_price: item.price }],
+      value: item.price * amount,
+      currency: PIXEL_CURRENCY,
+    });
 
     const shouldOpenDrawer = options?.openDrawer ?? wasEmpty;
     if (shouldOpenDrawer) {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { getCategorySlug, getSubcategoryLabel, categoryHref } from "../../data/categories";
 import { useCart } from "../../context/CartContext";
@@ -8,6 +8,7 @@ import { isOutOfStock, type Appliance, type CatalogProduct } from "../../lib/inv
 import { formatPrice } from "../../lib/formatPrice";
 import { productWhatsAppUrl } from "../../lib/whatsapp";
 import { useWhatsAppNumber } from "../../context/WhatsAppContext";
+import { PIXEL_CURRENCY, pixelContentId, trackPixel } from "../../lib/pixel";
 import {
   getProductGallery,
   getProductDetailImage,
@@ -67,6 +68,19 @@ export default function ProductDetail({
   const [added, setAdded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const whatsappNumber = useWhatsAppNumber();
+
+  // Meta's retargeting audiences are built from this: the product someone
+  // looked at, not just the page they landed on.
+  useEffect(() => {
+    trackPixel("ViewContent", {
+      content_type: "product",
+      content_ids: [pixelContentId(product.id)],
+      content_name: product.name,
+      content_category: product.category,
+      value: product.price,
+      currency: PIXEL_CURRENCY,
+    });
+  }, [product.id, product.name, product.category, product.price]);
 
   const gallery = getProductGallery(product);
   const safeIndex = gallery.length > 0 ? Math.min(activeIndex, gallery.length - 1) : 0;

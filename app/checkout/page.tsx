@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
@@ -15,6 +15,7 @@ import {
   clearCheckoutIdempotencyKey,
   getOrCreateCheckoutIdempotencyKey,
 } from "../lib/checkout-idempotency";
+import { PIXEL_CURRENCY, pixelContentId, pixelContents, trackPixel } from "../lib/pixel";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -63,6 +64,37 @@ export default function CheckoutPage() {
     }
   }, [hydrated, items.length, step, router]);
 
+  // Once per visit to checkout, as soon as the restored cart is known.
+  const checkoutReported = useRef(false);
+  useEffect(() => {
+    if (!hydrated || items.length === 0 || checkoutReported.current) return;
+    checkoutReported.current = true;
+    trackPixel("InitiateCheckout", {
+      content_type: "product",
+      content_ids: items.map((item) => pixelContentId(item.id)),
+      contents: pixelContents(items),
+      num_items: items.reduce((sum, item) => sum + item.qty, 0),
+      value: total,
+      currency: PIXEL_CURRENCY,
+    });
+  }, [hydrated, items, total]);
+
+  /** Reports a placed order, keyed on its tracking id so Meta counts it once. */
+  const reportPurchase = (orderTrackingId: string, value: number) => {
+    trackPixel(
+      "Purchase",
+      {
+        content_type: "product",
+        content_ids: items.map((item) => pixelContentId(item.id)),
+        contents: pixelContents(items),
+        num_items: items.reduce((sum, item) => sum + item.qty, 0),
+        value,
+        currency: PIXEL_CURRENCY,
+      },
+      { eventID: `order-${orderTrackingId}` }
+    );
+  };
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -88,10 +120,11 @@ export default function CheckoutPage() {
       const data = await response.json();
 
       if (data.success === true) {
+        const placedTotal =
+          typeof data.order?.total === "number" ? data.order.total : total;
         setTrackingId(data.trackingId);
-        setOrderTotal(
-          typeof data.order?.total === "number" ? data.order.total : total
-        );
+        setOrderTotal(placedTotal);
+        reportPurchase(data.trackingId, placedTotal);
         clearCart();
         clearCheckoutIdempotencyKey(cartFingerprint);
         setStep(2);
@@ -100,10 +133,11 @@ export default function CheckoutPage() {
           `/api/orders?idempotencyKey=${encodeURIComponent(idempotencyKey)}`
         ).then((r) => r.json());
         if (recovery.success === true && recovery.trackingId) {
+          const placedTotal =
+            typeof recovery.order?.total === "number" ? recovery.order.total : total;
           setTrackingId(recovery.trackingId);
-          setOrderTotal(
-            typeof recovery.order?.total === "number" ? recovery.order.total : total
-          );
+          setOrderTotal(placedTotal);
+          reportPurchase(recovery.trackingId, placedTotal);
           clearCart();
           clearCheckoutIdempotencyKey(cartFingerprint);
           setStep(2);

@@ -45,6 +45,10 @@ function apiOrigin(): string | null {
  * author's avatar (GoogleReviews.tsx, unoptimized), served from
  * lh3.googleusercontent.com.
  *
+ * With a Meta Pixel ID set, the pixel adds its library and config scripts
+ * (connect.facebook.net), its event beacons (www.facebook.com, by fetch and
+ * by image), and nothing else; without one, none of it is allowed.
+ *
  * Violations are reported to /api/csp-report, which logs them: report-uri
  * for browsers that only know that, report-to (with the Reporting-Endpoints
  * header below) for the rest.
@@ -58,13 +62,14 @@ const CSP_REPORT_PATH = "/api/csp-report";
 function contentSecurityPolicy(): string {
   const dev = process.env.NODE_ENV === "development";
   const api = apiOrigin();
+  const pixel = Boolean(process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim());
   return [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}`,
+    `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}${pixel ? " https://connect.facebook.net" : ""}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://lh3.googleusercontent.com",
+    `img-src 'self' data: blob: https://lh3.googleusercontent.com${pixel ? " https://www.facebook.com" : ""}`,
     "font-src 'self' data:",
-    `connect-src 'self'${api ? ` ${api}` : ""}${dev ? " ws: wss:" : ""}`,
+    `connect-src 'self'${api ? ` ${api}` : ""}${pixel ? " https://www.facebook.com https://connect.facebook.net" : ""}${dev ? " ws: wss:" : ""}`,
     "frame-src 'none'",
     "object-src 'none'",
     "base-uri 'self'",

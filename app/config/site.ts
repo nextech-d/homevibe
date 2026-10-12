@@ -8,6 +8,8 @@ export const SITE = {
     instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL ?? "https://instagram.com/homevibe",
     tiktok: process.env.NEXT_PUBLIC_TIKTOK_URL ?? "https://tiktok.com/@homevibe",
   },
+  /** Meta (Facebook) Pixel ID. Empty disables the pixel entirely. */
+  metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() ?? "",
   email: "hello@homevibe.co.ke",
   phone: "+254 182 230 250",
   region: "East & Central Africa",
