@@ -8,6 +8,7 @@ import {
   updateProductForAdmin,
   type ProductFormInput,
 } from "../../../lib/products.server";
+import { revalidateStorefront } from "../../../lib/revalidate-storefront.server";
 
 const VALID_STOCK: StockStatus[] = ["in_stock", "low_stock", "out_of_stock"];
 
@@ -97,6 +98,7 @@ export async function POST(request: Request) {
 
   try {
     const product = await createProductForAdmin(input);
+    revalidateStorefront();
     return NextResponse.json({ success: true, product });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to create product.";
@@ -123,6 +125,7 @@ export async function PATCH(request: Request) {
         { status: 404 }
       );
     }
+    revalidateStorefront();
     return NextResponse.json({ success: true, product });
   }
 
@@ -141,5 +144,6 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: false, message: "Product not found." }, { status: 404 });
   }
 
+  revalidateStorefront();
   return NextResponse.json({ success: true, product });
 }

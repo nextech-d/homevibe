@@ -1,6 +1,5 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
-import { GOOGLE_REVIEWS_TAG } from "../../lib/google-reviews.server";
+import { revalidateStorefront } from "../../lib/revalidate-storefront.server";
 
 export async function POST(request: Request) {
   const secret =
@@ -13,13 +12,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    revalidatePath("/", "layout");
-    revalidatePath("/");
-    revalidatePath("/faq");
-    revalidatePath("/blog");
-    revalidatePath("/articles");
-    revalidatePath("/sitemap.xml");
-    revalidateTag(GOOGLE_REVIEWS_TAG, "max");
+    revalidateStorefront();
 
     return NextResponse.json({
       success: true,
