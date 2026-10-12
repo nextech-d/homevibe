@@ -327,7 +327,11 @@ export async function createProductForAdmin(input: ProductFormInput): Promise<Ad
   const baseSlug = slugify(input.slug?.trim() || input.name);
   const slug = await uniqueSlug(baseSlug);
 
-  const product = await prisma.product.create({
+  // Write first, read back after. Asking create() to include the relations
+  // makes Prisma read them in parallel over the transaction's one
+  // connection, which pg warns about now and will refuse in pg@9.
+  const { id } = await prisma.product.create({
+    select: { id: true },
     data: {
       slug,
       name: input.name.trim(),
@@ -348,14 +352,11 @@ export async function createProductForAdmin(input: ProductFormInput): Promise<Ad
       galleryPhotoIds: input.galleryPhotoIds,
       faqs: { create: cleanFaqs(input.faqs) },
     },
-    include: {
-      brand: true,
-      subcategory: { include: { category: true } },
-      faqs: { orderBy: { sortOrder: "asc" } },
-    },
   });
 
-  return mapDetail(product);
+  const product = await getProductForAdmin(id);
+  if (!product) throw new Error("Product was created but could not be read back.");
+  return product;
 }
 
 export async function updateProductForAdmin(
@@ -405,7 +406,9 @@ export async function updateProductForAdmin(
     // The questions are edited as a list, so they are replaced as a list: the
     // alternative is tracking row ids through a form that only ever shows the
     // whole set.
-    const product = await prisma.$transaction(async (tx) => {
+    // Writes only inside the transaction; the read-back with relations comes
+    // after it, for the same reason as in createProductForAdmin.
+    await prisma.$transaction(async (tx) => {
       if (input.faqs !== undefined) {
         await tx.productFaq.deleteMany({ where: { productId: id } });
         const faqs = cleanFaqs(input.faqs);
@@ -416,17 +419,9 @@ export async function updateProductForAdmin(
         }
       }
 
-      return tx.product.update({
-        where: { id },
-        data,
-        include: {
-          brand: true,
-          subcategory: { include: { category: true } },
-          faqs: { orderBy: { sortOrder: "asc" } },
-        },
-      });
+      await tx.product.update({ where: { id }, data, select: { id: true } });
     });
-    return mapDetail(product);
+    return await getProductForAdmin(id);
   } catch {
     return null;
   }
