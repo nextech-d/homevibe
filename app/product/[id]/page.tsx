@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getInventory, getPublishedProductByParam } from "../../lib/inventory.server";
 import { relatedProducts, toCatalogProduct } from "../../lib/inventory";
 import ProductDetail from "./ProductDetail";
+import { descriptionLooksLikeHtml, sanitizeDescriptionHtml } from "../../lib/descriptionHtml";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -33,5 +34,11 @@ export default async function ProductPage({ params }: Props) {
   // the page still waiting for the browser's catalogue fetch.
   const related = relatedProducts(await getInventory(), product).map(toCatalogProduct);
 
-  return <ProductDetail product={product} related={related} />;
+  // Sanitised here, on the server, so the HTML in the page is always clean
+  // and the sanitiser never ships to the browser.
+  const descriptionHtml = descriptionLooksLikeHtml(product.description)
+    ? sanitizeDescriptionHtml(product.description)
+    : null;
+
+  return <ProductDetail product={product} related={related} descriptionHtml={descriptionHtml} />;
 }

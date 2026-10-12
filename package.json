@@ -25,10 +25,12 @@
     "dotenv": "^17.4.2",
     "lucide-react": "^1.16.0",
     "next": "16.4.0",
+    "parse5": "8.0.1",
     "pg": "^8.22.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "resend": "^6.18.1",
+    "sanitize-html": "2.17.7",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
@@ -39,6 +41,7 @@
     "@types/pg": "^8.20.4",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sanitize-html": "2.16.1",
     "concurrently": "^10.0.4",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",

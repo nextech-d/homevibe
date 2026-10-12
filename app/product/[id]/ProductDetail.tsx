@@ -24,17 +24,17 @@ import WhatsAppIcon from "../../components/WhatsAppIcon";
 import { ShoppingCart, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { renderMarkdown } from "../../lib/markdown";
-import {
-  descriptionLooksLikeHtml,
-  sanitizeDescriptionHtml,
-} from "../../lib/descriptionHtml";
-
-function ProductDescriptionBody({ text }: { text: string }) {
-  if (descriptionLooksLikeHtml(text)) {
+/**
+ * The description: HTML already sanitised on the server (descriptionHtml),
+ * or plain text. This component only renders - the sanitiser and its
+ * libraries never reach the browser.
+ */
+function ProductDescriptionBody({ text, html }: { text: string; html: string | null }) {
+  if (html !== null) {
     return (
       <div
         className="product-description w-full text-sm text-neutral-600 [&_b]:font-bold [&_strong]:font-bold [&_i]:italic [&_em]:italic [&_u]:underline [&_p]:mb-3 [&_p]:min-h-[1.25em] [&_p:last-child]:mb-0 [&_div]:mb-3 [&_div]:min-h-[1.25em] [&_div:last-child]:mb-0"
-        dangerouslySetInnerHTML={{ __html: sanitizeDescriptionHtml(text) }}
+        dangerouslySetInnerHTML={{ __html: html }}
       />
     );
   }
@@ -54,10 +54,13 @@ function ProductDescriptionBody({ text }: { text: string }) {
 export default function ProductDetail({
   product,
   related,
+  descriptionHtml,
 }: {
   product: Appliance;
   /** Chosen on the server, so the rail renders with the rest of the page. */
   related: CatalogProduct[];
+  /** The description sanitised on the server, or null when it's plain text. */
+  descriptionHtml: string | null;
 }) {
   const { addItem } = useCart();
   const [qty, setQty] = useState(1);
@@ -269,7 +272,7 @@ export default function ProductDetail({
             <h4 className="mb-8 text-[10px] font-black uppercase tracking-widest text-neutral-500">
               Product Description
             </h4>
-            <ProductDescriptionBody text={product.description} />
+            <ProductDescriptionBody text={product.description} html={descriptionHtml} />
           </div>
         ) : null}
 

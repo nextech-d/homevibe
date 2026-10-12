@@ -15,6 +15,7 @@ import {
 import { validateProductImageRefs } from "../../lib/uploads.js";
 import { validateProductClaims } from "../../lib/claims.js";
 import { scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
+import { sanitizeDescriptionForSave } from "../../lib/description-html.js";
 
 function parseGallery(body: Record<string, unknown>): string[] {
   if (Array.isArray(body.galleryPhotoIds)) {
@@ -98,7 +99,8 @@ function parseProductBody(body: Record<string, unknown>): ProductFormInput | nul
     isPublished: body.isPublished !== false,
     isFeatured: body.isFeatured === true,
     specs: body.specs,
-    description: body.description,
+    // Sanitised on the way in, with the storefront's own allowlist.
+    description: sanitizeDescriptionForSave(body.description),
     body: parseOptionalString(body.body),
     faqs: parseFaqs(body.faqs),
     metaTitle: parseOptionalString(body.metaTitle),
