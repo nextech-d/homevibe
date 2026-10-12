@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPrisma } from "../../../lib/db";
 import { FEATURED_BRANDS } from "../../../data/brands";
+import { clientErrorMessage } from "../../../../shared/client-errors";
 
 export async function GET() {
   const prisma = getPrisma();
@@ -34,7 +35,7 @@ export async function GET() {
     });
     return NextResponse.json({ success: true, brands });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load brands.";
+    const message = clientErrorMessage(error, "Failed to load brands.");
     return NextResponse.json({ success: false, message }, { status: 503 });
   }
 }

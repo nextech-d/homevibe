@@ -16,6 +16,7 @@ import { validateProductImageRefs } from "../../lib/uploads.js";
 import { validateProductClaims } from "../../lib/claims.js";
 import { scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
 import { sanitizeDescriptionForSave } from "../../lib/description-html.js";
+import { clientErrorMessage } from "../../../../shared/client-errors.js";
 
 function parseGallery(body: Record<string, unknown>): string[] {
   if (Array.isArray(body.galleryPhotoIds)) {
@@ -183,7 +184,7 @@ adminProductsRoute.post("/", async (c) => {
     scheduleStorefrontPublish("product create");
     return c.json({ success: true, product });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to create product.";
+    const message = clientErrorMessage(error, "Failed to create product.");
     return c.json({ success: false, message }, 500);
   }
 });
@@ -208,7 +209,7 @@ adminProductsRoute.patch("/", async (c) => {
       scheduleStorefrontPublish("product price/stock update");
       return c.json({ success: true, product });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Update failed.";
+      const message = clientErrorMessage(error, "Update failed.");
       return c.json({ success: false, message }, 400);
     }
   }

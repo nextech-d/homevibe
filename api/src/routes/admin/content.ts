@@ -8,6 +8,7 @@ import {
   updateContentPost,
 } from "../../lib/content.js";
 import { scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
+import { clientErrorMessage } from "../../../../shared/client-errors.js";
 
 export const adminContentRoute = new Hono();
 
@@ -31,7 +32,7 @@ adminContentRoute.get("/posts", async (c) => {
     const result = await listContentPosts({ type, q, published });
     return c.json({ success: true, ...result });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load posts.";
+    const message = clientErrorMessage(error, "Failed to load posts.");
     return c.json({ success: false, message }, 503);
   }
 });
@@ -74,7 +75,7 @@ adminContentRoute.post("/posts", async (c) => {
     scheduleStorefrontPublish("content post");
     return c.json({ success: true, post });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to create post.";
+    const message = clientErrorMessage(error, "Failed to create post.");
     return c.json({ success: false, message }, 400);
   }
 });
@@ -112,7 +113,7 @@ adminContentRoute.patch("/posts/:id", async (c) => {
     scheduleStorefrontPublish("content post");
     return c.json({ success: true, post });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to update post.";
+    const message = clientErrorMessage(error, "Failed to update post.");
     return c.json({ success: false, message }, 400);
   }
 });
@@ -129,7 +130,7 @@ adminContentRoute.delete("/posts/:id", async (c) => {
     scheduleStorefrontPublish("content post");
     return c.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to delete post.";
+    const message = clientErrorMessage(error, "Failed to delete post.");
     return c.json({ success: false, message }, 400);
   }
 });

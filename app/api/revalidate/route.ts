@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { revalidateStorefront } from "../../lib/revalidate-storefront.server";
+import { clientErrorMessage } from "../../../shared/client-errors";
 
 export async function POST(request: Request) {
   const secret =
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
       message: "Storefront cache cleared.",
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Revalidation failed.";
+    const message = clientErrorMessage(error, "Revalidation failed.");
     return NextResponse.json({ success: false, message }, { status: 500 });
   }
 }

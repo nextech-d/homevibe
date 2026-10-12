@@ -20,6 +20,7 @@ import {
   ORDER_LOOKUP_RATE_LIMITED_MESSAGE,
 } from "../../../shared/order-lookup.js";
 import type { CartItem } from "../types.js";
+import { clientErrorMessage } from "../../../shared/client-errors.js";
 
 export const ordersRoute = new Hono();
 
@@ -118,18 +119,23 @@ ordersRoute.post("/", async (c) => {
       order,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error";
-    const isValidation =
-      /empty|invalid|unavailable|out of stock|idempotency|DATABASE_URL/i.test(message);
-    const status = message.includes("DATABASE_URL") ? 503 : isValidation ? 400 : 500;
-    return c.json(
-      {
-        success: false,
-        message: isValidation ? message : "Unable to place your order. Please try again.",
-        error: message,
-      },
-      status
-    );
+    // Cart problems the customer can act on ("... is out of stock", "...
+    // is no longer available") are shown as written; everything else is
+    // logged and answered generically - no raw error goes back any more.
+    const raw = error instanceof Error ? error.message : "";
+    if (raw.includes("DATABASE_URL")) {
+      console.error("Order failed, database not configured:", error);
+      return c.json({ success: false, message: "Ordering is temporarily unavailable. Please try again shortly." }, 503);
+    }
+    // Only a message the code wrote can count as a cart problem - a Prisma
+    // error starting "Invalid `prisma..." must not pass for one.
+    const generic = "Unable to place your order. Please try again.";
+    const shown = clientErrorMessage(error, generic);
+    if (shown !== generic && /empty|invalid|unavailable|no longer available|out of stock|limited stock|idempotency/i.test(shown)) {
+      return c.json({ success: false, message: shown }, 400);
+    }
+    if (shown !== generic) console.error("Order failed:", error);
+    return c.json({ success: false, message: generic }, 500);
   }
 });
 
@@ -212,7 +218,7 @@ adminOrdersRoute.patch("/", async (c) => {
 
     return c.json({ success: true, order });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Update failed.";
+    const message = clientErrorMessage(error, "Update failed.");
     return c.json({ success: false, message }, 400);
   }
 });

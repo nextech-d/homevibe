@@ -8,6 +8,7 @@ import {
 import { getSeoSettings } from "../lib/seo.js";
 import { listPublishedContentPosts, getPublishedContentPostBySlug } from "../lib/content.js";
 import { getGoogleReviews } from "../lib/google-reviews.js";
+import { clientErrorMessage } from "../../../shared/client-errors.js";
 
 export const storefrontRoute = new Hono();
 
@@ -23,7 +24,7 @@ storefrontRoute.get("/featured", async (c) => {
       })),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load featured slots.";
+    const message = clientErrorMessage(error, "Failed to load featured slots.");
     return c.json({ success: false, message }, 503);
   }
 });
@@ -34,7 +35,7 @@ storefrontRoute.get("/settings", async (c) => {
     const settings = await getSiteSettings();
     return c.json({ success: true, settings });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load site settings.";
+    const message = clientErrorMessage(error, "Failed to load site settings.");
     return c.json({ success: false, message }, 503);
   }
 });
@@ -60,7 +61,7 @@ storefrontRoute.get("/content/:type", async (c) => {
       })),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load content.";
+    const message = clientErrorMessage(error, "Failed to load content.");
     return c.json({ success: false, message }, 503);
   }
 });
@@ -77,7 +78,7 @@ storefrontRoute.get("/content/:type/:slug", async (c) => {
     if (!post) return c.json({ success: false, message: "Post not found." }, 404);
     return c.json({ success: true, post });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load post.";
+    const message = clientErrorMessage(error, "Failed to load post.");
     return c.json({ success: false, message }, 503);
   }
 });
@@ -87,7 +88,7 @@ storefrontRoute.get("/seo", async (c) => {
     const settings = await getSeoSettings();
     return c.json({ success: true, settings });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load SEO settings.";
+    const message = clientErrorMessage(error, "Failed to load SEO settings.");
     return c.json({ success: false, message }, 503);
   }
 });
@@ -97,7 +98,7 @@ storefrontRoute.get("/faq", async (c) => {
     const items = await listFaqItems();
     return c.json({ success: true, items });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load FAQ.";
+    const message = clientErrorMessage(error, "Failed to load FAQ.");
     return c.json({ success: false, message }, 503);
   }
 });
@@ -107,7 +108,7 @@ storefrontRoute.get("/reviews", async (c) => {
     const reviews = await getGoogleReviews();
     return c.json({ success: true, reviews });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load Google reviews.";
+    const message = clientErrorMessage(error, "Failed to load Google reviews.");
     return c.json({ success: false, message }, 503);
   }
 });

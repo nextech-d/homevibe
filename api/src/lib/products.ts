@@ -2,6 +2,7 @@ import type { StockStatus } from "@prisma/client";
 import { resolveSubcategoryIdForCategory } from "./catalog.js";
 import { getPrisma } from "./db.js";
 import { validateProductImageRefs } from "./uploads.js";
+import { clientErrorMessage } from "../../../shared/client-errors.js";
 
 export type AdminProductListItem = {
   id: number;
@@ -524,7 +525,7 @@ export async function deleteProductForAdmin(id: number): Promise<DeleteProductRe
     return {
       ok: false,
       reason: "error",
-      message: error instanceof Error ? error.message.split("\n")[0] : "Delete failed",
+      message: clientErrorMessage(error, "Delete failed."),
     };
   }
 }

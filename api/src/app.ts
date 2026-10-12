@@ -16,6 +16,7 @@ import { adminContentRoute } from "./routes/admin/content.js";
 import { catalogRoute } from "./routes/catalog.js";
 import { storefrontRoute } from "./routes/storefront.js";
 import { authRoute, accountRoute } from "./routes/auth.js";
+import { clientErrorMessage } from "../../shared/client-errors.js";
 
 export function createApp(basePath = "") {
   // No API without a dedicated admin signing secret - fail now, not at login.
@@ -41,7 +42,7 @@ export function createApp(basePath = "") {
       const data = await handleGetProducts();
       return c.json(data);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load products.";
+      const message = clientErrorMessage(error, "Failed to load products.");
       return c.json({ success: false, message }, 503);
     }
   });
@@ -54,7 +55,7 @@ export function createApp(basePath = "") {
       if (!data) return c.json({ success: false, message: "Product not found." }, 404);
       return c.json(data);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to load product.";
+      const message = clientErrorMessage(error, "Failed to load product.");
       return c.json({ success: false, message }, 503);
     }
   });
@@ -96,10 +97,10 @@ export function createApp(basePath = "") {
   app.route("/admin/seo", adminSeoRoute);
   app.route("/admin/content", adminContentRoute);
 
+  // Anything unhandled: logged here, never described to the client.
   app.onError((err, c) => {
-    console.error(err);
-    const message = err instanceof Error ? err.message : "Internal server error.";
-    return c.json({ success: false, message }, 500);
+    console.error("Unhandled API error:", err);
+    return c.json({ success: false, message: "Something went wrong. Please try again." }, 500);
   });
 
   return app;

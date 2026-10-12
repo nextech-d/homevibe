@@ -15,6 +15,7 @@ import {
   publishStorefront,
   scheduleStorefrontPublish,
 } from "../../lib/publishStorefront.js";
+import { clientErrorMessage } from "../../../../shared/client-errors.js";
 
 export const adminStorefrontRoute = new Hono();
 
@@ -23,7 +24,7 @@ adminStorefrontRoute.post("/publish", async (c) => {
     const publish = await publishStorefront();
     return c.json({ success: true, publish });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to publish storefront.";
+    const message = clientErrorMessage(error, "Failed to publish storefront.");
     return c.json({ success: false, message }, 503);
   }
 });
@@ -77,7 +78,7 @@ adminStorefrontRoute.patch("/featured", async (c) => {
     scheduleStorefrontPublish("storefront settings");
     return c.json({ success: true, slots: updated });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to update featured slots.";
+    const message = clientErrorMessage(error, "Failed to update featured slots.");
     return c.json({ success: false, message }, 400);
   }
 });
@@ -87,7 +88,7 @@ adminStorefrontRoute.get("/settings", async (c) => {
     const settings = await getSiteSettings();
     return c.json({ success: true, settings });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load site settings.";
+    const message = clientErrorMessage(error, "Failed to load site settings.");
     return c.json({ success: false, message }, 503);
   }
 });
@@ -110,7 +111,7 @@ adminStorefrontRoute.patch("/settings", async (c) => {
     scheduleStorefrontPublish("storefront settings");
     return c.json({ success: true, settings });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to update settings.";
+    const message = clientErrorMessage(error, "Failed to update settings.");
     return c.json({ success: false, message }, 400);
   }
 });
@@ -120,7 +121,7 @@ adminStorefrontRoute.get("/faq", async (c) => {
     const items = await listFaqItems();
     return c.json({ success: true, items });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to load FAQ.";
+    const message = clientErrorMessage(error, "Failed to load FAQ.");
     return c.json({ success: false, message }, 503);
   }
 });
@@ -140,7 +141,7 @@ adminStorefrontRoute.post("/faq", async (c) => {
     scheduleStorefrontPublish("storefront settings");
     return c.json({ success: true, item });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to create FAQ item.";
+    const message = clientErrorMessage(error, "Failed to create FAQ item.");
     return c.json({ success: false, message }, 400);
   }
 });
@@ -162,7 +163,7 @@ adminStorefrontRoute.patch("/faq/:id", async (c) => {
     scheduleStorefrontPublish("storefront settings");
     return c.json({ success: true, item });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to update FAQ item.";
+    const message = clientErrorMessage(error, "Failed to update FAQ item.");
     return c.json({ success: false, message }, 400);
   }
 });

@@ -21,6 +21,7 @@ import {
 } from "../../lib/catalog.js";
 import { isValidBrandLogoRef } from "../../lib/uploads.js";
 import { scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
+import { clientErrorMessage } from "../../../../shared/client-errors.js";
 
 export const adminCatalogRoute = new Hono();
 
@@ -100,7 +101,7 @@ adminCatalogRoute.post("/brands", async (c) => {
     scheduleStorefrontPublish("brand create");
     return c.json({ success: true, brand });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid brand data.";
+    const message = clientErrorMessage(error, "Invalid brand data.");
     return c.json({ success: false, message }, 400);
   }
 });
@@ -143,7 +144,7 @@ adminCatalogRoute.patch("/brands/:id", async (c) => {
     scheduleStorefrontPublish("brand update");
     return c.json({ success: true, brand });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid brand data.";
+    const message = clientErrorMessage(error, "Invalid brand data.");
     return c.json({ success: false, message }, 400);
   }
 });

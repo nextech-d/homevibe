@@ -4,6 +4,7 @@ import {
   saveProductImage,
   validateProductImageFile,
 } from "../../lib/uploads.js";
+import { clientErrorMessage } from "../../../../shared/client-errors.js";
 
 export const adminUploadsRoute = new Hono();
 
@@ -27,7 +28,7 @@ adminUploadsRoute.post("/", async (c) => {
     const result = await handleUpload(body.file, saveProductImage);
     return c.json(result.body, result.status);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Upload failed.";
+    const message = clientErrorMessage(error, "Upload failed.");
     return c.json({ success: false, message }, 500);
   }
 });
@@ -38,7 +39,7 @@ adminUploadsRoute.post("/brand", async (c) => {
     const result = await handleUpload(body.file, saveBrandLogo);
     return c.json(result.body, result.status);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Upload failed.";
+    const message = clientErrorMessage(error, "Upload failed.");
     return c.json({ success: false, message }, 500);
   }
 });
