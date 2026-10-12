@@ -10,7 +10,7 @@ import {
   IDEMPOTENCY_LOOKUP_WINDOW_MS,
   normalizeTrackingId,
   phonesMatch,
-} from "./shared/order-lookup.js";
+} from "../../../shared/order-lookup.js";
 
 export type OrderPayload = {
   name: string;

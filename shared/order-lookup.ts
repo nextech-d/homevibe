@@ -1,6 +1,7 @@
 /**
- * Rules for the public order lookup, shared by the API and the storefront
- * (which imports this file by relative path, so it has no imports).
+ * Rules for the public order lookup, shared by the API and the storefront.
+ * In shared/ at the repo root, which both Vercel builds can see, and free of
+ * imports so either side can compile it.
  */
 
 /**

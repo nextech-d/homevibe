@@ -1,8 +1,9 @@
 /**
  * Fixed-window rate limiting, backed by Postgres.
  *
- * Shared by the API and the storefront: the storefront imports this file by
- * relative path, so it has no imports of its own and takes the database
+ * Shared by the API and the storefront, so it lives in shared/ at the repo
+ * root - the one place both Vercel builds can see (the storefront's
+ * .vercelignore drops api/). It has no imports of its own and takes the database
  * client as an argument - each side passes its own Prisma client. Counters
  * live in the rate_limits table, never in memory: Vercel runs many
  * instances, and an in-process counter would only ever see its own share.

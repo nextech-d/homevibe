@@ -16,11 +16,11 @@ import {
   checkRateLimits,
   clientIp,
   orderLookupRules,
-} from "../../../api/src/lib/shared/rate-limit";
+} from "../../../shared/rate-limit";
 import {
   ORDER_LOOKUP_NOT_FOUND_MESSAGE,
   ORDER_LOOKUP_RATE_LIMITED_MESSAGE,
-} from "../../../api/src/lib/shared/order-lookup";
+} from "../../../shared/order-lookup";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

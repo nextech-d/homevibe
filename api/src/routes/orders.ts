@@ -14,11 +14,11 @@ import {
 import { VALID_ORDER_STATUSES, VALID_PAYMENT_STATUSES } from "../lib/order-rules.js";
 import { getUserBySessionId, extractBearerToken } from "../lib/session.js";
 import { getPrisma } from "../lib/db.js";
-import { checkRateLimits, clientIp, orderLookupRules } from "../lib/shared/rate-limit.js";
+import { checkRateLimits, clientIp, orderLookupRules } from "../../../shared/rate-limit.js";
 import {
   ORDER_LOOKUP_NOT_FOUND_MESSAGE,
   ORDER_LOOKUP_RATE_LIMITED_MESSAGE,
-} from "../lib/shared/order-lookup.js";
+} from "../../../shared/order-lookup.js";
 import type { CartItem } from "../types.js";
 
 export const ordersRoute = new Hono();

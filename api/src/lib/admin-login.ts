@@ -1,6 +1,6 @@
 import { getPrisma } from "./db.js";
 import { signAdminToken, verifyAdminPassword } from "./admin-jwt.js";
-import { adminLoginRules, checkRateLimits } from "./shared/rate-limit.js";
+import { adminLoginRules, checkRateLimits } from "../../../shared/rate-limit.js";
 
 export type AdminLoginOutcome = {
   status: 200 | 400 | 401 | 429 | 503;

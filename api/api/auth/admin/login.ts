@@ -1,6 +1,6 @@
 import { assertAdminJwtSecret } from "../../../src/lib/admin-jwt.js";
 import { attemptAdminLogin } from "../../../src/lib/admin-login.js";
-import { clientIp } from "../../../src/lib/shared/rate-limit.js";
+import { clientIp } from "../../../../shared/rate-limit.js";
 
 export const runtime = "nodejs";
 

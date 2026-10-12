@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { verifyAdminToken } from "../lib/admin-jwt.js";
 import { attemptAdminLogin } from "../lib/admin-login.js";
-import { clientIp } from "../lib/shared/rate-limit.js";
+import { clientIp } from "../../../shared/rate-limit.js";
 import {
   deleteSession,
   extractBearerToken,
