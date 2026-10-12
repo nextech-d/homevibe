@@ -7,6 +7,7 @@ import Link from "next/link";
 import { CheckCircle, ArrowRight, PhoneCall } from "lucide-react";
 import { formatPrice } from "../lib/formatPrice";
 import { buildWhatsAppUrl } from "../lib/whatsapp";
+import { useWhatsAppNumber } from "../context/WhatsAppContext";
 import DemoModeBanner from "../components/DemoModeBanner";
 import { SITE } from "../config/site";
 import {
@@ -18,6 +19,8 @@ import {
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, total, clearCart, hydrated } = useCart();
+  // The admin-set number the footer and product links dial, not config's.
+  const whatsappNumber = useWhatsAppNumber();
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
   const [trackingId, setTrackingId] = useState("");
@@ -121,7 +124,8 @@ export default function CheckoutPage() {
   const whatsappUrl = buildWhatsAppUrl(
     `Hi HomeVibe, I'd like to place an order.\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}, ${city}\n\nItems:\n` +
       items.map((item) => `• ${item.name} (Qty: ${item.qty})`).join("\n") +
-      `\n\nTotal: ${formatPrice(total)}`
+      `\n\nTotal: ${formatPrice(total)}`,
+    whatsappNumber
   );
 
   if (!hydrated && step !== 2) {
