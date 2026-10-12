@@ -52,18 +52,26 @@ export default function FeaturedBrands() {
         </h2>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {featuredCards.map((brand) => (
-          <SignatureBrandCard
-            key={brand.slug}
-            brand={brand}
-            productCount={productCountForBrand(brand.name, inventory)}
-          />
-        ))}
-      </div>
+      {/* No featured brands, no grid: an empty one still left its gap above
+          the chips. */}
+      {featuredCards.length > 0 && (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {featuredCards.map((brand) => (
+            <SignatureBrandCard
+              key={brand.slug}
+              brand={brand}
+              productCount={productCountForBrand(brand.name, inventory)}
+            />
+          ))}
+        </div>
+      )}
 
       {partnerChips.length > 0 && (
-        <div className="mt-6 flex flex-wrap justify-center gap-2 rounded-2xl border border-neutral-200/60 bg-[color:var(--surface)] p-5">
+        <div
+          className={`flex flex-wrap justify-center gap-2 rounded-2xl border border-neutral-200/60 bg-[color:var(--surface)] p-5 ${
+            featuredCards.length > 0 ? "mt-6" : ""
+          }`}
+        >
           {partnerChips.map((brand) => (
             <Link
               key={brand.slug}
