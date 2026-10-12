@@ -12,9 +12,11 @@ import { ProductsProvider } from "./context/ProductsContext";
 import { BrandsProvider } from "./context/BrandsContext";
 import { CategoriesProvider } from "./context/CategoriesContext";
 import { StorefrontProvider } from "./context/StorefrontContext";
+import { WhatsAppProvider } from "./context/WhatsAppContext";
 import { buildRootMetadataFromContext } from "./lib/seo";
 import { getCategoriesFromDb } from "./lib/categories.server";
 import { getBrandsFromDb } from "./lib/brands.server";
+import { getSiteSettingsData } from "./lib/storefront.server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,9 +45,12 @@ export default async function RootLayout({
 }>) {
   // Server-rendered so the nav ships its real categories and brands in the
   // initial HTML rather than the static lists the client fetch used to patch in.
-  const [navCategories, navBrands] = await Promise.all([
+  // The site settings are the footer's own (memoised, so one query between
+  // them): product links dial the same WhatsApp number the footer does.
+  const [navCategories, navBrands, siteSettings] = await Promise.all([
     getCategoriesFromDb(),
     getBrandsFromDb(),
+    getSiteSettingsData(),
   ]);
 
   return (
@@ -57,11 +62,13 @@ export default async function RootLayout({
             <CategoriesProvider initial={navCategories}>
               <BrandsProvider initial={navBrands}>
               <StorefrontProvider>
+              <WhatsAppProvider number={siteSettings.whatsapp}>
                 <Header />
                 <CartDrawer />
                 <CartToast />
                 <main className="flex-grow">{children}</main>
                 <Footer />
+              </WhatsAppProvider>
               </StorefrontProvider>
               </BrandsProvider>
             </CategoriesProvider>

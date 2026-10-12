@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { getPrisma } from "./db";
 import { FAQ_LIST } from "../data/faq";
 import { FEATURED_PRODUCT_COLUMNS } from "../data/products";
@@ -102,7 +104,14 @@ export async function getFeaturedColumnIds(): Promise<FeaturedColumnIds[]> {
   }
 }
 
-export async function getSiteSettingsData(): Promise<SiteSettingsData> {
+/**
+ * The storefront's settings: the admin-set rows, falling back to config.
+ *
+ * Memoised per request, because the root layout (for the WhatsApp number the
+ * product links use), the footer and the metadata all ask for it - one query,
+ * and so one answer, for all of them.
+ */
+export const getSiteSettingsData = cache(async (): Promise<SiteSettingsData> => {
   if (!process.env.DATABASE_URL) return DEFAULT_SETTINGS;
 
   const prisma = getPrisma();
@@ -116,7 +125,7 @@ export async function getSiteSettingsData(): Promise<SiteSettingsData> {
     console.error("Failed to load site settings:", error);
     return DEFAULT_SETTINGS;
   }
-}
+});
 
 export async function getFaqItemsData(): Promise<FaqItemData[]> {
   if (!process.env.DATABASE_URL) {

@@ -8,6 +8,7 @@ import { productHref } from "../data/products";
 import type { CatalogProduct } from "../lib/inventory";
 import { formatPrice } from "../lib/formatPrice";
 import { productWhatsAppUrl } from "../lib/whatsapp";
+import { useWhatsAppNumber } from "../context/WhatsAppContext";
 import WhatsAppIcon from "./WhatsAppIcon";
 import {
   getProductCardImage,
@@ -30,6 +31,7 @@ export default function ProductCard({
   imageSizes = PRODUCT_IMAGE_SIZES.card,
 }: ProductCardProps) {
   const cardImage = getProductCardImage(appliance);
+  const whatsappNumber = useWhatsAppNumber();
 
   const cardShell = compact
     ? "group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-3 shadow-sm transition hover:shadow-md"
@@ -54,7 +56,7 @@ export default function ProductCard({
             and inside the image box so it can never reach the name or price.
             44x44 for the thumb; the glyph itself is smaller. */}
         <a
-          href={productWhatsAppUrl(appliance)}
+          href={productWhatsAppUrl(appliance, whatsappNumber)}
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Ask about ${appliance.name} on WhatsApp`}

@@ -53,6 +53,10 @@ export function buildProductWhatsAppMessage(product: WhatsAppProduct): string {
   return `Hi, I'm interested in the ${product.name} (${formatPrice(product.price)}).\n${url}`;
 }
 
-export function productWhatsAppUrl(product: WhatsAppProduct): string {
-  return buildWhatsAppUrl(buildProductWhatsAppMessage(product));
+/**
+ * `phone` is required, not defaulted to config: it has to be the admin-set
+ * number the footer uses, which components get from useWhatsAppNumber().
+ */
+export function productWhatsAppUrl(product: WhatsAppProduct, phone: string): string {
+  return buildWhatsAppUrl(buildProductWhatsAppMessage(product), phone);
 }

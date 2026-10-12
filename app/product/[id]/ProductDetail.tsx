@@ -7,6 +7,7 @@ import { useCart } from "../../context/CartContext";
 import { isOutOfStock, type Appliance, type CatalogProduct } from "../../lib/inventory";
 import { formatPrice } from "../../lib/formatPrice";
 import { productWhatsAppUrl } from "../../lib/whatsapp";
+import { useWhatsAppNumber } from "../../context/WhatsAppContext";
 import {
   getProductGallery,
   getProductDetailImage,
@@ -62,6 +63,7 @@ export default function ProductDetail({
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const whatsappNumber = useWhatsAppNumber();
 
   const gallery = getProductGallery(product);
   const safeIndex = gallery.length > 0 ? Math.min(activeIndex, gallery.length - 1) : 0;
@@ -89,7 +91,7 @@ export default function ProductDetail({
     setTimeout(() => setAdded(false), 2000);
   };
 
-  const whatsappUrl = productWhatsAppUrl(product);
+  const whatsappUrl = productWhatsAppUrl(product, whatsappNumber);
   const outOfStock = isOutOfStock(product);
 
   const categorySlug = getCategorySlug(product.category);
