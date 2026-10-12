@@ -1,6 +1,10 @@
-import { signAdminToken, verifyAdminPassword } from "../../../src/lib/admin-jwt.js";
+import { assertAdminJwtSecret } from "../../../src/lib/admin-jwt.js";
+import { attemptAdminLogin } from "../../../src/lib/admin-login.js";
+import { clientIp } from "../../../src/lib/shared/rate-limit.js";
 
 export const runtime = "nodejs";
+
+assertAdminJwtSecret();
 
 function corsHeaders(req: Request): Headers {
   const origin = req.headers.get("origin") ?? "";
@@ -25,25 +29,14 @@ export async function POST(req: Request) {
   const headers = corsHeaders(req);
   headers.set("Content-Type", "application/json");
 
-  let password = "";
+  let password: unknown;
   try {
-    const body = (await req.json()) as { password?: string };
-    password = body.password ?? "";
+    password = ((await req.json()) as { password?: unknown }).password;
   } catch {
     return Response.json({ success: false, message: "Invalid JSON." }, { status: 400, headers });
   }
 
-  if (!verifyAdminPassword(password)) {
-    return Response.json({ success: false, message: "Incorrect password." }, { status: 401, headers });
-  }
-
-  const token = await signAdminToken();
-  if (!token) {
-    return Response.json(
-      { success: false, message: "Admin auth is not configured." },
-      { status: 503, headers }
-    );
-  }
-
-  return Response.json({ success: true, token }, { headers });
+  const outcome = await attemptAdminLogin(password, clientIp((name) => req.headers.get(name)));
+  if (outcome.retryAfterSeconds) headers.set("Retry-After", String(outcome.retryAfterSeconds));
+  return Response.json(outcome.body, { status: outcome.status, headers });
 }

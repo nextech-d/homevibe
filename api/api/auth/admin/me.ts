@@ -1,6 +1,8 @@
-import { verifyAdminToken } from "../../../src/lib/admin-jwt.js";
+import { assertAdminJwtSecret, verifyAdminToken } from "../../../src/lib/admin-jwt.js";
 
 export const runtime = "nodejs";
+
+assertAdminJwtSecret();
 
 function corsHeaders(req: Request): Headers {
   const origin = req.headers.get("origin") ?? "";

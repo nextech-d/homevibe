@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { verifyAdminToken } from "./lib/admin-jwt.js";
+import { assertAdminJwtSecret, verifyAdminToken } from "./lib/admin-jwt.js";
 import { extractBearerToken } from "./lib/session.js";
 import { handleGetProducts, handleGetProduct } from "./routes/products.js";
 import { ordersRoute, adminOrdersRoute } from "./routes/orders.js";
@@ -17,6 +17,9 @@ import { storefrontRoute } from "./routes/storefront.js";
 import { authRoute, accountRoute } from "./routes/auth.js";
 
 export function createApp(basePath = "") {
+  // No API without a dedicated admin signing secret - fail now, not at login.
+  assertAdminJwtSecret();
+
   const app = basePath ? new Hono().basePath(basePath) : new Hono();
 
   const defaultOrigins = [

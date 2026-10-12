@@ -1,5 +1,7 @@
 import { Hono } from "hono";
-import { signAdminToken, verifyAdminPassword, verifyAdminToken } from "../lib/admin-jwt.js";
+import { verifyAdminToken } from "../lib/admin-jwt.js";
+import { attemptAdminLogin } from "../lib/admin-login.js";
+import { clientIp } from "../lib/shared/rate-limit.js";
 import {
   deleteSession,
   extractBearerToken,
@@ -17,17 +19,16 @@ import {
 export const authRoute = new Hono();
 
 authRoute.post("/admin/login", async (c) => {
-  const body = (await c.req.json()) as { password?: string };
-  if (!verifyAdminPassword(body.password ?? "")) {
-    return c.json({ success: false, message: "Incorrect password." }, 401);
+  let password: unknown;
+  try {
+    password = ((await c.req.json()) as { password?: unknown }).password;
+  } catch {
+    return c.json({ success: false, message: "Invalid JSON." }, 400);
   }
 
-  const token = await signAdminToken();
-  if (!token) {
-    return c.json({ success: false, message: "Admin auth is not configured." }, 503);
-  }
-
-  return c.json({ success: true, token });
+  const outcome = await attemptAdminLogin(password, clientIp((name) => c.req.header(name)));
+  if (outcome.retryAfterSeconds) c.header("Retry-After", String(outcome.retryAfterSeconds));
+  return c.json(outcome.body, outcome.status);
 });
 
 authRoute.get("/admin/me", async (c) => {
