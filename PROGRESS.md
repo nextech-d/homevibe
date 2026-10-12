@@ -34,7 +34,7 @@ npm run dev:all
 | Checkout rules | ✅ | Server pricing; blocks out-of-stock & low-stock |
 | Order rules | ✅ | Fulfillment requires paid; refund requires paid |
 | Image uploads | ✅ Dev | Local `public/uploads/`; prod → `BLOB_READ_WRITE_TOKEN` |
-| Legacy `/admin` | ⚠️ Optional | Disable with `ADMIN_APP_URL` + `DISABLE_LEGACY_ADMIN` |
+| Legacy `/admin` | ✅ Removed | Storefront `/admin/*` redirects to admin.homevibe.co.ke |
 | Store → external API | ⚠️ Partial | Products via `NEXT_PUBLIC_API_URL`; checkout still Next `/api` |
 | Production deploy | ⚠️ Pending | API + admin not deployed separately yet |
 
@@ -47,7 +47,6 @@ DATABASE_URL=...
 ADMIN_PASSWORD=...
 ADMIN_JWT_SECRET=...
 NEXT_PUBLIC_API_URL=http://localhost:4000   # store → split API for products
-ADMIN_APP_URL=http://localhost:5173         # optional: redirect legacy /admin
 ```
 
 API also reads root `.env.local`. Admin dev proxies `/api` → `:4000`.

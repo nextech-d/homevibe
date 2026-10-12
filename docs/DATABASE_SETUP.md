@@ -86,17 +86,17 @@ Checkout POSTs to `/api/orders` and saves delivery details + cart items. Payment
 
 ## Admin (Day 3)
 
-Password-protected panel at **`/admin`** (not linked from the public site).
+The admin is its own app at **admin.homevibe.co.ke** (source in `admin/`), talking to the standalone API in `api/`. The storefront no longer has an admin of its own: `homevibe.co.ke/admin` redirects there.
 
-1. Add to `.env.local` and Vercel:
+1. Set the password the API checks — in the root `.env.local` for local development, and on the `homevibe-api` Vercel project for production:
 
 ```
 ADMIN_PASSWORD=your-strong-password-here
 ```
 
-2. Sign in at `/admin/login`
-3. **Orders** — view details, update delivery status
-4. **Products** — edit price and stock status
+2. Sign in at admin.homevibe.co.ke (locally: http://localhost:5173)
+3. **Orders** — view details, update delivery and payment status
+4. **Products** — edit products, prices and stock status
 
 Use a long random password. Rotate it if it is ever exposed.
 
@@ -134,7 +134,7 @@ Checkout no longer trusts prices from the browser. `POST /api/orders`:
 Orders have a `payment_status` field (`pending` | `paid` | `refunded`):
 
 - Defaults to **pending** on new orders
-- Admin can mark **Paid** or **Refunded** in `/admin/orders`
+- Admin can mark **Paid** or **Refunded** on the admin app's **Orders** page
 - Customers see payment status on `/track-order`
 
 After pulling Day 6 changes, run:
@@ -165,7 +165,7 @@ Customers can track orders at **`/track-order`** using their reference (e.g. `PT
 - Lookup reads from Postgres via `GET /api/orders?trackingId=`
 - Checkout success shows **Track order** + optional **My orders** when signed in
 - Account order history links to track status
-- Admin can update status in `/admin/orders` — customers see the update when they track
+- Admin can update status on the admin app's **Orders** page — customers see the update when they track
 
 Payment integration (M-Pesa STK / card) can be added in a future phase. Until then, mark orders **Paid** manually in admin after receiving M-Pesa or bank transfer.
 

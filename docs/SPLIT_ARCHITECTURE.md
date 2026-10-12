@@ -108,9 +108,9 @@ Set `VITE_API_URL` and `NEXT_PUBLIC_API_URL` to your production API URL.
 | Products read | ✅ | — | ✅ (with `NEXT_PUBLIC_API_URL`) |
 | Orders | ✅ | ✅ | Still uses `/api/orders` until store updated |
 | Customer auth | ✅ | — | Still uses Next `/api/auth` |
-| Embedded `/admin` | — | Replaced by admin app | Legacy (can remove later) |
+| Embedded `/admin` | — | Replaced by admin app | Removed; `/admin/*` redirects to the admin app |
 
-Next steps: point store checkout and account flows at the external API; remove embedded admin from the Next.js app.
+Next steps: point store checkout and account flows at the external API.
 
 ## Splitting into separate Git repos
 
