@@ -526,15 +526,25 @@ export async function updateOrderStatus(
   return updateOrder(trackingId, { status });
 }
 
+/**
+ * One CSV cell. A cell starting with = + - @ (or a tab or carriage return)
+ * gets a leading apostrophe, so a spreadsheet shows it as text instead of
+ * running it as a formula - otherwise a customer named =HYPERLINK(...)
+ * would execute when an admin opened the export. Then it's quoted, with
+ * quotes doubled. (A phone typed as +254... shows as '+254... as a result.)
+ */
+export function csvCell(value: unknown): string {
+  let text = String(value ?? "");
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
 export function ordersToCsv(orders: AdminOrder[]): string {
   const header =
     "tracking_id,order_date,status,payment_status,customer_name,customer_email,customer_phone,address,city,total_kes,items";
   const rows = orders.map((order) => {
-    const items = order.items
-      .map((item) => `${item.name} x${item.qty}`)
-      .join("; ")
-      .replace(/"/g, '""');
-    const fields = [
+    const items = order.items.map((item) => `${item.name} x${item.qty}`).join("; ");
+    return [
       order.trackingId,
       order.orderDate,
       order.statusKey,
@@ -545,9 +555,10 @@ export function ordersToCsv(orders: AdminOrder[]): string {
       order.deliveryAddress,
       order.deliveryCity,
       String(order.total),
-      `"${items}"`,
-    ];
-    return fields.map((f) => `"${String(f).replace(/"/g, '""')}"`).join(",");
+      items,
+    ]
+      .map(csvCell)
+      .join(",");
   });
   return [header, ...rows].join("\n");
 }
