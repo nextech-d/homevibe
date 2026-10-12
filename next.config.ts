@@ -35,6 +35,16 @@ const nextConfig: NextConfig = {
    */
   async redirects() {
     return [
+      // The storefront's own admin is gone; the admin lives at its own
+      // address. Old bookmarks land on the same page there - /admin/products
+      // becomes admin.homevibe.co.ke/products - and permanent, so nothing
+      // keeps asking the storefront for it.
+      { source: "/admin", destination: "https://admin.homevibe.co.ke", permanent: true },
+      {
+        source: "/admin/:path*",
+        destination: "https://admin.homevibe.co.ke/:path*",
+        permanent: true,
+      },
       { source: "/category/cooking", destination: "/category/kitchen", permanent: true },
       { source: "/category/cooking/:sub", destination: "/category/kitchen/:sub", permanent: true },
       { source: "/category/refrigeration", destination: "/category/kitchen", permanent: true },
