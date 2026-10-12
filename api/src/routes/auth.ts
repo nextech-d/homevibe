@@ -124,7 +124,7 @@ authRoute.post("/login", async (c) => {
 
   const refused = await customerAuthLimit(
     c,
-    customerLoginRules(clientIp((name) => c.req.header(name)), emailKey(body.email))
+    customerLoginRules(clientIp((name) => c.req.header(name)))
   );
   if (refused) return refused;
 

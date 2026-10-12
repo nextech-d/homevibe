@@ -126,17 +126,18 @@ export function adminLoginRules(ip: string): RateLimitRule[] {
 }
 
 /**
- * Customer login: 10 per IP and 5 per email per 15 minutes. `emailKey` is
- * a hash of the normalised email, so addresses never sit in rate_limits.
+ * Customer login: 10 per IP per 15 minutes. No per-email limit: anyone could
+ * use it up with wrong passwords and lock a customer out of their own
+ * account - the same reason admin login has no global cap.
  */
-export function customerLoginRules(ip: string, emailKey: string): RateLimitRule[] {
-  return [
-    { name: "customer-login:ip", subject: ip, limit: 10, windowMs: 15 * 60 * 1000 },
-    { name: "customer-login:email", subject: emailKey, limit: 5, windowMs: 15 * 60 * 1000 },
-  ];
+export function customerLoginRules(ip: string): RateLimitRule[] {
+  return [{ name: "customer-login:ip", subject: ip, limit: 10, windowMs: 15 * 60 * 1000 }];
 }
 
-/** Customer registration: 5 per IP and 3 per email per hour. */
+/**
+ * Customer registration: 5 per IP and 3 per email per hour. `emailKey` is a
+ * hash of the normalised email, so addresses never sit in rate_limits.
+ */
 export function customerRegisterRules(ip: string, emailKey: string): RateLimitRule[] {
   return [
     { name: "customer-register:ip", subject: ip, limit: 5, windowMs: 60 * 60 * 1000 },

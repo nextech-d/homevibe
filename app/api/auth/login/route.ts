@@ -1,14 +1,8 @@
-import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { loginUser } from "../../../lib/users.server";
 import { getPrisma } from "../../../lib/db";
 import { checkRateLimits, clientIp, customerLoginRules } from "../../../../shared/rate-limit";
 import { AUTH_RATE_LIMITED_MESSAGE, LOGIN_FAILED_MESSAGE } from "../../../../shared/customer-auth";
-
-/** The email as a rate-limit key: hashed, so addresses never sit in rate_limits. */
-function emailKey(email: string): string {
-  return createHash("sha256").update(email.trim().toLowerCase()).digest("hex").slice(0, 32);
-}
 
 export async function POST(request: Request) {
   let body: { email?: string; password?: string };
@@ -24,12 +18,12 @@ export async function POST(request: Request) {
     );
   }
 
-  // 10 per IP and 5 per email per 15 minutes, before any password is checked.
+  // 10 per IP per 15 minutes, before any password is checked.
   const prisma = getPrisma();
   const limit = prisma
     ? await checkRateLimits(
         prisma,
-        customerLoginRules(clientIp((name) => request.headers.get(name)), emailKey(body.email)),
+        customerLoginRules(clientIp((name) => request.headers.get(name))),
         "closed"
       )
     : ({ allowed: false, reason: "error" } as const);
