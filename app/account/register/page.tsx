@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { REGISTER_FAILED_MESSAGE } from "../../../shared/customer-auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -47,7 +48,19 @@ export default function RegisterPage() {
         <p className="mt-2 text-xs text-neutral-500">Track orders and save delivery addresses.</p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
+          {error === REGISTER_FAILED_MESSAGE ? (
+            // The server's deliberately vague answer for a taken email: it
+            // doesn't confirm an account exists, so the way forward is offered
+            // rather than stated.
+            <p className="text-xs font-semibold text-red-600">
+              {error}{" "}
+              <Link href="/account/login" className="underline hover:text-red-700">
+                Sign in
+              </Link>
+            </p>
+          ) : (
+            error && <p className="text-xs font-semibold text-red-600">{error}</p>
+          )}
           <input
             required
             value={name}
