@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { assertAdminJwtSecret, verifyAdminToken } from "./lib/admin-jwt.js";
+import { isAllowedOrigin } from "./lib/cors-origins.js";
 import { extractBearerToken } from "./lib/session.js";
 import { handleGetProducts, handleGetProduct } from "./routes/products.js";
 import { ordersRoute, adminOrdersRoute } from "./routes/orders.js";
@@ -22,35 +23,14 @@ export function createApp(basePath = "") {
 
   const app = basePath ? new Hono().basePath(basePath) : new Hono();
 
-  const defaultOrigins = [
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "https://admin.homevibe.co.ke",
-    "https://homevibe-admin.vercel.app",
-    "https://homevibe.co.ke",
-    "https://www.homevibe.co.ke",
-    process.env.ADMIN_APP_URL?.trim(),
-    process.env.SITE_URL?.trim(),
-  ].filter(Boolean) as string[];
-
-  const origins = (process.env.CORS_ORIGINS ?? defaultOrigins.join(","))
-    .split(",")
-    .map((o) => o.trim())
-    .filter(Boolean);
-
+  // One allowlist (lib/cors-origins.ts). No credentials: the API takes a
+  // bearer token, and no client sends it cookies.
   app.use(
     "*",
     cors({
-      origin: (origin) => {
-        if (!origin) return origin;
-        if (origins.includes(origin)) return origin;
-        if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return origin;
-        return "";
-      },
+      origin: (origin) => (isAllowedOrigin(origin) ? origin : ""),
       allowHeaders: ["Content-Type", "Authorization", "X-Order-Phone"],
       allowMethods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
-      credentials: true,
     })
   );
 
