@@ -54,6 +54,47 @@ export const getInventory = cache(async (): Promise<Appliance[]> => {
 });
 
 /**
+ * The products the homepage's featured grid can show, and no others: every
+ * published product flagged as featured, plus the ones in the featured slots.
+ * featuredSelection() picks from these exactly as it would from the whole
+ * catalogue - the flagged ones if there are any, else the slots in order - so
+ * the homepage no longer loads all 139 products to render nine.
+ */
+export async function getFeaturedCandidates(
+  columns: { topProductId: number; bottomProductId: number | null }[]
+): Promise<Appliance[]> {
+  if (!process.env.DATABASE_URL) {
+    return [];
+  }
+
+  const prisma = getPrisma();
+  if (!prisma) {
+    return [];
+  }
+
+  const slotIds = columns.flatMap((column) =>
+    column.bottomProductId === null
+      ? [column.topProductId]
+      : [column.topProductId, column.bottomProductId]
+  );
+
+  try {
+    const rows = await prisma.product.findMany({
+      where: {
+        isPublished: true,
+        OR: [{ isFeatured: true }, { id: { in: slotIds } }],
+      },
+      include: productInclude,
+      orderBy: { id: "asc" },
+    });
+    return rows.map(mapDbProductToAppliance);
+  } catch (error) {
+    console.error("Failed to load featured products from database:", error);
+    return [];
+  }
+}
+
+/**
  * Slugs and modification dates for the sitemap. A separate query from
  * getInventory because the sitemap wants two columns per product and no images,
  * descriptions or relations.

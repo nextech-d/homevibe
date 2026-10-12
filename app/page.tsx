@@ -4,20 +4,21 @@ import HomeHero from "./components/HomeHero";
 import HomeFeatured from "./components/HomeFeatured";
 import HomeFaq from "./components/HomeFaq";
 import FaqJsonLd from "./components/FaqJsonLd";
-import { getInventory } from "./lib/inventory.server";
+import { getFeaturedCandidates } from "./lib/inventory.server";
 import { getFaqItemsData, getFeaturedColumnIds } from "./lib/storefront.server";
 import { featuredSelection, toCatalogProduct } from "./lib/inventory";
 
 export default async function Home() {
-  const [inventory, featuredColumns, faqItems] = await Promise.all([
-    getInventory(),
+  const [featuredColumns, faqItems] = await Promise.all([
     getFeaturedColumnIds(),
     getFaqItemsData(),
   ]);
 
   // Chosen here rather than in the grid, so the cards are in the initial HTML
-  // and only the handful that render travel with it.
-  const featured = featuredSelection(inventory, featuredColumns).map(toCatalogProduct);
+  // and only the handful that render travel with it. Only the candidates are
+  // loaded, not the whole catalogue: the slots say which ones those are.
+  const candidates = await getFeaturedCandidates(featuredColumns);
+  const featured = featuredSelection(candidates, featuredColumns).map(toCatalogProduct);
 
   return (
     <div className="min-h-screen bg-[var(--bg)] font-sans relative">
