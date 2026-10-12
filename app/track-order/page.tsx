@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Package, Search, Copy, Check } from "lucide-react";
@@ -38,29 +38,27 @@ export default function TrackOrderPage() {
 
 function TrackOrderContent() {
   const searchParams = useSearchParams();
-  const [trackingId, setTrackingId] = useState("");
+  // Links from the confirmation email, checkout and the account page carry
+  // the reference. The phone number has to be typed - it's what proves the
+  // order is yours - so the page fills in the reference and waits there.
+  const linkedId = searchParams.get("id") ?? "";
+  const [trackingId, setTrackingId] = useState(linkedId);
+  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [order, setOrder] = useState<TrackedOrder | null>(null);
   const [copied, setCopied] = useState(false);
-  const [autoSearched, setAutoSearched] = useState(false);
+  const phoneRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const id = searchParams.get("id");
-    if (id) setTrackingId(id);
-  }, [searchParams]);
+    if (linkedId) phoneRef.current?.focus();
+  }, [linkedId]);
 
-  useEffect(() => {
-    const id = searchParams.get("id")?.trim();
-    if (!id || autoSearched) return;
-    setAutoSearched(true);
-    void lookupOrder(id);
-  }, [searchParams, autoSearched]);
-
-  async function lookupOrder(rawId: string) {
+  async function lookupOrder(rawId: string, rawPhone: string) {
     const id = rawId.trim().toUpperCase();
-    if (!id) {
-      setError("Please enter your order reference.");
+    const enteredPhone = rawPhone.trim();
+    if (!id || !enteredPhone) {
+      setError("Please enter your order reference and the phone number you ordered with.");
       setOrder(null);
       return;
     }
@@ -70,7 +68,10 @@ function TrackOrderContent() {
     setOrder(null);
 
     try {
-      const res = await fetch(`/api/orders?trackingId=${encodeURIComponent(id)}`);
+      // The phone goes in a header, so it stays out of URLs and request logs.
+      const res = await fetch(`/api/orders?trackingId=${encodeURIComponent(id)}`, {
+        headers: { "X-Order-Phone": enteredPhone },
+      });
       const data = (await res.json()) as {
         success: boolean;
         message?: string;
@@ -78,7 +79,9 @@ function TrackOrderContent() {
       };
 
       if (!res.ok || !data.success || !data.order) {
-        setError(data.message ?? "Order not found. Check your reference and try again.");
+        setError(
+          data.message ?? "We couldn't find an order with that reference and phone number."
+        );
         return;
       }
 
@@ -92,7 +95,7 @@ function TrackOrderContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await lookupOrder(trackingId);
+    await lookupOrder(trackingId, phone);
   };
 
   async function copyReference() {
@@ -121,22 +124,38 @@ function TrackOrderContent() {
           </div>
           <h1 className="mt-5 text-3xl font-bold tracking-tight text-black">Track your order</h1>
           <p className="mt-2 text-sm text-black/60">
-            Enter the order reference from your confirmation (e.g. PTL-123456).
+            Enter the order reference from your confirmation (e.g. PTL-123456) and the phone
+            number you placed the order with.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-10">
-          <label htmlFor="trackingId" className="sr-only">
-            Order reference
-          </label>
           <div className="flex flex-col gap-3 sm:flex-row">
+            <label htmlFor="trackingId" className="sr-only">
+              Order reference
+            </label>
             <input
               id="trackingId"
               type="text"
               value={trackingId}
               onChange={(e) => setTrackingId(e.target.value)}
               placeholder="PTL-123456"
-              className="flex-1 rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black/20"
+              autoComplete="off"
+              className="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black/20"
+            />
+            <label htmlFor="orderPhone" className="sr-only">
+              Phone number used on the order
+            </label>
+            <input
+              id="orderPhone"
+              ref={phoneRef}
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Phone, e.g. 0712 345 678"
+              className="min-w-0 flex-1 rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black/20"
             />
             <button
               type="submit"

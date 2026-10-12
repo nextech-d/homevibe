@@ -48,7 +48,7 @@ export function createApp(basePath = "") {
         if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/.test(origin)) return origin;
         return "";
       },
-      allowHeaders: ["Content-Type", "Authorization"],
+      allowHeaders: ["Content-Type", "Authorization", "X-Order-Phone"],
       allowMethods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
       credentials: true,
     })

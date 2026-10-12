@@ -4,7 +4,7 @@ import {
   createOrder,
   getAdminOrderByTrackingId,
   getOrderByTrackingId,
-  getOrderCreateResultByIdempotencyKey,
+  getOrderReceiptByIdempotencyKey,
   listOrders,
   listOrdersFiltered,
   ordersToCsv,
@@ -13,40 +13,65 @@ import {
 } from "../lib/orders.js";
 import { VALID_ORDER_STATUSES, VALID_PAYMENT_STATUSES } from "../lib/order-rules.js";
 import { getUserBySessionId, extractBearerToken } from "../lib/session.js";
+import { getPrisma } from "../lib/db.js";
+import { checkRateLimits, clientIp, orderLookupRules } from "../lib/shared/rate-limit.js";
+import {
+  ORDER_LOOKUP_NOT_FOUND_MESSAGE,
+  ORDER_LOOKUP_RATE_LIMITED_MESSAGE,
+} from "../lib/shared/order-lookup.js";
 import type { CartItem } from "../types.js";
 
 export const ordersRoute = new Hono();
 
 ordersRoute.get("/", async (c) => {
   const idempotencyKey = c.req.query("idempotencyKey")?.trim();
-  const trackingId = c.req.query("trackingId")?.trim().toUpperCase();
 
+  // Checkout recovery. Not rate-limited by IP: these come through the
+  // storefront's servers, so every customer would share one address. The key
+  // itself is the protection - a random UUID, valid for 15 minutes, opening a
+  // receipt with no personal details.
   if (idempotencyKey) {
     try {
-      const order = await getOrderCreateResultByIdempotencyKey(idempotencyKey);
-      if (!order) {
+      const receipt = await getOrderReceiptByIdempotencyKey(idempotencyKey);
+      if (!receipt) {
         return c.json({ success: false, message: "No order found for that checkout attempt." }, 404);
       }
-      return c.json({
-        success: true,
-        trackingId: order.trackingId,
-        order,
-      });
+      return c.json({ success: true, trackingId: receipt.trackingId, order: receipt });
     } catch {
       return c.json({ success: false, message: "Invalid idempotency key." }, 400);
     }
   }
 
-  if (!trackingId) {
+  // The public order lookup: 10 per IP per 15 minutes, failing open - a
+  // limiter outage shouldn't stop a customer seeing their order.
+  const prisma = getPrisma();
+  if (prisma) {
+    const limit = await checkRateLimits(
+      prisma,
+      orderLookupRules(clientIp((name) => c.req.header(name))),
+      "open"
+    );
+    if (!limit.allowed && limit.reason === "limited") {
+      c.header("Retry-After", String(limit.retryAfterSeconds));
+      return c.json({ success: false, message: ORDER_LOOKUP_RATE_LIMITED_MESSAGE }, 429);
+    }
+  }
+
+  const trackingId = c.req.query("trackingId")?.trim();
+  // The phone travels in a header, not the query string, so it stays out of
+  // request logs and browser history.
+  const phone = c.req.header("x-order-phone")?.trim();
+  if (!trackingId || !phone) {
     return c.json(
-      { success: false, message: "Order reference or idempotency key is required." },
+      { success: false, message: "Enter your order reference and the phone number you ordered with." },
       400
     );
   }
 
-  const order = await getOrderByTrackingId(trackingId);
+  // Unknown reference and wrong phone get the same answer.
+  const order = await getOrderByTrackingId(trackingId, phone);
   if (!order) {
-    return c.json({ success: false, message: "No order found with that reference." }, 404);
+    return c.json({ success: false, message: ORDER_LOOKUP_NOT_FOUND_MESSAGE }, 404);
   }
 
   return c.json({ success: true, order });

@@ -5,6 +5,7 @@ import type { CartItem } from "../context/CartContext";
 import { getPrisma } from "./db";
 import { sendOrderStatusEmail } from "./email.server";
 import { validateOrderUpdate } from "./order-rules";
+import { normalizeTrackingId, phonesMatch } from "../../api/src/lib/shared/order-lookup";
 
 export type OrderPayload = {
   name: string;
@@ -111,18 +112,25 @@ function mapOrderToAdmin(order: {
   };
 }
 
+/**
+ * The public order lookup: the reference AND the phone number the order was
+ * placed with. Null for an unknown reference and for a wrong phone alike, so
+ * the route answers both the same way and never reveals that a reference
+ * exists. The matching rules are the API's own (api/src/lib/shared).
+ */
 export async function getOrderByTrackingId(
-  trackingId: string
+  trackingId: string,
+  phone: string
 ): Promise<PublicOrder | null> {
   const prisma = getPrisma();
   if (!prisma) return null;
 
   const order = await prisma.order.findUnique({
-    where: { trackingId: trackingId.toUpperCase() },
+    where: { trackingId: normalizeTrackingId(trackingId) },
     include: { items: true },
   });
 
-  if (!order) return null;
+  if (!order || !phonesMatch(phone, order.customerPhone)) return null;
 
   return {
     trackingId: order.trackingId,

@@ -1,9 +1,16 @@
+import { randomInt } from "node:crypto";
 import type { OrderStatus, PaymentStatus } from "@prisma/client";
 import type { CartItem } from "../types.js";
 import { getPrisma } from "./db.js";
 import { sendOrderEmails, sendOrderStatusEmail } from "./email.js";
 import { mapDbProductToAppliance } from "./mapProduct.js";
 import { validateOrderUpdate } from "./order-rules.js";
+import {
+  IDEMPOTENCY_KEY_PATTERN,
+  IDEMPOTENCY_LOOKUP_WINDOW_MS,
+  normalizeTrackingId,
+  phonesMatch,
+} from "./shared/order-lookup.js";
 
 export type OrderPayload = {
   name: string;
@@ -18,57 +25,24 @@ export type OrderPayload = {
   idempotencyKey?: string;
 };
 
-type OrderWithItems = {
-  trackingId: string;
-  orderDate: Date;
-  status: OrderStatus;
-  paymentStatus: PaymentStatus;
-  totalKes: number;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  deliveryAddress: string;
-  deliveryCity: string;
-  items: {
-    productId: number | null;
-    name: string;
-    priceKes: number;
-    quantity: number;
-    imageUrl: string;
-  }[];
-};
-
+/**
+ * Idempotency keys are the checkout's crypto.randomUUID(), and nothing else:
+ * a short or hand-picked key is something a stranger could guess or reuse.
+ */
 function normalizeIdempotencyKey(key: string | undefined): string | undefined {
   const trimmed = key?.trim();
   if (!trimmed) return undefined;
-  if (trimmed.length < 8 || trimmed.length > 128) {
+  if (!IDEMPOTENCY_KEY_PATTERN.test(trimmed)) {
     throw new Error("Invalid idempotency key.");
   }
-  return trimmed;
+  return trimmed.toLowerCase();
 }
 
-function mapOrderRecordToCreateResult(order: OrderWithItems) {
-  return {
-    trackingId: order.trackingId,
-    orderDate: order.orderDate.toISOString(),
-    status: statusLabel(order.status),
-    paymentStatus: paymentStatusLabel(order.paymentStatus),
-    total: order.totalKes,
-    customer: {
-      name: order.customerName,
-      email: order.customerEmail,
-      phone: order.customerPhone,
-      address: order.deliveryAddress,
-      city: order.deliveryCity,
-    },
-    items: order.items.map((item) => ({
-      id: item.productId ?? 0,
-      name: item.name,
-      price: item.priceKes,
-      qty: item.quantity,
-      image: item.imageUrl,
-    })),
-  };
+/** What a checkout gets back for an order it already placed: enough to show it, nothing personal. */
+export type OrderReceipt = { trackingId: string; total: number };
+
+function orderReceipt(order: { trackingId: string; totalKes: number }): OrderReceipt {
+  return { trackingId: order.trackingId, total: order.totalKes };
 }
 
 function isUniqueConstraintError(error: unknown): boolean {
@@ -204,7 +178,9 @@ async function generateTrackingId(): Promise<string> {
   if (!prisma) throw new Error("Database unavailable");
 
   for (let attempt = 0; attempt < 10; attempt++) {
-    const trackingId = "PTL-" + Math.floor(100000 + Math.random() * 900000);
+    // crypto.randomInt, not Math.random: the reference is half of what
+    // unlocks an order's details, so it must not be predictable.
+    const trackingId = `PTL-${randomInt(100000, 1000000)}`;
     const existing = await prisma.order.findUnique({ where: { trackingId } });
     if (!existing) return trackingId;
   }
@@ -271,7 +247,7 @@ export async function createOrder(payload: OrderPayload) {
       include: { items: true },
     });
     if (existing) {
-      return mapOrderRecordToCreateResult(existing);
+      return orderReceipt(existing);
     }
   }
 
@@ -315,7 +291,7 @@ export async function createOrder(payload: OrderPayload) {
         include: { items: true },
       });
       if (existing) {
-        return mapOrderRecordToCreateResult(existing);
+        return orderReceipt(existing);
       }
     }
     throw error;
@@ -352,36 +328,50 @@ export async function createOrder(payload: OrderPayload) {
   return result;
 }
 
-export async function getOrderCreateResultByIdempotencyKey(
+/**
+ * Recovers a checkout's order by the key the browser sent with it - for when
+ * the order went through but the response never arrived. A receipt only
+ * (reference and total), and only within 15 minutes of the order: after
+ * that the customer has their reference, and an old key opens nothing.
+ */
+export async function getOrderReceiptByIdempotencyKey(
   key: string
-): Promise<ReturnType<typeof mapOrderRecordToCreateResult> | null> {
+): Promise<OrderReceipt | null> {
   const idempotencyKey = normalizeIdempotencyKey(key);
   if (!idempotencyKey) return null;
 
   const prisma = getPrisma();
   if (!prisma) return null;
 
-  const order = await prisma.order.findUnique({
-    where: { idempotencyKey },
-    include: { items: true },
+  const order = await prisma.order.findFirst({
+    where: {
+      idempotencyKey,
+      orderDate: { gte: new Date(Date.now() - IDEMPOTENCY_LOOKUP_WINDOW_MS) },
+    },
+    select: { trackingId: true, totalKes: true },
   });
 
-  if (!order) return null;
-  return mapOrderRecordToCreateResult(order);
+  return order ? orderReceipt(order) : null;
 }
 
+/**
+ * The public order lookup: the reference AND the phone number the order was
+ * placed with. Null for an unknown reference and for a wrong phone alike, so
+ * callers answer both the same way and never reveal that a reference exists.
+ */
 export async function getOrderByTrackingId(
-  trackingId: string
+  trackingId: string,
+  phone: string
 ): Promise<PublicOrder | null> {
   const prisma = getPrisma();
   if (!prisma) return null;
 
   const order = await prisma.order.findUnique({
-    where: { trackingId: trackingId.toUpperCase() },
+    where: { trackingId: normalizeTrackingId(trackingId) },
     include: { items: true },
   });
 
-  if (!order) return null;
+  if (!order || !phonesMatch(phone, order.customerPhone)) return null;
 
   return {
     trackingId: order.trackingId,

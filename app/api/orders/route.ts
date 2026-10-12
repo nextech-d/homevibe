@@ -11,11 +11,20 @@ import {
   ORDER_IDEMPOTENCY_RECOVERY_MS,
 } from "../../lib/orders-proxy.server";
 import { getOrderByTrackingId, type OrderPayload } from "../../lib/orders.server";
+import { getPrisma } from "../../lib/db";
+import {
+  checkRateLimits,
+  clientIp,
+  orderLookupRules,
+} from "../../../api/src/lib/shared/rate-limit";
+import {
+  ORDER_LOOKUP_NOT_FOUND_MESSAGE,
+  ORDER_LOOKUP_RATE_LIMITED_MESSAGE,
+} from "../../../api/src/lib/shared/order-lookup";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const idempotencyKey = searchParams.get("idempotencyKey")?.trim();
-  const trackingId = searchParams.get("trackingId")?.trim().toUpperCase();
 
   if (idempotencyKey) {
     const base = getApiBaseUrl();
@@ -42,18 +51,40 @@ export async function GET(request: Request) {
     }
   }
 
-  if (!trackingId) {
+  // The public order lookup: 10 per IP per 15 minutes - the same rule as
+  // the API's - failing open, so a limiter outage doesn't stop a customer
+  // seeing their order.
+  const prisma = getPrisma();
+  if (prisma) {
+    const limit = await checkRateLimits(
+      prisma,
+      orderLookupRules(clientIp((name) => request.headers.get(name))),
+      "open"
+    );
+    if (!limit.allowed && limit.reason === "limited") {
+      return NextResponse.json(
+        { success: false, message: ORDER_LOOKUP_RATE_LIMITED_MESSAGE },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+      );
+    }
+  }
+
+  const trackingId = searchParams.get("trackingId")?.trim();
+  // The phone travels in a header, not the query string, so it stays out of
+  // request logs and browser history.
+  const phone = request.headers.get("x-order-phone")?.trim();
+  if (!trackingId || !phone) {
     return NextResponse.json(
-      { success: false, message: "Order reference is required." },
+      { success: false, message: "Enter your order reference and the phone number you ordered with." },
       { status: 400 }
     );
   }
 
-  const order = await getOrderByTrackingId(trackingId);
-
+  // Unknown reference and wrong phone get the same answer.
+  const order = await getOrderByTrackingId(trackingId, phone);
   if (!order) {
     return NextResponse.json(
-      { success: false, message: "No order found with that reference." },
+      { success: false, message: ORDER_LOOKUP_NOT_FOUND_MESSAGE },
       { status: 404 }
     );
   }
