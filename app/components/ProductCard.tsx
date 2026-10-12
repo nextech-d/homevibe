@@ -54,15 +54,18 @@ export default function ProductCard({
             <a> is invalid, and the browser would drop one of the two. It sits
             above the stretched anchor on z-10, the same way Add to Cart does,
             and inside the image box so it can never reach the name or price.
-            44x44 for the thumb; the glyph itself is smaller. */}
+            44x44 for the thumb; the white disc inside it is smaller, and always
+            there, so the glyph stays visible on a dark or green photo. */}
         <a
           href={productWhatsAppUrl(appliance, whatsappNumber)}
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Ask about ${appliance.name} on WhatsApp`}
-          className="absolute bottom-1 right-1 z-10 flex h-11 w-11 items-center justify-center rounded-full text-[#25D366] transition hover:bg-[#25D366] hover:text-white active:scale-95"
+          className="group/wa absolute bottom-1 right-1 z-10 flex h-11 w-11 items-center justify-center rounded-full active:scale-95"
         >
-          <WhatsAppIcon className="h-5 w-5 shrink-0 drop-shadow-sm" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#25D366] shadow-md ring-1 ring-black/5 transition group-hover/wa:bg-[#25D366] group-hover/wa:text-white">
+            <WhatsAppIcon className="h-5 w-5 shrink-0" />
+          </span>
         </a>
       </div>
 
