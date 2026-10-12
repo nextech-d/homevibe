@@ -19,6 +19,57 @@ export function truncateForMeta(text: string, max = MAX_DESCRIPTION): string {
   return `${cut.replace(/[\s,;:.\-–—]+$/, "")}…`;
 }
 
+/**
+ * Rich text (the admin saves descriptions as either HTML or markdown) reduced
+ * to the plain prose a meta tag can carry. Tags become spaces rather than
+ * vanishing, so "<p>one</p><p>two</p>" does not read as "onetwo".
+ *
+ * Single "_" is deliberately left alone: model numbers carry underscores far
+ * more often than product copy uses underscore italics.
+ */
+export function plainTextForMeta(value: string): string {
+  const withoutHtml = value
+    .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<[^>]*>/g, " ");
+
+  const decoded = withoutHtml
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&quot;/gi, '"')
+    .replace(/&(?:#39|apos);/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    // Last, so "&amp;lt;" does not decode twice into a tag.
+    .replace(/&amp;/gi, "&");
+
+  return decoded
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/^\s{0,3}>\s?/gm, "")
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+    .replace(/^\s{0,3}(?:[-*+]|\d+[.)])\s+/gm, "")
+    .replace(/^\s{0,3}(?:[-*_]\s*){3,}$/gm, " ")
+    .replace(/(\*\*|__)(.*?)\1/g, "$2")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/~~(.*?)~~/g, "$1")
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * What a share preview says about a product: its own intro copy, stripped and
+ * trimmed to length. Empty when the product has no description, leaving the
+ * caller to fall back.
+ *
+ * Deliberately prefers `description` over `metaDescription`: most rows carry
+ * the product name in `metaDescription`, which made every Facebook and X
+ * preview repeat the title it sits under. The long-form `body` is not used -
+ * it opens mid-topic and reads badly as a one-line preview.
+ */
+export function productSocialDescription(product: { description: string }): string {
+  return truncateForMeta(plainTextForMeta(product.description ?? ""));
+}
+
 /** Joins sentence fragments, dropping empties and double punctuation. */
 function sentences(...parts: (string | null | undefined)[]): string {
   return parts

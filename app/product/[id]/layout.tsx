@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { getPublishedProductByParam } from "../../lib/inventory.server";
 import { buildPageMetadata, absoluteUrl } from "../../lib/seo";
 import { getSeoContext } from "../../lib/seo.server";
-import { productMetaFallback } from "../../lib/seo-fallbacks";
+import { productMetaFallback, productSocialDescription } from "../../lib/seo-fallbacks";
 import { getProductDetailImage } from "../../lib/productImages";
 import { productHref } from "../../data/products";
 import { categoryHref, getCategorySlug, getSubcategoryLabel } from "../../data/categories";
@@ -32,10 +32,15 @@ export async function generateMetadata({ params }: Props) {
 
   const ctx = await getSeoContext();
   const fallback = productMetaFallback(product, ctx);
+  const description = product.metaDescription?.trim() || fallback.description;
 
   return buildPageMetadata({
     title: product.metaTitle?.trim() || fallback.title,
-    description: product.metaDescription?.trim() || fallback.description,
+    description,
+    // Share previews sit directly under the title, so repeating it there wastes
+    // the only line Facebook shows. The product's own intro copy goes here
+    // instead, and only falls back to the search description when it has none.
+    socialDescription: productSocialDescription(product) || description,
     path: productHref(product),
     image: getProductDetailImage(product),
     siteName: ctx.siteName,
