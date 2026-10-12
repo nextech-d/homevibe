@@ -8,6 +8,13 @@ import { getFeaturedCandidates } from "./lib/inventory.server";
 import { getFaqItemsData, getFeaturedColumnIds } from "./lib/storefront.server";
 import { featuredSelection, toCatalogProduct } from "./lib/inventory";
 
+/**
+ * Cached, and refreshed on demand: every admin save calls /api/revalidate,
+ * which clears the whole layout. The 60 seconds is only the backstop - the
+ * longest anything a refresh missed can stay stale.
+ */
+export const revalidate = 60;
+
 export default async function Home() {
   const [featuredColumns, faqItems] = await Promise.all([
     getFeaturedColumnIds(),
