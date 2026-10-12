@@ -34,8 +34,8 @@ export default function ProductCard({
   const whatsappNumber = useWhatsAppNumber();
 
   const cardShell = compact
-    ? "group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-3 shadow-sm transition hover:shadow-md"
-    : "group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-4 shadow-sm transition hover:shadow-md";
+    ? "@container group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-3 shadow-sm transition hover:shadow-md"
+    : "@container group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-4 shadow-sm transition hover:shadow-md";
 
   const contentPadding = compact ? "px-3" : "px-4";
 
@@ -82,7 +82,12 @@ export default function ProductCard({
           </Link>
         </h3>
 
-        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+        {/* Price and Add to Cart share a line only on a card at least 15.5rem
+            wide - what the label needs beside the dearest price, Ksh
+            1,500,000. Narrower (two across a phone, four across a 1024px
+            screen) the button was cut off at "Add", so it goes under the
+            price instead, full width. */}
+        <div className="mt-auto flex flex-col gap-2 pt-2 @min-[15.5rem]:flex-row @min-[15.5rem]:items-center @min-[15.5rem]:justify-between">
           <p
             className={`shrink-0 font-bold tabular-nums text-neutral-950 ${
               compact ? "text-xs" : "text-sm"
@@ -96,7 +101,7 @@ export default function ProductCard({
               onClick={(e) => onAddToCart(e, appliance)}
               disabled={added}
               // Above the stretched anchor, so Add to Cart stays a button.
-              className={`relative z-10 inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-semibold transition active:scale-[0.98] ${
+              className={`relative z-10 inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg @min-[15.5rem]:w-auto px-3 py-2 text-[10px] font-semibold transition active:scale-[0.98] ${
                 added
                   ? "bg-emerald-500 text-white"
                   : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
