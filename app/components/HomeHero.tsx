@@ -83,7 +83,7 @@ export default function HomeHero() {
           </div>
 
           <nav className="mt-8" aria-label="Shop by category">
-            <div className="flex justify-start gap-3">
+            <div className="flex flex-wrap justify-start gap-3">
               {categories.map((category) => {
                 const Icon = CATEGORY_ICONS[category.slug] ?? Sparkles;
                 return (
