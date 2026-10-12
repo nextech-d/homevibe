@@ -1,17 +1,11 @@
 import type { Metadata } from "next";
 import { SITE } from "../config/site";
 
-/** Production site URL — set NEXT_PUBLIC_SITE_URL on Vercel when using a custom domain. */
-export function getSiteUrl(): string {
-  const url =
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://homevibe.co.ke";
-  return url.replace(/\/$/, "");
-}
+import { absoluteUrl, getSiteUrl } from "./site-url";
 
-export function absoluteUrl(path: string): string {
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  return `${getSiteUrl()}${normalized}`;
-}
+// Re-exported so the many callers that reach for these through seo.ts keep
+// working; they live in site-url.ts to stay out of the client bundle's way.
+export { absoluteUrl, getSiteUrl };
 
 type PageMetadataInput = {
   title: string;

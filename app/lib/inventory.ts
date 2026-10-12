@@ -12,7 +12,9 @@ export type { Appliance };
  */
 export type CatalogProduct = Pick<
   Appliance,
-  "id" | "slug" | "name" | "price"
+  /** `status` is here for the card's WhatsApp enquiry, which asks about a
+      product differently when it is out of stock. */
+  "id" | "slug" | "name" | "price" | "status"
 > & {
   image: string;
   imageSet: Pick<ProductImageSet, "thumbnail" | "card">;
@@ -49,6 +51,7 @@ export function toCatalogProduct(product: Appliance): CatalogProduct {
     slug: product.slug,
     name: product.name,
     price: product.price,
+    status: product.status,
     image: product.image,
     imageSet: {
       thumbnail: product.imageSet.thumbnail,

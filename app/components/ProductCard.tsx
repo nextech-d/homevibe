@@ -7,6 +7,8 @@ import { ShoppingCart } from "lucide-react";
 import { productHref } from "../data/products";
 import type { CatalogProduct } from "../lib/inventory";
 import { formatPrice } from "../lib/formatPrice";
+import { productWhatsAppUrl } from "../lib/whatsapp";
+import WhatsAppIcon from "./WhatsAppIcon";
 import {
   getProductCardImage,
   PRODUCT_IMAGE_SIZES,
@@ -45,6 +47,21 @@ export default function ProductCard({
           sizes={imageSizes}
           className="object-contain object-top transition duration-500 group-hover:scale-105"
         />
+
+        {/* A sibling of the card's link, never a child of it: an <a> inside an
+            <a> is invalid, and the browser would drop one of the two. It sits
+            above the stretched anchor on z-10, the same way Add to Cart does,
+            and inside the image box so it can never reach the name or price.
+            44x44 for the thumb; the glyph itself is smaller. */}
+        <a
+          href={productWhatsAppUrl(appliance)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Ask about ${appliance.name} on WhatsApp`}
+          className="absolute bottom-1 right-1 z-10 flex h-11 w-11 items-center justify-center rounded-full text-[#25D366] transition hover:bg-[#25D366] hover:text-white active:scale-95"
+        >
+          <WhatsAppIcon className="h-5 w-5 shrink-0 drop-shadow-sm" />
+        </a>
       </div>
 
       <div className={`flex min-h-0 flex-1 flex-col ${contentPadding} ${compact ? "mt-3" : "mt-4"}`}>
