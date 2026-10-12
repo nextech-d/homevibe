@@ -255,3 +255,18 @@ model ContentPost {
   @@index([type, isPublished])
   @@map("content_posts")
 }
+
+/// Fixed-window request counters for rate limiting (admin login, order
+/// lookup). One row per key and window; incremented atomically with an
+/// INSERT ... ON CONFLICT, so it holds across Vercel's many instances where
+/// an in-memory counter would not. Rows for windows long past are deleted
+/// opportunistically by the limiter.
+model RateLimit {
+  key         String
+  windowStart DateTime @map("window_start") @db.Timestamptz(3)
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  @@index([windowStart])
+  @@map("rate_limits")
+}
