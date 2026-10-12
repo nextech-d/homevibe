@@ -16,6 +16,22 @@ type StatusEmailDetails = {
   customerEmail: string;
 };
 
+/**
+ * Escapes a value for HTML text or a quoted attribute. Every value that
+ * reaches these emails from outside the code goes through it - customer
+ * name, phone, product names, references, statuses - because a customer
+ * name like <a href=...> would otherwise arrive in someone's inbox as a
+ * real link, sent from HomeVibe's own address.
+ */
+function escapeHtml(value: unknown): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function formatKes(amount: number): string {
   return new Intl.NumberFormat(SITE.currency.locale, {
     style: "currency",
@@ -29,7 +45,7 @@ function emailShell(title: string, body: string): string {
 <!DOCTYPE html>
 <html>
 <body style="font-family:system-ui,sans-serif;line-height:1.5;color:#171717;max-width:560px;margin:0 auto;padding:24px;">
-  <h1 style="font-size:20px;">${title}</h1>
+  <h1 style="font-size:20px;">${escapeHtml(title)}</h1>
   ${body}
 </body>
 </html>`;
@@ -39,37 +55,37 @@ function buildItemsHtml(items: OrderPayload["items"]): string {
   return items
     .map(
       (item) =>
-        `<li>${item.name} × ${item.qty} — ${formatKes(item.price * item.qty)}</li>`
+        `<li>${escapeHtml(item.name)} × ${escapeHtml(item.qty)} — ${escapeHtml(formatKes(item.price * item.qty))}</li>`
     )
     .join("");
 }
 
-function buildCustomerConfirmationHtml(order: OrderEmailDetails): string {
+export function buildCustomerConfirmationHtml(order: OrderEmailDetails): string {
   const trackUrl = absoluteUrl(`/track-order?id=${encodeURIComponent(order.trackingId)}`);
   return emailShell(
     `Thanks for your order, ${order.customer.name}!`,
-    `<p>Reference: <strong>${order.trackingId}</strong></p>
+    `<p>Reference: <strong>${escapeHtml(order.trackingId)}</strong></p>
      <ul>${buildItemsHtml(order.items)}</ul>
-     <p><strong>Total: ${formatKes(order.total)}</strong></p>
-     <p><a href="${trackUrl}">Track your order</a></p>`
+     <p><strong>Total: ${escapeHtml(formatKes(order.total))}</strong></p>
+     <p><a href="${escapeHtml(trackUrl)}">Track your order</a></p>`
   );
 }
 
-function buildOrderHtml(order: OrderEmailDetails): string {
+export function buildOrderHtml(order: OrderEmailDetails): string {
   return emailShell(
     `New order ${order.trackingId}`,
-    `<p>${order.customer.name} — ${order.customer.phone}</p>
+    `<p>${escapeHtml(order.customer.name)} — ${escapeHtml(order.customer.phone)}</p>
      <ul>${buildItemsHtml(order.items)}</ul>
-     <p><strong>Total: ${formatKes(order.total)}</strong></p>`
+     <p><strong>Total: ${escapeHtml(formatKes(order.total))}</strong></p>`
   );
 }
 
-function buildStatusUpdateHtml(order: StatusEmailDetails): string {
+export function buildStatusUpdateHtml(order: StatusEmailDetails): string {
   const trackUrl = absoluteUrl(`/track-order?id=${encodeURIComponent(order.trackingId)}`);
   return emailShell(
     `Order update: ${order.trackingId}`,
-    `<p>Hi ${order.customerName}, status: <strong>${order.status}</strong></p>
-     <p><a href="${trackUrl}">View order</a></p>`
+    `<p>Hi ${escapeHtml(order.customerName)}, status: <strong>${escapeHtml(order.status)}</strong></p>
+     <p><a href="${escapeHtml(trackUrl)}">View order</a></p>`
   );
 }
 
