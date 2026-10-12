@@ -15,6 +15,8 @@ export const SITE = {
   currency: {
     code: "KES",
     locale: "en-KE",
+    /** Written out rather than taken from the locale: see formatPrice. */
+    symbol: "Ksh",
   },
 } as const;
 
