@@ -16,12 +16,6 @@ export function absoluteUrl(path: string): string {
 type PageMetadataInput = {
   title: string;
   description: string;
-  /**
-   * og:description and twitter:description when a share preview should say
-   * something other than the search-results description. Defaults to
-   * `description`.
-   */
-  socialDescription?: string;
   path?: string;
   image?: string;
   noIndex?: boolean;
@@ -42,7 +36,6 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
     ? input.title
     : `${input.title} | ${siteName}`;
   const canonical = input.path ? absoluteUrl(input.path) : getSiteUrl();
-  const socialDescription = input.socialDescription?.trim() || input.description;
   const imageUrl = input.image ?? input.defaultOgImage;
   const ogImage = imageUrl
     ? [{ url: imageUrl, width: 600, height: 600, alt: input.title }]
@@ -59,7 +52,7 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
     }),
     openGraph: {
       title,
-      description: socialDescription,
+      description: input.description,
       url: canonical,
       siteName,
       locale: "en_KE",
@@ -69,7 +62,7 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
     twitter: {
       card: imageUrl ? "summary_large_image" : "summary",
       title,
-      description: socialDescription,
+      description: input.description,
       ...(imageUrl && { images: [imageUrl] }),
     },
   };

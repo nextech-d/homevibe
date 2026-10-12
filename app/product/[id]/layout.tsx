@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { getPublishedProductByParam } from "../../lib/inventory.server";
 import { buildPageMetadata, absoluteUrl } from "../../lib/seo";
 import { getSeoContext } from "../../lib/seo.server";
-import { productMetaFallback, productSocialDescription } from "../../lib/seo-fallbacks";
+import { productMetaFallback, productMetaDescription } from "../../lib/seo-fallbacks";
 import { getProductDetailImage } from "../../lib/productImages";
 import { productHref } from "../../data/products";
 import { categoryHref, getCategorySlug, getSubcategoryLabel } from "../../data/categories";
@@ -32,15 +32,13 @@ export async function generateMetadata({ params }: Props) {
 
   const ctx = await getSeoContext();
   const fallback = productMetaFallback(product, ctx);
-  const description = product.metaDescription?.trim() || fallback.description;
 
   return buildPageMetadata({
     title: product.metaTitle?.trim() || fallback.title,
-    description,
-    // Share previews sit directly under the title, so repeating it there wastes
-    // the only line Facebook shows: authored copy when there is any, else a
-    // summary of the product's own description, else the search description.
-    socialDescription: productSocialDescription(product) || description,
+    // Search results and share previews both sit under the title, so neither
+    // wants it repeated: authored copy when there is any, else a summary of
+    // the product's own description, else the generated fallback.
+    description: productMetaDescription(product) || fallback.description,
     path: productHref(product),
     image: getProductDetailImage(product),
     siteName: ctx.siteName,

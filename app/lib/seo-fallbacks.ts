@@ -148,18 +148,19 @@ type ProductDescriptionSource = {
 };
 
 /**
- * What a share preview says about a product.
+ * What a product page says about itself - to Google, to Facebook and to X,
+ * which all now read the same line.
  *
  * A hand-written metaDescription wins - someone chose those words - unless it
  * is just the product name, which is how most of the catalogue's rows are
- * filled and which left every preview repeating the title above it. Then the
- * product's own intro copy is summarised instead. Empty when there is nothing
- * to say, leaving the caller to fall back.
+ * filled and which left search results and previews alike repeating the title
+ * above them. Then the product's own intro copy is summarised instead. Empty
+ * when there is nothing to say, leaving the caller to fall back.
  *
  * The long-form `body` is never used: it opens mid-topic and reads badly as a
- * one-line preview.
+ * single line.
  */
-export function productSocialDescription(product: ProductDescriptionSource): string {
+export function productMetaDescription(product: ProductDescriptionSource): string {
   const authored = product.metaDescription?.trim() ?? "";
   if (authored && !sameText(authored, product.name)) return authored;
 
