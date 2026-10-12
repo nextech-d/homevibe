@@ -8,6 +8,7 @@ import { validateOrderUpdate } from "./order-rules.js";
 import {
   IDEMPOTENCY_KEY_PATTERN,
   IDEMPOTENCY_LOOKUP_WINDOW_MS,
+  normalizePhone,
   normalizeTrackingId,
   phonesMatch,
 } from "../../../shared/order-lookup.js";
@@ -531,7 +532,7 @@ export async function updateOrderStatus(
  * gets a leading apostrophe, so a spreadsheet shows it as text instead of
  * running it as a formula - otherwise a customer named =HYPERLINK(...)
  * would execute when an admin opened the export. Then it's quoted, with
- * quotes doubled. (A phone typed as +254... shows as '+254... as a result.)
+ * quotes doubled.
  */
 export function csvCell(value: unknown): string {
   let text = String(value ?? "");
@@ -551,7 +552,9 @@ export function ordersToCsv(orders: AdminOrder[]): string {
       order.paymentStatusKey,
       order.customerName,
       order.customerEmail,
-      order.customerPhone,
+      // Digits in international form (254712345678): no "+" to trip the
+      // formula guard, and the same shape whichever way it was typed.
+      normalizePhone(order.customerPhone),
       order.deliveryAddress,
       order.deliveryCity,
       String(order.total),
