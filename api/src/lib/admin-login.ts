@@ -15,8 +15,8 @@ const TOO_MANY = "Too many sign-in attempts. Please try again later.";
  * (POST /auth/admin/login) and the standalone Vercel function that serves
  * the same path in production.
  *
- * Every attempt counts against 5 per IP per 15 minutes and 50 per hour
- * overall, before the password is even looked at. The limiter fails closed:
+ * Every attempt counts against 5 per IP per 15 minutes, before the password
+ * is even looked at. The limiter fails closed:
  * if it can't reach the database, nobody signs in until it can.
  */
 export async function attemptAdminLogin(

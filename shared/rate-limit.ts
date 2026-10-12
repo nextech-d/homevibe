@@ -116,10 +116,11 @@ export function orderLookupRules(ip: string): RateLimitRule[] {
   return [{ name: "order-lookup:ip", subject: ip, limit: 10, windowMs: 15 * 60 * 1000 }];
 }
 
-/** Rules for admin login: 5 per IP per 15 minutes, 50 per hour overall. */
+/**
+ * Rules for admin login: 5 per IP per 15 minutes. No global cap: anyone could
+ * use one up from a handful of addresses and lock the client out of their
+ * own admin, and the password is long and random, so per-IP is what matters.
+ */
 export function adminLoginRules(ip: string): RateLimitRule[] {
-  return [
-    { name: "admin-login:ip", subject: ip, limit: 5, windowMs: 15 * 60 * 1000 },
-    { name: "admin-login:global", subject: "", limit: 50, windowMs: 60 * 60 * 1000 },
-  ];
+  return [{ name: "admin-login:ip", subject: ip, limit: 5, windowMs: 15 * 60 * 1000 }];
 }
