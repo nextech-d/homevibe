@@ -38,8 +38,8 @@ export async function generateMetadata({ params }: Props) {
     title: product.metaTitle?.trim() || fallback.title,
     description,
     // Share previews sit directly under the title, so repeating it there wastes
-    // the only line Facebook shows. The product's own intro copy goes here
-    // instead, and only falls back to the search description when it has none.
+    // the only line Facebook shows: authored copy when there is any, else a
+    // summary of the product's own description, else the search description.
     socialDescription: productSocialDescription(product) || description,
     path: productHref(product),
     image: getProductDetailImage(product),
