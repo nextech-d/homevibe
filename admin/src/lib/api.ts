@@ -42,6 +42,7 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
     if (token) headers.set("Authorization", `Bearer ${token}`);
   }
 
+  const startedAt = Date.now();
   const res = await fetch(`${base}${path}`, { ...options, headers });
 
   const raw = await res.text();
@@ -67,7 +68,67 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
     throw new Error(data.message ?? `Request failed (${res.status})`);
   }
 
+  const method = (options.method ?? "GET").toUpperCase();
+  if (method !== "GET" && PUBLISHING_PATHS.test(path)) {
+    watchStorefrontPublish(startedAt);
+  }
+
   return data;
+}
+
+/**
+ * Admin writes that refresh the live site in the background. The save answers
+ * before that refresh is done, so a moment later the admin asks how it went
+ * and raises a warning if it failed - see StorefrontPublishWarning.
+ */
+const PUBLISHING_PATHS =
+  /^\/admin\/(products|catalog\/|storefront\/(settings|featured|faq)|seo\/global|content\/)/;
+
+export const PUBLISH_FAILED_EVENT = "homevibe:storefront-publish-failed";
+
+export type StorefrontPublishStatus = {
+  ok: boolean;
+  message: string;
+  reason: string;
+  startedAt: string;
+  finishedAt: string;
+};
+
+/** Checks after a save: quick first, then backing off - about ten seconds in all. */
+const PUBLISH_CHECK_DELAYS_MS = [1500, 2000, 3000, 4000];
+
+/** Slack for network time when placing the save on the server's clock. */
+const SAVE_CLOCK_SLACK_MS = 1000;
+
+function watchStorefrontPublish(saveStartedAt: number): void {
+  void (async () => {
+    for (const delay of PUBLISH_CHECK_DELAYS_MS) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      let reply: { status: StorefrontPublishStatus | null; now: string };
+      try {
+        reply = await api<{ status: StorefrontPublishStatus | null; now: string }>(
+          "/admin/storefront/publish-status"
+        );
+      } catch {
+        return;
+      }
+      if (!reply.status) continue;
+
+      // The save, on the server's clock: its "now" less the time that has
+      // passed here since the save went out. No comparing two machines' clocks.
+      const saveOnServer = Date.parse(reply.now) - (Date.now() - saveStartedAt);
+      if (Date.parse(reply.status.startedAt) < saveOnServer - SAVE_CLOCK_SLACK_MS) {
+        continue; // still the refresh before this save; ours has not finished yet
+      }
+
+      if (!reply.status.ok && typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent<StorefrontPublishStatus>(PUBLISH_FAILED_EVENT, { detail: reply.status })
+        );
+      }
+      return;
+    }
+  })();
 }
 
 export async function login(password: string) {

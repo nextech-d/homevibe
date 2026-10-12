@@ -10,7 +10,11 @@ import {
   updateSiteSettings,
 } from "../../lib/storefront.js";
 import { listProductsFiltered } from "../../lib/products.js";
-import { publishStorefront, scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
+import {
+  getLastPublishStatus,
+  publishStorefront,
+  scheduleStorefrontPublish,
+} from "../../lib/publishStorefront.js";
 
 export const adminStorefrontRoute = new Hono();
 
@@ -22,6 +26,16 @@ adminStorefrontRoute.post("/publish", async (c) => {
     const message = error instanceof Error ? error.message : "Failed to publish storefront.";
     return c.json({ success: false, message }, 503);
   }
+});
+
+/**
+ * The last background refresh's outcome. The admin asks for it a moment after
+ * a save, and warns if a refresh that started after the save failed.
+ */
+adminStorefrontRoute.get("/publish-status", async (c) => {
+  const status = await getLastPublishStatus();
+  // The server's clock, so the admin can place its save on the same clock.
+  return c.json({ success: true, status, now: new Date().toISOString() });
 });
 
 adminStorefrontRoute.get("/featured", async (c) => {

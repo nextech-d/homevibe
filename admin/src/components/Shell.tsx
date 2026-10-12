@@ -18,6 +18,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { clearToken } from "../lib/api";
+import StorefrontPublishWarning from "./StorefrontPublishWarning";
 
 const commerceNav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -214,6 +215,7 @@ export default function Shell() {
       </aside>
 
       <main className="flex-1 overflow-auto">
+        <StorefrontPublishWarning />
         <Outlet />
       </main>
     </div>
