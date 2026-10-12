@@ -221,39 +221,40 @@ export default function ProductDetail({
 
             <div className="h-px w-full bg-neutral-300/70"></div>
 
-            <div className="mt-6 flex flex-col gap-3">
-              <div className="flex flex-col sm:flex-row gap-4 items-center">
-                <QuantitySelector qty={qty} onChange={setQty} variant="pill" />
+            <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+              <QuantitySelector qty={qty} onChange={setQty} variant="pill" />
 
-                <div className="flex w-full sm:w-auto gap-3">
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={added}
-                    className={`flex-1 flex items-center justify-center gap-2 px-6 h-11 rounded-full font-bold uppercase tracking-widest text-[10px] transition active:scale-[0.98] shadow-lg ${
-                      added
-                        ? "bg-emerald-500 text-white shadow-emerald-500/20"
-                        : "bg-neutral-900 hover:bg-black text-white shadow-neutral-900/10"
-                    }`}
-                  >
-                    <ShoppingCart size={14} />
-                    {added ? "Added!" : "Add to Cart"}
-                  </button>
-                </div>
+              {/* One column, so WhatsApp sits directly under Add to Cart and
+                  both take the width of the wider of the two - it can never
+                  outgrow the primary action. */}
+              <div className="flex w-full sm:w-auto flex-col gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={added}
+                  className={`w-full flex items-center justify-center gap-2 px-6 h-11 rounded-full font-bold uppercase tracking-widest text-[10px] transition active:scale-[0.98] shadow-lg ${
+                    added
+                      ? "bg-emerald-500 text-white shadow-emerald-500/20"
+                      : "bg-neutral-900 hover:bg-black text-white shadow-neutral-900/10"
+                  }`}
+                >
+                  <ShoppingCart size={14} />
+                  {added ? "Added!" : "Add to Cart"}
+                </button>
+
+                {/* Secondary to Add to Cart, and a real link rather than a
+                    scripted button so it can be opened in a new tab, copied or
+                    long-pressed like any other. Shown out of stock too - that
+                    is exactly when someone wants to ask. */}
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-full items-center justify-center gap-2 px-6 h-11 rounded-full border-2 border-[#25D366] bg-transparent text-[#25D366] font-bold uppercase tracking-widest text-[10px] transition hover:bg-[#25D366] hover:text-white active:scale-[0.98]"
+                >
+                  <WhatsAppIcon className="h-4 w-4 shrink-0" />
+                  {outOfStock ? "Ask about availability" : "Order on WhatsApp"}
+                </a>
               </div>
-
-              {/* Secondary to Add to Cart, and a real link rather than a
-                  scripted button so it can be opened in a new tab, copied or
-                  long-pressed like any other. Shown out of stock too - that is
-                  exactly when someone wants to ask. */}
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex w-full sm:w-auto sm:self-start items-center justify-center gap-2 px-6 h-11 rounded-full border-2 border-[#25D366] bg-transparent text-[#25D366] font-bold uppercase tracking-widest text-[10px] transition hover:bg-[#25D366] hover:text-white active:scale-[0.98]"
-              >
-                <WhatsAppIcon className="h-4 w-4 shrink-0" />
-                {outOfStock ? "Ask about availability" : "Order on WhatsApp"}
-              </a>
             </div>
           </div>
         </div>
