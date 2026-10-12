@@ -50,7 +50,7 @@ export default function HomeHero() {
       <div className="relative flex flex-col gap-8 lg:flex-row lg:items-stretch lg:gap-6">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex flex-1 items-center">
-            <div className="max-w-lg shrink-0">
+            <div className="min-w-0 max-w-lg">
               <h1 className="text-4xl font-medium tracking-tight text-neutral-950 md:text-5xl">
                 <HighlightedTagline tagline={siteSettings.tagline} />
               </h1>
