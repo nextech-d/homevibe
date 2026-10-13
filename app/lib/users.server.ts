@@ -14,6 +14,7 @@ import {
   USER_SESSION_COOKIE,
   readUserSessionCookie,
 } from "./user-auth.constants";
+import { newSessionToken, sessionIdsForToken } from "../../shared/session-token";
 
 export type AuthUser = {
   id: number;
@@ -46,12 +47,12 @@ async function createSession(userId: number): Promise<string> {
   const prisma = getPrisma();
   if (!prisma) throw new Error("Database unavailable");
 
+  // The cookie gets the random token; the table gets only its hash.
+  const { token, id } = newSessionToken();
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
-  const session = await prisma.session.create({
-    data: { userId, expiresAt },
-  });
+  await prisma.session.create({ data: { id, userId, expiresAt } });
 
-  return session.id;
+  return token;
 }
 
 export async function setUserSession(sessionId: string): Promise<void> {
@@ -74,7 +75,7 @@ export async function clearUserSession(): Promise<void> {
   if (sessionId) {
     const prisma = getPrisma();
     if (prisma) {
-      await prisma.session.deleteMany({ where: { id: sessionId } });
+      await prisma.session.deleteMany({ where: { id: { in: sessionIdsForToken(sessionId) } } });
     }
   }
 }
@@ -87,14 +88,15 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   const sessionId = readUserSessionCookie(cookieStore);
   if (!sessionId) return null;
 
-  const session = await prisma.session.findUnique({
-    where: { id: sessionId },
+  // Stored by hash; a pre-migration cookie may still be stored as itself.
+  const session = await prisma.session.findFirst({
+    where: { id: { in: sessionIdsForToken(sessionId) } },
     include: { user: true },
   });
 
   if (!session || session.expiresAt < new Date()) {
     if (session) {
-      await prisma.session.delete({ where: { id: sessionId } }).catch(() => undefined);
+      await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
     }
     return null;
   }

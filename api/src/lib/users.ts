@@ -7,6 +7,7 @@ import {
 import { getPrisma } from "./db.js";
 import type { AuthUser } from "../types.js";
 import { SESSION_MAX_AGE_SECONDS } from "../types.js";
+import { newSessionToken } from "../../../shared/session-token.js";
 
 export type SavedAddressRecord = {
   id: number;
@@ -32,11 +33,12 @@ async function createSession(userId: number): Promise<string> {
   const prisma = getPrisma();
   if (!prisma) throw new Error("Database unavailable");
 
+  // The cookie gets the random token; the table gets only its hash.
+  const { token, id } = newSessionToken();
   const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
-  const session = await prisma.session.create({
-    data: { userId, expiresAt },
-  });
-  return session.id;
+  await prisma.session.create({ data: { id, userId, expiresAt } });
+
+  return token;
 }
 
 export async function registerUser(input: {

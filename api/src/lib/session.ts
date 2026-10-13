@@ -1,19 +1,21 @@
 import { getPrisma } from "./db.js";
 import type { AuthUser } from "../types.js";
+import { sessionIdsForToken } from "../../../shared/session-token.js";
 
 export async function getUserBySessionId(sessionId: string | undefined): Promise<AuthUser | null> {
   if (!sessionId) return null;
   const prisma = getPrisma();
   if (!prisma) return null;
 
-  const session = await prisma.session.findUnique({
-    where: { id: sessionId },
+  // Stored by hash; a pre-migration token may still be stored as itself.
+  const session = await prisma.session.findFirst({
+    where: { id: { in: sessionIdsForToken(sessionId) } },
     include: { user: true },
   });
 
   if (!session || session.expiresAt < new Date()) {
     if (session) {
-      await prisma.session.delete({ where: { id: sessionId } }).catch(() => undefined);
+      await prisma.session.delete({ where: { id: session.id } }).catch(() => undefined);
     }
     return null;
   }
@@ -34,5 +36,5 @@ export function extractBearerToken(header: string | undefined): string | null {
 export async function deleteSession(sessionId: string): Promise<void> {
   const prisma = getPrisma();
   if (!prisma) return;
-  await prisma.session.deleteMany({ where: { id: sessionId } });
+  await prisma.session.deleteMany({ where: { id: { in: sessionIdsForToken(sessionId) } } });
 }
