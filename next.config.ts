@@ -46,8 +46,11 @@ function apiOrigin(): string | null {
  * lh3.googleusercontent.com.
  *
  * With a Meta Pixel ID set, the pixel adds its library and config scripts
- * (connect.facebook.net), its event beacons (www.facebook.com, by fetch and
- * by image), and nothing else; without one, none of it is allowed.
+ * (connect.facebook.net) and its event beacons to www.facebook.com: by fetch
+ * and by image, and - for an event too long for an image URL, such as a
+ * ViewContent with its product details - by a form posted into a hidden
+ * iframe, hence form-action and frame-src. Without an ID none of it is
+ * allowed.
  *
  * Violations are reported to /api/csp-report, which logs them: report-uri
  * for browsers that only know that, report-to (with the Reporting-Endpoints
@@ -70,10 +73,10 @@ function contentSecurityPolicy(): string {
     `img-src 'self' data: blob: https://lh3.googleusercontent.com${pixel ? " https://www.facebook.com" : ""}`,
     "font-src 'self' data:",
     `connect-src 'self'${api ? ` ${api}` : ""}${pixel ? " https://www.facebook.com https://connect.facebook.net" : ""}${dev ? " ws: wss:" : ""}`,
-    "frame-src 'none'",
+    `frame-src ${pixel ? "https://www.facebook.com" : "'none'"}`,
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    `form-action 'self'${pixel ? " https://www.facebook.com" : ""}`,
     "frame-ancestors 'none'",
     `report-uri ${CSP_REPORT_PATH}`,
     "report-to csp-endpoint",
