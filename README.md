@@ -41,7 +41,7 @@ Set `NEXT_PUBLIC_DEMO_MODE=true` in `.env.local` to match staging behaviour (sim
 - **Cart** — stored in the browser (`localStorage`); normal for storefronts without accounts.
 - **Orders** — saved to Postgres via `/api/orders` when `DATABASE_URL` is set. Payment is arranged manually until M-Pesa/card is integrated. Team gets email when `RESEND_API_KEY` is set.
 - **Products** — served from Postgres via `/api/products` (static fallback if DB unavailable).
-- **Admin** — `/admin` for orders, CSV export, and full product management.
+- **Admin** — admin.homevibe.co.ke (the `admin/` app) for orders, CSV export, and full product management.
 - **Accounts** — customers can register at `/account/register` for order history and saved addresses.
 
 ### First-time Git push
@@ -69,3 +69,20 @@ git push -u origin main
 1. Postgres (Neon / Supabase) + product & order tables  
 2. Replace file/static catalog with database  
 3. Set `NEXT_PUBLIC_DEMO_MODE=false` and wire real M-Pesa / card payments  
+
+## Admin sign-in
+
+The admin signs in against the API (`POST /api/auth/admin/login`) with the
+`ADMIN_PASSWORD` set on the homevibe-api project, and gets a token signed with
+`ADMIN_JWT_SECRET`.
+
+- **Tokens last 12 hours.** After that the admin sends you back to the login
+  page with "Your session expired" - sign in again to continue.
+- **Rotating `ADMIN_JWT_SECRET` logs out every admin at once**: every token
+  signed with the old secret stops verifying. Use it to cut off a leaked token
+  or a lost device. Set a new long random value on homevibe-api and redeploy;
+  everyone then signs in again with the same password.
+- **Changing `ADMIN_PASSWORD`** stops new sign-ins with the old password but
+  does not end sessions already open - rotate `ADMIN_JWT_SECRET` as well if
+  that is the point.
+- The API refuses to start without `ADMIN_JWT_SECRET`.

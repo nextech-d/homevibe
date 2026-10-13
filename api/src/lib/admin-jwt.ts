@@ -42,7 +42,9 @@ export async function signAdminToken(): Promise<string | null> {
     .setIssuedAt()
     .setIssuer(ADMIN_ISSUER)
     .setAudience(ADMIN_AUDIENCE)
-    .setExpirationTime("7d")
+    // 12 hours: a working day. A stolen token stops working by the next
+    // morning instead of lasting a week.
+    .setExpirationTime("12h")
     .sign(secret);
 }
 

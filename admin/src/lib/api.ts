@@ -33,12 +33,45 @@ export function clearToken(): void {
 
 type ApiOptions = RequestInit & { auth?: boolean };
 
+/**
+ * The one way a session ends in the admin: forget the token and go to the
+ * login page, which explains why. Used for an expired token found before a
+ * request goes out, and for any 401 that comes back.
+ */
+export function sessionExpired(): void {
+  clearToken();
+  if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+    window.location.href = "/login?expired=1";
+  }
+}
+
+/**
+ * Whether the token's own expiry (the JWT "exp" claim, 12 hours after
+ * sign-in) has passed. Checked before sending, so an expired session goes
+ * straight to login instead of failing a request and flashing an error.
+ * The API still verifies the token; this only spares the round trip.
+ */
+function tokenExpired(token: string): boolean {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/"))) as {
+      exp?: number;
+    };
+    return typeof payload.exp === "number" && payload.exp * 1000 <= Date.now();
+  } catch {
+    return false;
+  }
+}
+
 export async function api<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const headers = new Headers(options.headers);
   headers.set("Content-Type", "application/json");
 
   if (options.auth !== false) {
     const token = getToken();
+    if (token && tokenExpired(token)) {
+      sessionExpired();
+      throw new Error("Your session has expired. Please sign in again.");
+    }
     if (token) headers.set("Authorization", `Bearer ${token}`);
   }
 
@@ -56,15 +89,7 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   }
 
   if (!res.ok) {
-    if (res.status === 401 && options.auth !== false) {
-      clearToken();
-      if (
-        typeof window !== "undefined" &&
-        !window.location.pathname.startsWith("/login")
-      ) {
-        window.location.href = "/login";
-      }
-    }
+    if (res.status === 401 && options.auth !== false) sessionExpired();
     throw new Error(data.message ?? `Request failed (${res.status})`);
   }
 
@@ -161,6 +186,10 @@ export async function exportOrdersCsv(): Promise<void> {
   const res = await fetch(`${base}/admin/orders/export`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
+  if (res.status === 401) {
+    sessionExpired();
+    throw new Error("Your session has expired. Please sign in again.");
+  }
   if (!res.ok) throw new Error("Export failed");
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);
@@ -193,10 +222,7 @@ async function uploadImage(file: File, path: string): Promise<string> {
   const data = (await res.json()) as { success?: boolean; url?: string; message?: string };
 
   if (res.status === 401) {
-    clearToken();
-    if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
-      window.location.href = "/login";
-    }
+    sessionExpired();
     throw new Error(data.message ?? "Unauthorized.");
   }
 

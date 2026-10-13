@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { login } from "../lib/api";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  // Set by sessionExpired() when a 12-hour token runs out mid-session.
+  const [params] = useSearchParams();
+  const expired = params.get("expired") === "1";
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -34,6 +37,11 @@ export default function LoginPage() {
         </p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+          {expired && !error && (
+            <p className="rounded-lg border border-amber-900/50 bg-amber-950/30 px-3 py-2 text-xs text-amber-300">
+              Your session expired. Please sign in again.
+            </p>
+          )}
           {error && (
             <p className="rounded-lg border border-red-900/50 bg-red-950/30 px-3 py-2 text-xs text-red-400">
               {error}
