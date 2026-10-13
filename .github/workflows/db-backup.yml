@@ -1,0 +1,148 @@
+# Nightly encrypted backup of the production database.
+#
+# pg_dump streams straight into age, so the only thing written to disk - and
+# the only thing uploaded - is the encrypted file. The private key that can
+# decrypt it is not in GitHub. Restoring is in docs/BACKUPS.md.
+#
+# Needs two repository secrets:
+#   BACKUP_DATABASE_URL    production's direct (non-pooled) Neon connection
+#   BACKUP_AGE_PUBLIC_KEY  the age recipient (age1...) to encrypt to
+#
+# Scheduled runs only happen from the default branch (main).
+name: Database backup
+
+on:
+  schedule:
+    - cron: "0 22 * * *" # 22:00 UTC = 01:00 Nairobi
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+env:
+  # Production runs Postgres 18; pg_dump must be the same major version or newer.
+  PG_MAJOR: "18"
+  # In October 2026 the table data alone compressed to about 150 KB, so a
+  # backup should be roughly 200 KB. A file under this is a dump that lost its
+  # data (or nothing at all), not a small database. Raise it as the database
+  # grows.
+  MIN_BACKUP_BYTES: "100000"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  backup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Require the backup secrets
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_AGE_PUBLIC_KEY: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
+        run: |
+          set -euo pipefail
+          missing=0
+          if [ -z "$BACKUP_DATABASE_URL" ]; then
+            echo "::error title=BACKUP_DATABASE_URL secret missing::No database to back up."
+            missing=1
+          fi
+          if [[ "$BACKUP_AGE_PUBLIC_KEY" != age1* ]]; then
+            echo "::error title=BACKUP_AGE_PUBLIC_KEY secret missing or invalid::Expected an age public key starting with age1."
+            missing=1
+          fi
+          exit "$missing"
+
+      - name: Install pg_dump ${{ env.PG_MAJOR }} and age
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common age
+          # Ubuntu's own packages stop at an older Postgres; PGDG has every major.
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq "postgresql-client-${PG_MAJOR}"
+          echo "/usr/lib/postgresql/${PG_MAJOR}/bin" >> "$GITHUB_PATH"
+
+      - name: Check tool versions
+        run: |
+          set -euo pipefail
+          pg_dump --version
+          age --version
+          installed=$(pg_dump --version | grep -oE '[0-9]+' | head -1)
+          if [ "$installed" != "$PG_MAJOR" ]; then
+            echo "::error::pg_dump is version $installed, expected $PG_MAJOR."
+            exit 1
+          fi
+
+      - name: Dump and encrypt
+        id: dump
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+          BACKUP_AGE_PUBLIC_KEY: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
+        run: |
+          set -euo pipefail
+          name="homevibe-db-$(date -u +%F)"
+          file="${name}.dump.age"
+          # pipefail: a pg_dump failure fails this step even though age, the
+          # last command in the pipe, may exit 0 on a truncated stream.
+          pg_dump --format=custom --dbname="$BACKUP_DATABASE_URL" \
+            | age --encrypt --recipient "$BACKUP_AGE_PUBLIC_KEY" --output "$file"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Check the encrypted file
+        env:
+          FILE: ${{ steps.dump.outputs.file }}
+        run: |
+          set -euo pipefail
+          size=$(stat -c %s "$FILE")
+          echo "$FILE: $size bytes"
+          if [ "$(head -c 21 "$FILE")" != "age-encryption.org/v1" ]; then
+            echo "::error::$FILE is not an age-encrypted file."
+            exit 1
+          fi
+          if [ "$size" -lt "$MIN_BACKUP_BYTES" ]; then
+            echo "::error title=Backup suspiciously small::$FILE is $size bytes, under the $MIN_BACKUP_BYTES-byte minimum."
+            exit 1
+          fi
+          echo "Backup: \`$FILE\`, $size bytes" >> "$GITHUB_STEP_SUMMARY"
+
+      # Counts only, never rows: the reference a restore is checked against.
+      # Taken just after the dump, so a write in between can make one count
+      # differ by a little.
+      - name: Record row counts
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          {
+            echo ""
+            echo "Row counts at backup time:"
+            echo ""
+            echo '```'
+            psql "$BACKUP_DATABASE_URL" --no-psqlrc --quiet --tuples-only --no-align --field-separator=' ' \
+              --set ON_ERROR_STOP=1 --command "
+                SELECT table_name,
+                       (xpath('/row/c/text()',
+                              query_to_xml(format('SELECT count(*) AS c FROM %I.%I', table_schema, table_name),
+                                           false, true, '')))[1]::text
+                FROM information_schema.tables
+                WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+                ORDER BY table_name"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.dump.outputs.name }}
+          path: ${{ steps.dump.outputs.file }}
+          retention-days: 90
+          if-no-files-found: error
+          # Already encrypted, so zipping it again gains nothing.
+          compression-level: 0
