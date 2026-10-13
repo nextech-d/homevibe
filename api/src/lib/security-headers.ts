@@ -5,7 +5,7 @@ import { secureHeaders } from "hono/secure-headers";
  * Content-Security-Policy allows nothing and no framing.
  *
  * One definition, two forms: apiSecureHeaders() for the Hono app, and
- * SECURITY_HEADERS for the standalone login/me functions, which answer
+ * SECURITY_HEADERS for the standalone health/login/me functions, which answer
  * outside it - so both carry the same headers.
  */
 export const SECURITY_HEADERS: Record<string, string> = {
