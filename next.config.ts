@@ -131,6 +131,14 @@ const nextConfig: NextConfig = {
           "/product/hisense-50q6qken-50-inch-qled-4k-uhd-smart-frameless-tv-dolby-vision-dolby-atmos-and-vidaa-os",
         permanent: true,
       },
+      // The Von VMS-206MMK microwave was in the catalogue twice. The kept row
+      // has the slug that names it; this one named a Ramtons RM/682 and is
+      // now unpublished.
+      {
+        source: "/product/20l-microwave-grill-rm-682-mirror-finish-700w-microwave-and-1000w-grill",
+        destination: "/product/von-vms-206mmk-solo-microwave-oven-20l",
+        permanent: true,
+      },
     ];
   },
   images: {
