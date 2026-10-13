@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { assertAdminJwtSecret, verifyAdminToken } from "./lib/admin-jwt.js";
 import { isAllowedOrigin } from "./lib/cors-origins.js";
+import { apiSecureHeaders } from "./lib/security-headers.js";
 import { extractBearerToken } from "./lib/session.js";
 import { handleGetProducts, handleGetProduct } from "./routes/products.js";
 import { ordersRoute, adminOrdersRoute } from "./routes/orders.js";
@@ -23,6 +24,9 @@ export function createApp(basePath = "") {
   assertAdminJwtSecret();
 
   const app = basePath ? new Hono().basePath(basePath) : new Hono();
+
+  // Security headers on every response, preflights included.
+  app.use("*", apiSecureHeaders());
 
   // One allowlist (lib/cors-origins.ts). No credentials: the API takes a
   // bearer token, and no client sends it cookies.

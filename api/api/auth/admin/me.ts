@@ -1,5 +1,6 @@
 import { assertAdminJwtSecret, verifyAdminToken } from "../../../src/lib/admin-jwt.js";
 import { isAllowedOrigin } from "../../../src/lib/cors-origins.js";
+import { withSecurityHeaders } from "../../../src/lib/security-headers.js";
 
 export const runtime = "nodejs";
 
@@ -8,7 +9,7 @@ assertAdminJwtSecret();
 function corsHeaders(req: Request): Headers {
   const origin = req.headers.get("origin") ?? "";
   const allowed = isAllowedOrigin(origin);
-  const headers = new Headers();
+  const headers = withSecurityHeaders(new Headers());
   if (allowed) headers.set("Access-Control-Allow-Origin", origin);
   headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");

@@ -26,7 +26,65 @@ function assertCheckoutApiUrlForProductionBuild(): void {
 
 assertCheckoutApiUrlForProductionBuild();
 
+/** The API the browser talks to (site settings, catalogue), for connect-src. */
+function apiOrigin(): string | null {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_API_URL ?? "").origin;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Content-Security-Policy, built from what the pages actually load: their
+ * own scripts, styles, fonts and /_next/image URLs (remote images all go
+ * through the optimiser), Next's inline bootstrap scripts, inline style
+ * attributes, and fetches to the API. JSON-LD blocks are data, not script,
+ * so they need nothing. wa.me and social links are navigation, which CSP
+ * doesn't govern.
+ *
+ * 'unsafe-inline' for scripts because pages are statically cached: a
+ * per-request nonce can't be baked into them. 'unsafe-eval' only in
+ * development, for Next's hot reload.
+ */
+function contentSecurityPolicy(): string {
+  const dev = process.env.NODE_ENV === "development";
+  const api = apiOrigin();
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self' data:",
+    `connect-src 'self'${api ? ` ${api}` : ""}${dev ? " ws: wss:" : ""}`,
+    "frame-src 'none'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
+
+/**
+ * On every response. The CSP is report-only for now: browsers log what it
+ * would block without blocking it, so it can be checked against real
+ * traffic before it enforces.
+ */
+const SECURITY_HEADERS = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy() },
+];
+
 const nextConfig: NextConfig = {
+  // No "X-Powered-By: Next.js" advertising the framework and its version.
+  poweredByHeader: false,
+  async headers() {
+    return [{ source: "/:path*", headers: SECURITY_HEADERS }];
+  },
   serverExternalPackages: ["pg"],
   /**
    * Cooking became Kitchen, and Refrigeration, Coffee and Cleaning's dishwashers
