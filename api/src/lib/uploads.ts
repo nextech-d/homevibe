@@ -72,18 +72,46 @@ export function isValidBrandLogoRef(value: string): boolean {
   return isValidUploadedImageRef(value, "/uploads/brands/");
 }
 
+/**
+ * The Blob store hosts an uploaded image may live on, matched exactly.
+ *
+ * The store this API uploads to: @vercel/blob builds public URLs as
+ * https://<storeId>.public.blob.vercel-storage.com, with the store id taken
+ * from BLOB_READ_WRITE_TOKEN (vercel_blob_rw_<storeId>_...). Plus the host
+ * every existing product image is on, so a product saved before this check
+ * existed can always be saved again.
+ */
+function blobStoreHosts(): Set<string> {
+  const hosts = new Set(["ph5lkxw4quqqiyhv.public.blob.vercel-storage.com"]);
+  const storeId = process.env.BLOB_READ_WRITE_TOKEN?.trim().split("_")[3];
+  if (storeId) hosts.add(`${storeId.toLowerCase()}.public.blob.vercel-storage.com`);
+  return hosts;
+}
+
+/**
+ * An image reference saved with a product or brand: a local upload path, or
+ * an https URL on this project's Blob store. The URL is parsed and its
+ * hostname compared exactly - it used to be a substring test, which let
+ * https://evil.example/x.blob.vercel-storage.com.png through.
+ */
 function isValidUploadedImageRef(value: string, localPrefix: string): boolean {
   const trimmed = value.trim();
   if (!trimmed) return false;
   if (trimmed.startsWith(localPrefix)) return true;
-  if (
-    trimmed.startsWith("https://") &&
-    (trimmed.includes(".blob.vercel-storage.com") ||
-      trimmed.includes(".public.blob.vercel-storage.com"))
-  ) {
-    return true;
+
+  let url: URL;
+  try {
+    url = new URL(trimmed);
+  } catch {
+    return false;
   }
-  return false;
+  return (
+    url.protocol === "https:" &&
+    !url.username &&
+    !url.password &&
+    !url.port &&
+    blobStoreHosts().has(url.hostname)
+  );
 }
 
 export function validateProductImageRefs(
