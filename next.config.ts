@@ -41,12 +41,20 @@ function apiOrigin(): string | null {
  * through the optimiser), Next's inline bootstrap scripts, inline style
  * attributes, and fetches to the API. JSON-LD blocks are data, not script,
  * so they need nothing. wa.me and social links are navigation, which CSP
- * doesn't govern.
+ * doesn't govern. The one image that skips the optimiser is a Google review
+ * author's avatar (GoogleReviews.tsx, unoptimized), served from
+ * lh3.googleusercontent.com.
+ *
+ * Violations are reported to /api/csp-report, which logs them: report-uri
+ * for browsers that only know that, report-to (with the Reporting-Endpoints
+ * header below) for the rest.
  *
  * 'unsafe-inline' for scripts because pages are statically cached: a
  * per-request nonce can't be baked into them. 'unsafe-eval' only in
  * development, for Next's hot reload.
  */
+const CSP_REPORT_PATH = "/api/csp-report";
+
 function contentSecurityPolicy(): string {
   const dev = process.env.NODE_ENV === "development";
   const api = apiOrigin();
@@ -54,7 +62,7 @@ function contentSecurityPolicy(): string {
     "default-src 'self'",
     `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    "img-src 'self' data: blob: https://lh3.googleusercontent.com",
     "font-src 'self' data:",
     `connect-src 'self'${api ? ` ${api}` : ""}${dev ? " ws: wss:" : ""}`,
     "frame-src 'none'",
@@ -62,21 +70,20 @@ function contentSecurityPolicy(): string {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
+    `report-uri ${CSP_REPORT_PATH}`,
+    "report-to csp-endpoint",
   ].join("; ");
 }
 
-/**
- * On every response. The CSP is report-only for now: browsers log what it
- * would block without blocking it, so it can be checked against real
- * traffic before it enforces.
- */
+/** On every response. */
 const SECURITY_HEADERS = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
-  { key: "Content-Security-Policy-Report-Only", value: contentSecurityPolicy() },
+  { key: "Content-Security-Policy", value: contentSecurityPolicy() },
+  { key: "Reporting-Endpoints", value: `csp-endpoint="${CSP_REPORT_PATH}"` },
 ];
 
 const nextConfig: NextConfig = {
