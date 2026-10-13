@@ -128,7 +128,10 @@ export default function ProductDetail({
           <span className="min-w-0 max-w-full text-neutral-900 sm:line-clamp-2">{product.name}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 w-full">
+        {/* Twelve columns means eleven gaps: at 96px (gap-24) that's 1056px,
+            more than the 976px of content at 1024px, so the wide gap waits
+            for xl. */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 xl:gap-24 w-full">
           <div className="lg:col-span-5 flex flex-col gap-4">
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-neutral-200/60 bg-neutral-50 shadow-inner group">
               <Image
