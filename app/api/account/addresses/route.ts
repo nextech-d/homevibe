@@ -5,6 +5,7 @@ import {
   getCurrentUser,
   listUserAddresses,
 } from "../../../lib/users.server";
+import { rejectCrossSiteWrite } from "../../../lib/same-origin.server";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -17,6 +18,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const refused = rejectCrossSiteWrite(request);
+  if (refused) return refused;
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ success: false, message: "Unauthorized." }, { status: 401 });
@@ -47,6 +51,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const refused = rejectCrossSiteWrite(request);
+  if (refused) return refused;
+
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ success: false, message: "Unauthorized." }, { status: 401 });

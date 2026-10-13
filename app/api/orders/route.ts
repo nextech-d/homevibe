@@ -21,6 +21,7 @@ import {
   ORDER_LOOKUP_NOT_FOUND_MESSAGE,
   ORDER_LOOKUP_RATE_LIMITED_MESSAGE,
 } from "../../../shared/order-lookup";
+import { rejectCrossSiteWrite } from "../../lib/same-origin.server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -93,6 +94,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const refused = rejectCrossSiteWrite(request);
+  if (refused) return refused;
+
   try {
     const payload = (await request.json()) as OrderPayload;
     const { name, email, phone, address, city, items, saveAddress } = payload;

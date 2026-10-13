@@ -3,8 +3,12 @@ import { loginUser } from "../../../lib/users.server";
 import { getPrisma } from "../../../lib/db";
 import { checkRateLimits, clientIp, customerLoginRules } from "../../../../shared/rate-limit";
 import { AUTH_RATE_LIMITED_MESSAGE, LOGIN_FAILED_MESSAGE } from "../../../../shared/customer-auth";
+import { rejectCrossSiteWrite } from "../../../lib/same-origin.server";
 
 export async function POST(request: Request) {
+  const refused = rejectCrossSiteWrite(request);
+  if (refused) return refused;
+
   let body: { email?: string; password?: string };
   try {
     body = (await request.json()) as { email?: string; password?: string };

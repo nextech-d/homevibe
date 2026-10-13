@@ -4,6 +4,7 @@ import { registerUser } from "../../../lib/users.server";
 import { getPrisma } from "../../../lib/db";
 import { checkRateLimits, clientIp, customerRegisterRules } from "../../../../shared/rate-limit";
 import { AUTH_RATE_LIMITED_MESSAGE, REGISTER_FAILED_MESSAGE } from "../../../../shared/customer-auth";
+import { rejectCrossSiteWrite } from "../../../lib/same-origin.server";
 
 /** The email as a rate-limit key: hashed, so addresses never sit in rate_limits. */
 function emailKey(email: string): string {
@@ -14,6 +15,9 @@ function emailKey(email: string): string {
 const CUSTOMER_MESSAGES = new Set([REGISTER_FAILED_MESSAGE, "Password must be at least 8 characters."]);
 
 export async function POST(request: Request) {
+  const refused = rejectCrossSiteWrite(request);
+  if (refused) return refused;
+
   let body: { email?: string; password?: string; name?: string; phone?: string };
   try {
     body = (await request.json()) as typeof body;

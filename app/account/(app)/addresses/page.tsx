@@ -54,7 +54,10 @@ export default function AccountAddressesPage() {
   }
 
   async function handleDelete(id: number) {
-    await fetch(`/api/account/addresses?id=${id}`, { method: "DELETE" });
+    await fetch(`/api/account/addresses?id=${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    });
     await load();
   }
 
