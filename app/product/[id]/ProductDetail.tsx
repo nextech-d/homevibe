@@ -229,14 +229,18 @@ export default function ProductDetail({
             <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center sm:items-start">
               <QuantitySelector qty={qty} onChange={setQty} variant="pill" />
 
-              {/* One column, so WhatsApp sits directly under Add to Cart and
-                  both take the width of the wider of the two - it can never
-                  outgrow the primary action. */}
-              <div className="flex w-full sm:w-auto flex-col gap-3">
+              {/* Below lg: one column, so WhatsApp sits directly under Add to
+                  Cart and both take the width of the wider of the two - it
+                  can never outgrow the primary action. From lg: one row,
+                  [qty] [Add to Cart] [WhatsApp], both buttons one fixed width
+                  (wider than "Ask about availability"); where the column is
+                  too narrow for that row (around 1024px), WhatsApp wraps under
+                  Add to Cart instead of shrinking. */}
+              <div className="flex w-full sm:w-auto flex-col gap-3 lg:min-w-0 lg:flex-1 lg:flex-row lg:flex-wrap">
                 <button
                   onClick={handleAddToCart}
                   disabled={added}
-                  className={`w-full flex items-center justify-center gap-2 px-6 h-11 rounded-full font-bold uppercase tracking-widest text-[10px] transition active:scale-[0.98] shadow-lg ${
+                  className={`w-full lg:w-60 flex items-center justify-center gap-2 px-6 h-11 rounded-full font-bold uppercase tracking-widest text-[10px] transition active:scale-[0.98] shadow-lg ${
                     added
                       ? "bg-emerald-500 text-white shadow-emerald-500/20"
                       : "bg-neutral-900 hover:bg-black text-white shadow-neutral-900/10"
@@ -254,7 +258,7 @@ export default function ProductDetail({
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex w-full items-center justify-center gap-2 px-6 h-11 rounded-full border-2 border-[#25D366] bg-transparent text-[#25D366] font-bold uppercase tracking-widest text-[10px] transition hover:bg-[#25D366] hover:text-white active:scale-[0.98]"
+                  className="flex w-full lg:w-60 items-center justify-center gap-2 px-6 h-11 rounded-full border-2 border-[#25D366] bg-transparent text-[#25D366] font-bold uppercase tracking-widest text-[10px] transition hover:bg-[#25D366] hover:text-white active:scale-[0.98]"
                 >
                   <WhatsAppIcon className="h-4 w-4 shrink-0" />
                   {outOfStock ? "Ask about availability" : "Order on WhatsApp"}
