@@ -24,7 +24,7 @@ export const SITE = {
 
 export const TRUST_BADGES = [
   { label: "Free Delivery within Nairobi", detail: "Complimentary across Nairobi & environs" },
-  { label: "12-Month Warranty", detail: "Our own technicians, parts & labour" },
+  { label: "12-Month In-House Warranty", detail: "Our own technicians, parts & labour" },
   { label: "Installation Included", detail: "Certified technicians" },
   { label: "M-Pesa Accepted", detail: "Pay by M-Pesa, card, or bank transfer" },
 ] as const;

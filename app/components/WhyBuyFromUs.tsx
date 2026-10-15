@@ -12,7 +12,7 @@ const POINTS = [
   },
   {
     lead: "We service what we sell.",
-    body: "Twelve months, our own technicians, at your home or our workshop. No third-party service centre, no waiting on an imported part.",
+    body: "Twelve months from us, with our own technicians, at your home or our workshop. Where a brand adds a longer manufacturer warranty, the product page says so. No third-party service centre to chase.",
   },
   {
     lead: "We stock the parts.",

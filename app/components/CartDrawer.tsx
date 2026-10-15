@@ -169,7 +169,7 @@ export default function CartDrawer() {
               </span>
             </div>
             <p className="text-[10px] text-black/60 mb-6 leading-relaxed">
-              Shipping & taxes calculated at checkout. Delivery, installation, and a 12-month warranty included.
+              Shipping & taxes calculated at checkout. Delivery, installation, and a 12-month in-house warranty included.
             </p>
             <div className="space-y-3">
               <Link
