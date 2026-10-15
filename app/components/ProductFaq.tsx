@@ -1,7 +1,33 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { ProductFaqItem } from "../data/products";
+import { parseFaqAnswer } from "../lib/faq-links";
+
+/** An answer's text, with its [text](url) links as links where allowed. */
+function FaqAnswer({ answer }: { answer: string }) {
+  const parts = parseFaqAnswer(answer);
+  // No links: the answer as one string, exactly as it rendered before.
+  if (parts.length === 1 && !parts[0].href) return <>{parts[0].text}</>;
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (!part.href) return part.text;
+        const className = "text-emerald-600 hover:underline";
+        return part.href.startsWith("/") ? (
+          <Link key={i} href={part.href} className={className}>
+            {part.text}
+          </Link>
+        ) : (
+          <a key={i} href={part.href} className={className}>
+            {part.text}
+          </a>
+        );
+      })}
+    </>
+  );
+}
 
 /**
  * Questions answered on a product's own page. Same shape as the homepage FAQ:
@@ -45,7 +71,7 @@ export default function ProductFaq({ items }: { items: ProductFaqItem[] }) {
             </button>
             <div className={open === i ? "px-5 pb-5" : "hidden"}>
               <p className="border-t border-neutral-100 pt-3 text-xs leading-relaxed text-black">
-                {faq.answer}
+                <FaqAnswer answer={faq.answer} />
               </p>
             </div>
           </div>
