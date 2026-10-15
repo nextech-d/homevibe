@@ -12,6 +12,7 @@
     "dev:all": "concurrently -n api,admin,store -c blue,magenta,green \"npm run dev:api\" \"npm run dev:admin\" \"npm run dev\"",
     "build": "prisma generate && npm run audit:claims && next build",
     "audit:claims": "tsx scripts/audit-claims.ts --quiet",
+    "test": "tsx --test app/lib/*.test.ts",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",

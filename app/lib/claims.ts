@@ -64,6 +64,23 @@ const ACCESSORY_PROMISE =
 
 const PRICE_PROMISE = /\bwe (stock|supply|fit|sell) (them|it|these)\b[^.]*KSh/i;
 
+/**
+ * A warranty attributed to the manufacturer rather than to us. Some brands
+ * cover a machine for longer than our 12 months - Hisense's 2 years, with a
+ * card in the box - and saying so is not a promise of our own. It still has
+ * to be checked against the carton, so it is unverified, not exempt. Narrow
+ * on purpose: the sentence has to say "manufacturer" or "warranty card", and
+ * a bare "2-year warranty" stays a contradiction.
+ */
+const MANUFACTURER_WARRANTY = /\bmanufacturer\b|\bwarranty card\b/i;
+
+function promisesLongerWarranty(sentence: string): boolean {
+  return (
+    /warrant|guarantee/i.test(sentence) &&
+    (promisedMonths(sentence) ?? 0) > CANONICAL.warrantyMonths
+  );
+}
+
 const SERVICE_PROMISE = /\bwe'?(ll| will) (replace|refund|repair|fix|collect)\b/i;
 
 function textOf(html: string): string {
@@ -94,7 +111,7 @@ const RULES: { kind: string; severity: ClaimSeverity; test: (sentence: string) =
   {
     kind: `warranty longer than our ${CANONICAL.warrantyMonths} months`,
     severity: "contradiction",
-    test: (s) => /warrant|guarantee/i.test(s) && (promisedMonths(s) ?? 0) > CANONICAL.warrantyMonths,
+    test: (s) => promisesLongerWarranty(s) && !MANUFACTURER_WARRANTY.test(s),
   },
   {
     kind: "delivery charge (Nairobi delivery is free)",
@@ -109,6 +126,11 @@ const RULES: { kind: string; severity: ClaimSeverity; test: (sentence: string) =
     severity: "contradiction",
     test: (s) =>
       /\binstallation\b/i.test(s) && /\b(extra|not included|excluded|charged|additional cost)\b/i.test(s),
+  },
+  {
+    kind: `manufacturer warranty longer than our ${CANONICAL.warrantyMonths} months`,
+    severity: "unverified",
+    test: (s) => promisesLongerWarranty(s) && MANUFACTURER_WARRANTY.test(s),
   },
   {
     kind: "box contents",
