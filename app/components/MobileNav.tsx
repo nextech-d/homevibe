@@ -120,7 +120,7 @@ export default function MobileNav() {
               </button>
             </div>
 
-            <nav aria-label="Shop by category" className="flex-1 overflow-y-auto px-3 py-3">
+            <nav aria-label="Main" className="flex-1 overflow-y-auto px-3 py-3">
               <Link href="/" className={rowClass(pathname === "/")}>
                 Home
               </Link>

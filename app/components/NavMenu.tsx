@@ -113,7 +113,7 @@ export default function NavMenu() {
   const navCategories = useNavCategories();
 
   return (
-    <nav aria-label="Shop by category" className="flex items-center justify-center">
+    <nav aria-label="Main" className="flex items-center justify-center">
       <Link href="/" className={itemClass(pathname === "/")}>
         Home
       </Link>
