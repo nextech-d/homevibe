@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, Phone, X } from "lucide-react";
 import {
   categoryHref,
   subcategoryHref,
@@ -13,18 +13,38 @@ import {
 import { brandHref } from "../data/brands";
 import { useNavBrands } from "../context/BrandsContext";
 import { useNavCategories } from "../context/CategoriesContext";
+import { useSiteSettings } from "../context/StorefrontContext";
+
+const focusRing =
+  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a85414]";
+
+/** A drawer row, in bold; the current section gets a black marker on its left edge. */
+function rowClass(active: boolean): string {
+  return [
+    "relative flex min-h-12 w-full items-center justify-between rounded-lg px-4 text-left text-[15px] font-bold text-neutral-950 transition-colors",
+    "before:absolute before:inset-y-3 before:left-0 before:w-0.5 before:rounded-full",
+    active ? "bg-neutral-50 before:bg-neutral-950" : "hover:bg-neutral-50 before:bg-transparent",
+    focusRing,
+  ].join(" ");
+}
+
+const subLinkClass = `block rounded-lg px-4 py-3 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 hover:text-neutral-950 aria-[current=page]:font-semibold aria-[current=page]:text-neutral-950 ${focusRing}`;
 
 export default function MobileNav() {
   const pathname = usePathname();
   const navBrands = useNavBrands();
   const navCategories = useNavCategories();
-  const [open, setOpen] = useState(false);
-  const [expanded, setExpanded] = useState<string | null>(null);
-
-  useEffect(() => {
-    setOpen(false);
-    setExpanded(null);
-  }, [pathname]);
+  const site = useSiteSettings();
+  // Both are kept with the page they were set on, so navigating closes the
+  // drawer and folds its sections without an effect to reset them.
+  const [openOn, setOpenOn] = useState<string | null>(null);
+  const open = openOn === pathname;
+  const setOpen = (next: boolean) => setOpenOn(next ? pathname : null);
+  const [expandedOn, setExpandedOn] = useState<{ path: string; key: string } | null>(null);
+  const expanded = expandedOn?.path === pathname ? expandedOn.key : null;
+  const setExpanded = (key: string | null) => setExpandedOn(key ? { path: pathname, key } : null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -33,15 +53,34 @@ export default function MobileNav() {
     };
   }, [open]);
 
+  // Focus moves into the drawer when it opens and back to the menu button
+  // when it closes; Escape closes it.
+  useEffect(() => {
+    if (!open) return;
+    closeRef.current?.focus();
+    const trigger = triggerRef.current;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenOn(null);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      trigger?.focus();
+    };
+  }, [open]);
+
   return (
     <div className="lg:hidden">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white text-black transition hover:bg-neutral-50"
+        className={`flex h-11 w-11 items-center justify-center rounded-full text-neutral-900 transition hover:bg-neutral-100 ${focusRing}`}
         aria-label="Open menu"
+        aria-expanded={open}
+        aria-haspopup="dialog"
       >
-        <Menu className="h-5 w-5" />
+        <Menu aria-hidden="true" className="h-5 w-5" />
       </button>
 
       {/*
@@ -55,34 +94,34 @@ export default function MobileNav() {
         typeof document !== "undefined" &&
         createPortal(
         <>
-          <button
-            type="button"
-            aria-label="Close menu overlay"
-            className="fixed inset-0 z-[60] bg-black/40"
+          <div
+            aria-hidden="true"
+            className="fixed inset-0 z-[60] bg-neutral-950/30"
             onClick={() => setOpen(false)}
           />
-          <div className="fixed inset-y-0 right-0 z-[70] flex w-full max-w-sm flex-col bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-neutral-200 px-5 py-4">
-              <span className="text-sm font-black uppercase tracking-tight text-black">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu"
+            className="fixed inset-y-0 right-0 z-[70] flex w-full max-w-sm flex-col bg-white shadow-[-24px_0_48px_-24px_rgba(0,0,0,0.25)]"
+          >
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 pl-5 pr-3">
+              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-500">
                 Menu
               </span>
               <button
+                ref={closeRef}
                 type="button"
                 onClick={() => setOpen(false)}
-                className="flex h-9 w-9 items-center justify-center rounded-full text-neutral-600 hover:bg-neutral-100"
+                className={`flex h-11 w-11 items-center justify-center rounded-full text-neutral-700 transition hover:bg-neutral-100 hover:text-neutral-950 ${focusRing}`}
                 aria-label="Close menu"
               >
-                <X className="h-5 w-5" />
+                <X aria-hidden="true" className="h-5 w-5" />
               </button>
             </div>
 
-            <nav className="flex-1 overflow-y-auto px-3 py-4">
-              <Link
-                href="/"
-                className={`block rounded-lg px-3 py-3 text-sm font-bold text-black ${
-                  pathname === "/" ? "bg-neutral-100" : "hover:bg-neutral-50"
-                }`}
-              >
+            <nav aria-label="Shop by category" className="flex-1 overflow-y-auto px-3 py-3">
+              <Link href="/" className={rowClass(pathname === "/")}>
                 Home
               </Link>
 
@@ -92,26 +131,25 @@ export default function MobileNav() {
                   onClick={() =>
                     setExpanded(expanded === "brands" ? null : "brands")
                   }
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm font-bold text-black ${
-                    pathname.startsWith("/brand/") ? "bg-neutral-100" : "hover:bg-neutral-50"
-                  }`}
+                  aria-expanded={expanded === "brands"}
+                  className={rowClass(pathname.startsWith("/brand/"))}
                 >
                   Brands
                   <ChevronDown
-                    className={`h-4 w-4 transition-transform ${
+                    aria-hidden="true"
+                    className={`h-4 w-4 text-neutral-500 transition-transform ${
                       expanded === "brands" ? "rotate-180" : ""
                     }`}
                   />
                 </button>
                 {expanded === "brands" && (
-                  <div className="mb-2 ml-2 border-l border-neutral-200 pl-2">
+                  <div className="mb-2 ml-4 border-l border-neutral-200 pl-2">
                     {navBrands.map((brand) => (
                       <Link
                         key={brand.slug}
                         href={brandHref(brand.slug)}
-                        className={`block rounded-lg px-3 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 ${
-                          pathname === brandHref(brand.slug) ? "font-bold text-black" : ""
-                        }`}
+                        aria-current={pathname === brandHref(brand.slug) ? "page" : undefined}
+                        className={subLinkClass}
                       >
                         {brand.name}
                       </Link>
@@ -137,9 +175,7 @@ export default function MobileNav() {
                     <Link
                       key={cat.slug}
                       href={categoryHref(cat.slug)}
-                      className={`mt-1 block rounded-lg px-3 py-3 text-sm font-bold text-black ${
-                        catActive ? "bg-neutral-100" : "hover:bg-neutral-50"
-                      }`}
+                      className={`mt-1 ${rowClass(catActive)}`}
                     >
                       {cat.navLabel}
                     </Link>
@@ -153,26 +189,26 @@ export default function MobileNav() {
                       onClick={() =>
                         setExpanded(isExpanded ? null : cat.slug)
                       }
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-3 text-left text-sm font-bold text-black ${
-                        catActive ? "bg-neutral-100" : "hover:bg-neutral-50"
-                      }`}
+                      aria-expanded={isExpanded}
+                      className={rowClass(catActive)}
                     >
                       {cat.navLabel}
                       <ChevronDown
-                        className={`h-4 w-4 transition-transform ${
+                        aria-hidden="true"
+                        className={`h-4 w-4 text-neutral-500 transition-transform ${
                           isExpanded ? "rotate-180" : ""
                         }`}
                       />
                     </button>
 
                     {isExpanded && (
-                      <div className="mb-2 ml-2 border-l border-neutral-200 pl-2">
+                      <div className="mb-2 ml-4 border-l border-neutral-200 pl-2">
                         {/* "All X" only earns its place when there is more than
                             one child to be "all" of. */}
                         {subs.length > 1 && (
                           <Link
                             href={categoryHref(cat.slug)}
-                            className="block rounded-lg px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-neutral-800 hover:bg-neutral-50"
+                            className={`${subLinkClass} font-semibold text-neutral-950`}
                           >
                             All {cat.label}
                           </Link>
@@ -183,9 +219,8 @@ export default function MobileNav() {
                             <Link
                               key={sub.slug}
                               href={href}
-                              className={`block rounded-lg px-3 py-2.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 ${
-                                pathname === href ? "font-bold text-black" : ""
-                              }`}
+                              aria-current={pathname === href ? "page" : undefined}
+                              className={subLinkClass}
                             >
                               {sub.label}
                             </Link>
@@ -197,27 +232,28 @@ export default function MobileNav() {
                 );
               })}
 
-              <div className="mt-4 border-t border-neutral-200 pt-4">
-                <Link
-                  href="/search"
-                  className="block rounded-lg px-3 py-3 text-sm font-semibold text-black hover:bg-neutral-50"
-                >
+              <div className="mt-3 border-t border-neutral-200 pt-3">
+                <Link href="/search" className={rowClass(pathname === "/search")}>
                   Search Products
                 </Link>
-                <Link
-                  href="/cart"
-                  className="block rounded-lg px-3 py-3 text-sm font-semibold text-black hover:bg-neutral-50"
-                >
+                <Link href="/cart" className={rowClass(pathname === "/cart")}>
                   Your Cart
                 </Link>
-                <Link
-                  href="/track-order"
-                  className="block rounded-lg px-3 py-3 text-sm font-semibold text-black hover:bg-neutral-50"
-                >
+                <Link href="/track-order" className={rowClass(pathname === "/track-order")}>
                   Track Order
                 </Link>
               </div>
             </nav>
+
+            <div className="shrink-0 border-t border-neutral-200 p-3">
+              <a
+                href={`tel:${site.phone.replace(/\s/g, "")}`}
+                className={`flex min-h-12 items-center gap-3 rounded-lg px-4 text-[15px] font-semibold text-neutral-950 transition-colors hover:bg-neutral-50 ${focusRing}`}
+              >
+                <Phone aria-hidden="true" className="h-4 w-4 text-[#a85414]" />
+                <span className="tabular-nums">{site.phone}</span>
+              </a>
+            </div>
           </div>
         </>,
           document.body

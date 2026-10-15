@@ -11,7 +11,14 @@ import { getProductThumbnail, PRODUCT_IMAGE_SIZES } from "../lib/productImages";
 import { useInventory } from "../context/ProductsContext";
 import { productHref, type Appliance } from "../data/products";
 
-export default function SearchPopover() {
+type SearchPopoverProps = {
+  /** Focus the input on mount - the mobile search row opens for typing. */
+  autoFocus?: boolean;
+  /** Called after the search sends the shopper somewhere, so a host can close. */
+  onNavigate?: () => void;
+};
+
+export default function SearchPopover({ autoFocus = false, onNavigate }: SearchPopoverProps) {
   const inventory = useInventory();
   const router = useRouter();
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -34,17 +41,30 @@ export default function SearchPopover() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
+
   const navigateToProduct = useCallback(
     (product: Pick<Appliance, "id" | "slug">) => {
       router.push(productHref(product));
       setSearch("");
       setShowSearchPop(false);
       setActiveIndex(-1);
+      onNavigate?.();
     },
-    [router]
+    [router, onNavigate]
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Enter with nothing highlighted searches the whole catalogue.
+    if (e.key === "Enter" && activeIndex < 0 && search.trim()) {
+      e.preventDefault();
+      router.push(`/search?q=${encodeURIComponent(search.trim())}`);
+      setShowSearchPop(false);
+      onNavigate?.();
+      return;
+    }
     if (!showSearchPop || !search.trim()) return;
 
     if (e.key === "ArrowDown") {
@@ -67,12 +87,14 @@ export default function SearchPopover() {
       <div className="relative">
         <input
           ref={inputRef}
-          type="text"
+          type="search"
+          enterKeyHint="search"
+          aria-label="Search products, brands and categories"
+          placeholder="Search for products, brands or categories"
           role="combobox"
           aria-expanded={showSearchPop && !!search.trim()}
           aria-controls="search-results"
           aria-autocomplete="list"
-          placeholder="Search products, brands, categories..."
           value={search}
           onFocus={() => setShowSearchPop(true)}
           onKeyDown={handleKeyDown}
@@ -81,17 +103,25 @@ export default function SearchPopover() {
             setShowSearchPop(true);
             setActiveIndex(-1);
           }}
-          className="w-full rounded-full border border-neutral-300 bg-white px-5 py-2.5 pl-11 text-xs text-black placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-black/20"
+          // The clear button's room is only kept once there is text to clear,
+          // and phones get a slightly smaller placeholder, so the full prompt
+          // fits at 360px.
+          className={`h-11 w-full appearance-none rounded-full border border-transparent bg-neutral-100 pl-10 ${search ? "pr-11" : "pr-4"} text-sm text-neutral-950 outline-none transition-colors placeholder:text-neutral-600 max-sm:placeholder:text-[13px] hover:bg-neutral-200/70 focus:border-neutral-300 focus:bg-white focus:ring-4 focus:ring-[#a85414]/15 [&::-webkit-search-cancel-button]:hidden`}
         />
-        <Search className="absolute left-4 top-3 h-4 w-4 text-neutral-400" />
+        <Search
+          aria-hidden="true"
+          className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500"
+        />
         {search && (
           <button
+            type="button"
             onClick={() => {
               setSearch("");
               setShowSearchPop(false);
               setActiveIndex(-1);
+              inputRef.current?.focus();
             }}
-            className="absolute right-4 top-3 text-neutral-400 hover:text-black"
+            className="absolute right-1.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-200 hover:text-neutral-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a85414]"
             aria-label="Clear search"
           >
             <X className="h-4 w-4" />
@@ -155,7 +185,10 @@ export default function SearchPopover() {
           {totalMatches > 5 && (
             <Link
               href={`/search?q=${encodeURIComponent(search)}`}
-              onClick={() => setShowSearchPop(false)}
+              onClick={() => {
+                setShowSearchPop(false);
+                onNavigate?.();
+              }}
               className="block border-t border-neutral-100 p-3 text-center text-[10px] font-bold uppercase tracking-wider text-black hover:bg-neutral-50"
             >
               View all {totalMatches} results
