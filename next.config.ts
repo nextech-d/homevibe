@@ -147,6 +147,13 @@ const nextConfig: NextConfig = {
         destination: "/product/von-vms-206mmk-solo-microwave-oven-20l",
         permanent: true,
       },
+      // The Ramtons RM/589 was renamed from a slug that said 700W and 8 auto
+      // menus; it is 800W with 7.
+      {
+        source: "/product/23-litre-digital-microwave-grill-in-silver-1000w-grill-700w-microwave-and-8-auto-menus-rm-589",
+        destination: "/product/ramtons-rm-589-23l-microwave-grill",
+        permanent: true,
+      },
     ];
   },
   images: {
