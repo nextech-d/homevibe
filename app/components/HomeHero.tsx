@@ -26,6 +26,9 @@ import { getHeroData } from "../lib/hero.server";
 import { getSiteSettingsData } from "../lib/storefront.server";
 import { buildWhatsAppUrl } from "../lib/whatsapp";
 
+/** A copy of the washer's catalogue photo (1920px, as stored), for when the database has nothing to show. */
+const FALLBACK_IMAGE = "/hero/hisense-wd3q1043bt.webp";
+
 const HEADLINE = "Washers, fridges and TVs, delivered free in Nairobi";
 const SUPPORTING_LINE =
   "Hisense, TCL, Ramtons and Von, with delivery countrywide. Our own technicians install and service what we sell. Pay with M-Pesa.";
@@ -82,6 +85,18 @@ export default async function HomeHero() {
   const { product, companions, tilePhotos } = await getHeroData(categories.map((category) => category.slug));
   const whatsappUrl = buildWhatsAppUrl("Hi, I'd like to place an order.", siteSettings.whatsapp);
 
+  const washer = (
+    <Image
+      src={product?.image ?? FALLBACK_IMAGE}
+      alt={product?.name ?? "Hisense front load washing machine"}
+      fill
+      sizes="(min-width: 1024px) calc((min(100vw, 1280px) - 4.5rem) * 0.45 * 0.8), min(21rem, calc(100vw - 3rem))"
+      quality={90}
+      className="object-contain mix-blend-multiply"
+      preload
+    />
+  );
+
   return (
     <section style={HERO_THEME} className="relative -mt-12 mb-12 bg-[var(--hero-bg)] pb-8 pt-12 [box-shadow:0_0_0_100vmax_var(--hero-bg)] [clip-path:inset(0_-100vmax)] lg:pt-14">
       <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] lg:content-center lg:gap-x-12 lg:gap-y-6">
@@ -123,25 +138,13 @@ export default async function HomeHero() {
           </ul>
         </div>
 
-        {product && (
-          <div className="relative mx-auto aspect-[4/3] w-full max-w-[26rem] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:aspect-[5/4] lg:max-w-[960px] transition-[translate] duration-700 ease-out starting:translate-y-3 motion-reduce:transition-none">
-            {companions && (
-              <>
-                {companions.dispenser && (
-                  <div className="absolute -left-[21%] bottom-0 aspect-square h-[66%]">
-                    <Image
-                      src={companions.dispenser}
-                      alt=""
-                      fill
-                      sizes="(min-width: 1024px) calc((min(100vw, 1280px) - 4.5rem) * 0.45 * 0.56), 8.5rem"
-                      quality={90}
-                      className="object-contain mix-blend-multiply"
-                    />
-                  </div>
-                )}
-                <div className="absolute -right-[2%] bottom-0 aspect-[3/4] h-[75%]">
+        <div className="relative mx-auto aspect-[4/3] w-full max-w-[26rem] transition-[translate] duration-700 ease-out starting:translate-y-3 motion-reduce:transition-none lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:aspect-[5/4] lg:max-w-[960px]">
+          {product && companions && (
+            <>
+              {companions.dispenser && (
+                <div className="absolute -left-[21%] bottom-0 aspect-square h-[66%]">
                   <Image
-                    src={companions.fridge}
+                    src={companions.dispenser}
                     alt=""
                     fill
                     sizes="(min-width: 1024px) calc((min(100vw, 1280px) - 4.5rem) * 0.45 * 0.56), 8.5rem"
@@ -149,38 +152,48 @@ export default async function HomeHero() {
                     className="object-contain mix-blend-multiply"
                   />
                 </div>
-                <div className="absolute bottom-0 right-0 aspect-square h-[36%]">
-                  <Image
-                    src={companions.microwave}
-                    alt=""
-                    fill
-                    sizes="(min-width: 1024px) calc((min(100vw, 1280px) - 4.5rem) * 0.45 * 0.28), 5.5rem"
-                    quality={90}
-                    className="object-contain mix-blend-multiply"
-                  />
-                </div>
-              </>
-            )}
-            <div className="absolute inset-y-0 left-[2%] aspect-square">
-              <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                sizes="(min-width: 1024px) calc((min(100vw, 1280px) - 4.5rem) * 0.45 * 0.8), min(21rem, calc(100vw - 3rem))"
-                quality={90}
-                className="object-contain mix-blend-multiply"
-                preload
-              />
+              )}
+              <div className="absolute -right-[2%] bottom-0 aspect-[3/4] h-[75%]">
+                <Image
+                  src={companions.fridge}
+                  alt=""
+                  fill
+                  sizes="(min-width: 1024px) calc((min(100vw, 1280px) - 4.5rem) * 0.45 * 0.56), 8.5rem"
+                  quality={90}
+                  className="object-contain mix-blend-multiply"
+                />
+              </div>
+              <div className="absolute bottom-0 right-0 aspect-square h-[36%]">
+                <Image
+                  src={companions.microwave}
+                  alt=""
+                  fill
+                  sizes="(min-width: 1024px) calc((min(100vw, 1280px) - 4.5rem) * 0.45 * 0.28), 5.5rem"
+                  quality={90}
+                  className="object-contain mix-blend-multiply"
+                />
+              </div>
+            </>
+          )}
+          {product ? (
+            <div className="absolute inset-y-0 left-[2%] aspect-square">{washer}</div>
+          ) : (
+            // Centred with flexbox, not a transform: a transformed parent would isolate the
+            // image's multiply blend and leave its white background showing.
+            <div className="absolute inset-0 flex justify-center">
+              <div className="relative aspect-square h-full">{washer}</div>
             </div>
+          )}
+          {product && (
             <Link
               href={productHref(product)}
-              className={`absolute bottom-1 left-[18%] max-w-[10.5rem] sm:max-w-[15.5rem] rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_8px_20px_-10px_rgba(80,50,20,0.4)] transition-colors hover:border-[#a85414] sm:bottom-3 ${focusRing}`}
+              className={`absolute bottom-1 left-[18%] max-w-[10.5rem] rounded-xl border border-neutral-200 bg-white px-3 py-2 shadow-[0_8px_20px_-10px_rgba(80,50,20,0.4)] transition-colors hover:border-[#a85414] sm:bottom-3 sm:max-w-[15.5rem] ${focusRing}`}
             >
               <span className="line-clamp-2 text-xs font-semibold leading-snug text-neutral-900">{product.name}</span>
               <span className="mt-0.5 block text-xs font-semibold text-[#8f4710]">{formatPrice(product.price)}</span>
             </Link>
-          </div>
-        )}
+          )}
+        </div>
         <HeroCategoryNav className="flex flex-wrap gap-x-6 gap-y-5 lg:col-start-1 lg:row-start-2">
           {categories.map((category) => {
             const Icon = CATEGORY_ICONS[category.slug] ?? LayoutGrid;
