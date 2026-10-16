@@ -89,41 +89,68 @@ export function buildStatusUpdateHtml(order: StatusEmailDetails): string {
   );
 }
 
-export async function sendOrderEmails(order: OrderEmailDetails): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return;
+type OutgoingEmail = { role: string; to: string; subject: string; html: string };
+
+/**
+ * Sends through Resend and logs every outcome that isn't a delivery. Resend
+ * reports a refused send - an unverified sender domain, a bad key - in its
+ * return value rather than by throwing, so without this check a failure
+ * vanished: no email, no error, nobody told. Never throws; an order must not
+ * fail because its email did. Logs the recipient's role, not their address.
+ */
+async function sendAll(context: string, emails: OutgoingEmail[]): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey) {
+    console.warn(`RESEND_API_KEY is not set, so no email was sent for ${context}.`);
+    return;
+  }
 
   const resend = new Resend(apiKey);
-  const from = process.env.EMAIL_FROM ?? "HomeVibe <onboarding@resend.dev>";
-  const notifyEmail = process.env.ORDER_NOTIFY_EMAIL ?? SITE.email;
+  // onboarding@resend.dev only delivers to the Resend account's own address;
+  // customers get nothing until EMAIL_FROM is on a domain verified in Resend.
+  const from = process.env.EMAIL_FROM?.trim() || "HomeVibe <onboarding@resend.dev>";
 
-  await Promise.allSettled([
-    resend.emails.send({
-      from,
-      to: notifyEmail,
+  const results = await Promise.allSettled(
+    emails.map(({ to, subject, html }) => resend.emails.send({ from, to, subject, html }))
+  );
+  results.forEach((result, i) => {
+    const { role } = emails[i];
+    if (result.status === "rejected") {
+      console.error(`Email to ${role} for ${context} failed:`, result.reason);
+    } else if (result.value.error) {
+      console.error(`Resend refused the email to ${role} for ${context}:`, result.value.error);
+    }
+  });
+}
+
+export async function sendOrderEmails(order: OrderEmailDetails): Promise<void> {
+  const emails: OutgoingEmail[] = [
+    {
+      role: "the shop",
+      to: SITE.email,
       subject: `New order ${order.trackingId}`,
       html: buildOrderHtml(order),
-    }),
-    resend.emails.send({
-      from,
-      to: order.customer.email,
+    },
+  ];
+  if (order.customer.email.trim()) {
+    emails.push({
+      role: "the customer",
+      to: order.customer.email.trim(),
       subject: `Your HomeVibe order ${order.trackingId}`,
       html: buildCustomerConfirmationHtml(order),
-    }),
-  ]);
+    });
+  }
+  await sendAll(`order ${order.trackingId}`, emails);
 }
 
 export async function sendOrderStatusEmail(order: StatusEmailDetails): Promise<void> {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) return;
-
-  const resend = new Resend(apiKey);
-  const from = process.env.EMAIL_FROM ?? "HomeVibe <onboarding@resend.dev>";
-
-  await resend.emails.send({
-    from,
-    to: order.customerEmail,
-    subject: `Order ${order.trackingId} — ${order.status}`,
-    html: buildStatusUpdateHtml(order),
-  });
+  if (!order.customerEmail.trim()) return;
+  await sendAll(`order ${order.trackingId} status update`, [
+    {
+      role: "the customer",
+      to: order.customerEmail.trim(),
+      subject: `Order ${order.trackingId} — ${order.status}`,
+      html: buildStatusUpdateHtml(order),
+    },
+  ]);
 }
