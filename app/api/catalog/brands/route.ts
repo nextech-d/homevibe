@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getPrisma } from "../../../lib/db";
 import { FEATURED_BRANDS } from "../../../data/brands";
 import { clientErrorMessage } from "../../../../shared/client-errors";
+import { navBrands } from "../../../../shared/nav-brands";
 
 export async function GET() {
   const prisma = getPrisma();
@@ -21,8 +22,7 @@ export async function GET() {
   }
 
   try {
-    const brands = await prisma.brand.findMany({
-      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    const rows = await prisma.brand.findMany({
       select: {
         id: true,
         name: true,
@@ -31,8 +31,18 @@ export async function GET() {
         origin: true,
         logoUrl: true,
         isFeatured: true,
+        _count: { select: { products: { where: { isPublished: true } } } },
       },
     });
+    const brands = navBrands(rows).map(({ id, name, slug, tier, origin, logoUrl, isFeatured }) => ({
+      id,
+      name,
+      slug,
+      tier,
+      origin,
+      logoUrl,
+      isFeatured,
+    }));
     return NextResponse.json({ success: true, brands });
   } catch (error) {
     const message = clientErrorMessage(error, "Failed to load brands.");
