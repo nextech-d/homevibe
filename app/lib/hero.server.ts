@@ -14,9 +14,8 @@ import { getPrisma } from "./db";
  */
 const HERO_PRODUCT_ID = 25;
 
-/** Shown small, behind the washer, to say the range goes beyond washers: a fridge, a microwave and a dispenser. */
+/** Shown small, behind the washer, to say the range goes beyond washers: a fridge and a dispenser. */
 const FRIDGE_PRODUCT_ID = 23;
-const MICROWAVE_PRODUCT_ID = 22;
 const DISPENSER_PRODUCT_ID = 162;
 
 const TILE_PRODUCT_IDS: Record<string, number> = {
@@ -37,8 +36,8 @@ export type HeroProduct = {
 };
 
 export type HeroData = {
-  /** Photos for the hero's composition; null unless the fridge and microwave are available. The dispenser is optional. */
-  companions: { fridge: string; microwave: string; dispenser: string | null } | null;
+  /** Photos for the hero's composition; null unless the fridge is available. The dispenser is optional. */
+  companions: { fridge: string; dispenser: string | null } | null;
   /** Null when the product is gone or the database is unreachable. */
   product: HeroProduct | null;
   /** Category slug to photo. Empty unless every tile has one: photos and icons are never mixed. */
@@ -81,7 +80,7 @@ export async function getHeroData(categorySlugs: string[]): Promise<HeroData> {
     const rows = await prisma.product.findMany({
       where: {
         isPublished: true,
-        id: { in: [HERO_PRODUCT_ID, FRIDGE_PRODUCT_ID, MICROWAVE_PRODUCT_ID, DISPENSER_PRODUCT_ID, ...tileEntries.map(([, id]) => id)] },
+        id: { in: [HERO_PRODUCT_ID, FRIDGE_PRODUCT_ID, DISPENSER_PRODUCT_ID, ...tileEntries.map(([, id]) => id)] },
       },
       select: { id: true, slug: true, name: true, priceKes: true, primaryPhotoId: true },
     });
@@ -95,13 +94,12 @@ export async function getHeroData(categorySlugs: string[]): Promise<HeroData> {
       photos.every(([, photo]) => isImageSource(photo));
 
     const fridge = byId.get(FRIDGE_PRODUCT_ID)?.primaryPhotoId;
-    const microwave = byId.get(MICROWAVE_PRODUCT_ID)?.primaryPhotoId;
     const dispenser = byId.get(DISPENSER_PRODUCT_ID)?.primaryPhotoId;
 
     return {
       companions:
-        isImageSource(fridge) && isImageSource(microwave)
-          ? { fridge, microwave, dispenser: isImageSource(dispenser) ? dispenser : null }
+        isImageSource(fridge)
+          ? { fridge, dispenser: isImageSource(dispenser) ? dispenser : null }
           : null,
       product: hero && isImageSource(hero.primaryPhotoId)
         ? { id: hero.id, slug: hero.slug, name: hero.name, price: hero.priceKes, image: hero.primaryPhotoId }

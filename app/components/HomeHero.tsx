@@ -166,16 +166,6 @@ export default async function HomeHero() {
                   className="object-contain mix-blend-multiply"
                 />
               </div>
-              <div className="absolute bottom-0 right-0 aspect-square h-[36%]">
-                <Image
-                  src={companions.microwave}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1024px) calc((min(100vw, 1280px) - 4.5rem) * 0.45 * 0.28), 5.5rem"
-                  quality={90}
-                  className="object-contain mix-blend-multiply"
-                />
-              </div>
             </>
           )}
           {product ? (
