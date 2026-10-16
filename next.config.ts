@@ -157,6 +157,8 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
+    // 75 stays the default; 90 is for the homepage hero's photos, which ask for it.
+    qualities: [75, 90],
     remotePatterns: [
       {
         protocol: "https",
