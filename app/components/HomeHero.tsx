@@ -16,6 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import HeroCategoryNav from "./HeroCategoryNav";
+import { raisedSurfaceFromSm } from "./homeSurfaces";
 import WhatsAppIcon from "./WhatsAppIcon";
 import { TRUST_BADGES } from "../config/site";
 import { categoryHref } from "../data/categories";
@@ -99,7 +100,9 @@ export default async function HomeHero() {
 
   return (
     <section style={HERO_THEME} className="relative -mt-12 mb-12 bg-[var(--hero-bg)] pb-8 pt-12 [box-shadow:0_0_0_100vmax_var(--hero-bg)] [clip-path:inset(0_-100vmax)] lg:pt-14">
-      <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] lg:content-center lg:gap-x-12 lg:gap-y-6">
+      {/* The same white panel as the sections below it, from 640px up, at half
+          their inset. */}
+      <div className={`${raisedSurfaceFromSm} grid items-center gap-8 sm:p-5 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] lg:content-center lg:gap-x-12 lg:gap-y-6`}>
         <div className="min-w-0 lg:col-start-1 lg:row-start-1">
           <h1 className="max-w-[16ch] text-balance text-4xl font-medium leading-[1.08] tracking-tight text-neutral-950 md:max-w-[20ch] md:text-5xl lg:max-w-[18ch]">
             {HEADLINE}

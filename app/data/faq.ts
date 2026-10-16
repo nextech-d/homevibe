@@ -7,7 +7,7 @@ export const FAQ_LIST = [
   },
   {
     q: "What is your warranty policy?",
-    a: "Every product carries a 12-month warranty on parts and labour, serviced by our own technicians. Some manufacturers add longer cover on specific components - the product page says so where that applies.",
+    a: "Every product carries a 12-month warranty on parts and labour, serviced by our own technicians. Some brands, like Hisense, add a longer manufacturer warranty with a warranty card in the box; the product page says so where that applies.",
   },
   {
     q: "What is the return policy?",

@@ -4,6 +4,7 @@ import { cache } from "react";
 
 import { getBrandBySlug, type Brand } from "../data/brands";
 import { getPrisma } from "./db";
+import { navBrands } from "../../shared/nav-brands";
 
 export type BrandSeo = Brand & {
   metaTitle: string | null;
@@ -31,7 +32,8 @@ function mapDbBrand(brand: {
 /**
  * Nav brands straight from Postgres, or null when the database is unavailable.
  * Returns the same list, in the same order, that /catalog/brands serves the
- * client, so the dropdown reads identically whichever path filled it.
+ * client, so the dropdown reads identically whichever path filled it: both
+ * go through navBrands (shared/nav-brands.ts).
  *
  * Memoised per request, like {@link getCategoriesFromDb}.
  */
@@ -46,16 +48,24 @@ export const getBrandsFromDb = cache(async (): Promise<Brand[] | null> => {
   }
 
   try {
-    const rows = await prisma.brand.findMany({
-      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-      select: { name: true, slug: true, tier: true, origin: true, isFeatured: true },
-    });
+    const rows = navBrands(
+      await prisma.brand.findMany({
+        select: {
+          name: true,
+          slug: true,
+          tier: true,
+          origin: true,
+          isFeatured: true,
+          _count: { select: { products: { where: { isPublished: true } } } },
+        },
+      })
+    );
 
     if (rows.length === 0) {
       return null;
     }
 
-    return rows;
+    return rows.map(({ name, slug, tier, origin, isFeatured }) => ({ name, slug, tier, origin, isFeatured }));
   } catch (error) {
     console.error("Failed to load brands from database:", error);
     return null;

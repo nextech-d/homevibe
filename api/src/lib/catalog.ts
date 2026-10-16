@@ -1,5 +1,6 @@
 import type { BrandTier } from "@prisma/client";
 import { getPrisma } from "./db.js";
+import { navBrands } from "../../../shared/nav-brands.js";
 
 function slugify(name: string): string {
   return name
@@ -40,10 +41,15 @@ export type BrandListSummary = {
   partner: number;
 };
 
+/** The storefront's brand list: see shared/nav-brands.ts for which and in what order. */
 export async function listBrands() {
   const prisma = getPrisma();
   if (!prisma) return [];
-  return prisma.brand.findMany({ orderBy: { sortOrder: "asc" } });
+  return navBrands(
+    await prisma.brand.findMany({
+      include: { _count: { select: { products: { where: { isPublished: true } } } } },
+    })
+  );
 }
 
 export async function listBrandsFiltered(filters: { q?: string; tier?: BrandTier }) {
