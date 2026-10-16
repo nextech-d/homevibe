@@ -6,6 +6,7 @@ import { getSiteSettingsData } from "../lib/storefront.server";
 import { buildWhatsAppUrl } from "../lib/whatsapp";
 import { Mail, Phone } from "lucide-react";
 import WhatsAppIcon from "./WhatsAppIcon";
+import { FacebookIcon, InstagramIcon, TikTokIcon } from "./SocialIcons";
 import { focusRing } from "./homeSurfaces";
 import {
   MpesaLogo,
@@ -39,7 +40,7 @@ export default async function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-10">
         {/* Shop and Support sit side by side even on a phone: their 44px links
             stacked in one column made the footer longer than the screen twice over. */}
-        <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-8 lg:grid-cols-[1.4fr_1fr_1fr_1.1fr] lg:gap-x-10">
           <div className="col-span-2 lg:col-span-1">
             <Link
               href="/"
@@ -96,9 +97,11 @@ export default async function Footer() {
           </div>
 
           <div className="col-span-2 lg:col-span-1">
-            <h3 className={headingClass}>Get in touch</h3>
+            <h3 className={headingClass}>Get in touch with us</h3>
             <p className="mt-3 text-sm text-neutral-700">Questions about an order?</p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            {/* One per line, icon beside the name, all one width so the column
+                reads as a list: a row of pills wrapped unevenly. */}
+            <div className="mt-3 flex w-full max-w-52 flex-col gap-2">
               <a
                 href={buildWhatsAppUrl("Hi, I'd like to speak with HomeVibe.", site.whatsapp)}
                 target="_blank"
@@ -114,6 +117,7 @@ export default async function Footer() {
                 rel="noreferrer"
                 className={socialClass}
               >
+                <FacebookIcon className="h-4 w-4 text-[#0866FF]" />
                 Facebook
               </a>
               <a
@@ -122,6 +126,7 @@ export default async function Footer() {
                 rel="noreferrer"
                 className={socialClass}
               >
+                <InstagramIcon className="h-4 w-4 text-[#E4405F]" />
                 Instagram
               </a>
               <a
@@ -130,6 +135,7 @@ export default async function Footer() {
                 rel="noreferrer"
                 className={socialClass}
               >
+                <TikTokIcon className="h-4 w-4 text-neutral-950" />
                 TikTok
               </a>
             </div>
@@ -140,18 +146,22 @@ export default async function Footer() {
           <p className="text-xs text-neutral-600">
             © {new Date().getFullYear()} {site.name}
           </p>
-          <div className="flex flex-wrap items-center justify-center gap-2">
+          {/* One size of badge, each mark fitted inside it, in a single row
+              down to 320px. role="img" is what makes a screen reader read
+              the label; on a bare span it was silent. */}
+          <ul className="flex items-center justify-center gap-2">
             {PAYMENT_METHODS.map(({ label, Logo }) => (
-              <span
+              <li
                 key={label}
+                role="img"
                 aria-label={label}
                 title={label}
-                className="inline-flex h-9 items-center justify-center rounded-full border border-[#DCE0E7] bg-white px-4 py-2"
+                className="flex h-9 w-14 items-center justify-center rounded-lg border border-[#DCE0E7] bg-white"
               >
-                <Logo className="h-4 w-auto" />
-              </span>
+                <Logo className="h-4 w-auto max-w-9" />
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
     </footer>

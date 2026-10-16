@@ -1,16 +1,19 @@
+/**
+ * The footer's payment marks. Visa and PayPal are the brands' own glyphs, from
+ * Simple Icons (CC0); Mastercard is its two circles; M-Pesa has no published
+ * glyph there, so it's the wordmark set in type. Each viewBox is cropped to the
+ * mark, so the badges size them evenly - the old ones were padded out to 72
+ * units wide, which left empty pills, and Visa's hand-drawn path read "AISA".
+ *
+ * Decorative: the badge around each carries its name.
+ */
 type LogoProps = {
   className?: string;
 };
 
 export function MpesaLogo({ className }: LogoProps) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 72 18"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
+    <svg className={className} viewBox="0 -1 54 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <text
         x="0"
         y="14"
@@ -28,30 +31,15 @@ export function MpesaLogo({ className }: LogoProps) {
 
 export function VisaLogo({ className }: LogoProps) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 48 16"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <path
-        d="M19.5 1.2h-3.5l-2.2 13.6h3.5L19.5 1.2zm10.3 8.8c0-3.4-4.7-3.5-4.7-5 0-.4.4-.9 1.5-1 .4-.1 1.7-.1 3.2.5l.5-2.6c-.8-.3-1.8-.5-3.2-.5-3.4 0-5.8 1.8-5.8 4.4 0 1.9 1.7 3 3 3.7 1.3.6 1.8 1.1 1.8 1.6 0 .9-1.1 1.3-2.1 1.3-1.7 0-2.8-.5-3.5-.9l-.5 2.8c.7.3 2 .6 3.4.6 3.6 0 6-1.7 6-4.5zm8.8 4.8h3l-2.9-13.6h-2.7c-.8 0-1.5.4-1.8 1.1l-5.2 12.5h3.5l.7-2h4.2l.4 2zm-3.7-4.8l1.7-4.7 1 4.7h-2.7zM8.2 1.2H4.8l-.2.9c-.3.1-.5.3-.7.5-.2.2-.3.4-.4.7L.2 14.8h3.7l1.5-3.9h4.5l.8 3.9h3.2L8.2 1.2zm-.5 8.5l1.8-4.7 1 4.7H7.7z"
-        fill="#1A1F71"
-      />
+    <svg className={className} viewBox="0 8.124 24 7.751" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <path fill="#1A1F71" d="M9.112 8.262L5.97 15.758H3.92L2.374 9.775c-.094-.368-.175-.503-.461-.658C1.447 8.864.677 8.627 0 8.479l.046-.217h3.3a.904.904 0 01.894.764l.817 4.338 2.018-5.102zm8.033 5.049c.008-1.979-2.736-2.088-2.717-2.972.006-.269.262-.555.822-.628a3.66 3.66 0 011.913.336l.34-1.59a5.207 5.207 0 00-1.814-.333c-1.917 0-3.266 1.02-3.278 2.479-.012 1.079.963 1.68 1.698 2.04.756.367 1.01.603 1.006.931-.005.504-.602.725-1.16.734-.975.015-1.54-.263-1.992-.473l-.351 1.642c.453.208 1.289.39 2.156.398 2.037 0 3.37-1.006 3.377-2.564m5.061 2.447H24l-1.565-7.496h-1.656a.883.883 0 00-.826.55l-2.909 6.946h2.036l.405-1.12h2.488zm-2.163-2.656l1.02-2.815.588 2.815zm-8.16-4.84l-1.603 7.496H8.34l1.605-7.496z" />
     </svg>
   );
 }
 
 export function MastercardLogo({ className }: LogoProps) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 32 20"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
+    <svg className={className} viewBox="3 2 26 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <circle cx="11" cy="10" r="8" fill="#EB001B" />
       <circle cx="21" cy="10" r="8" fill="#F79E1B" fillOpacity="0.85" />
     </svg>
@@ -60,38 +48,15 @@ export function MastercardLogo({ className }: LogoProps) {
 
 export function PayPalLogo({ className }: LogoProps) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 72 18"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <path
-        d="M26.8 2.2h-7.8c-.7 0-1.3.5-1.4 1.2l-3.1 12.4c-.1.5.3.9.8.9h3.7l.9-3.7h2.4c4.7 0 7.4-2.3 8.1-6.8.3-2-.1-3.4-1.2-4.3-1-.8-2.5-1.2-4.6-1.2v-.5zm.5 6.6c-.4 2.4-2.3 2.4-4.1 2.4h-1l.8-3.2c0-.2.2-.4.5-.4h.5c1.2 0 2.4 0 3 .7.4.4.5 1 .3 1.5z"
-        fill="#003087"
-      />
-      <path
-        d="M38.2 2.2h-7.8c-.7 0-1.3.5-1.4 1.2l-3.1 12.4c-.1.5.3.9.8.9h4.3c.6 0 1.1-.4 1.2-1l.3-1.5c.1-.6.6-1 1.2-1h2.3c4.7 0 7.4-2.3 8.1-6.8.3-2-.1-3.4-1.2-4.3-1-.8-2.5-1.2-4.6-1.2l-.1-.7zm.5 6.6c-.4 2.4-2.3 2.4-4.1 2.4h-1l.8-3.2c0-.2.2-.4.5-.4h.5c1.2 0 2.4 0 3 .7.4.4.5 1 .3 1.5z"
-        fill="#009CDE"
-      />
-      <path
-        d="M12.4 2.2H6.2c-.5 0-.9.4-1 1L2.1 15.6c-.1.4.2.8.6.8h3.5l.9-3.6.1-.5c.1-.6.5-1 1-1h2.1c4.2 0 6.6-2 7.2-6.1.3-1.8-.1-3.1-1.1-3.9-.9-.7-2.2-1.1-4.1-1.1v-.1z"
-        fill="#003087"
-      />
+    <svg className={className} viewBox="2.254 0 19.493 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      <path fill="#003087" d="M7.016 19.198h-4.2a.562.562 0 0 1-.555-.65L5.093.584A.692.692 0 0 1 5.776 0h7.222c3.417 0 5.904 2.488 5.846 5.5-.006.25-.027.5-.066.747A6.794 6.794 0 0 1 12.071 12H8.743a.69.69 0 0 0-.682.583l-.325 2.056-.013.083-.692 4.39-.015.087zM19.79 6.142c-.01.087-.01.175-.023.261a7.76 7.76 0 0 1-7.695 6.598H9.007l-.283 1.795-.013.083-.692 4.39-.134.843-.014.088H6.86l-.497 3.15a.562.562 0 0 0 .555.65h3.612c.34 0 .63-.249.683-.585l.952-6.031a.692.692 0 0 1 .683-.584h2.126a6.793 6.793 0 0 0 6.707-5.752c.306-1.95-.466-3.744-1.89-4.906z" />
     </svg>
   );
 }
 
 export function CashLogo({ className }: LogoProps) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
+    <svg className={className} viewBox="1 5 22 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       <rect x="2" y="6" width="20" height="12" rx="2" stroke="#404040" strokeWidth="1.5" />
       <circle cx="12" cy="12" r="2.5" stroke="#404040" strokeWidth="1.5" />
       <path d="M6 9.5h.01M18 14.5h.01" stroke="#404040" strokeWidth="2" strokeLinecap="round" />
