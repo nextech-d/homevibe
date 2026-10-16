@@ -8,58 +8,63 @@ import Image from "next/image";
 import { formatPrice } from "../lib/formatPrice";
 import { PRODUCT_IMAGE_SIZES } from "../lib/productImages";
 import { productHref } from "../data/products";
+import {
+  focusRing,
+  pageHeading,
+  panelHeading,
+  primaryButton,
+  raisedSurface,
+} from "../components/homeSurfaces";
+
+/** A 44px round icon button: the cart's +, - and remove. */
+const iconButton = `flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-neutral-700 transition-colors hover:bg-[#F6F7F9] hover:text-neutral-950 ${focusRing}`;
 
 export default function CartPage() {
   const { items, removeItem, updateQty, total } = useCart();
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] transition-colors duration-300 pb-24">
-      <div className="mx-auto max-w-7xl px-6 py-12">
+    <div className="min-h-screen pb-24">
+      <div className="mx-auto max-w-7xl px-6 py-10">
         {/* Breadcrumb / Title */}
-        <div className="mb-12">
+        <div className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-neutral-900 transition"
+            className={`-ml-1 inline-flex min-h-11 items-center gap-2 rounded-full px-1 text-sm font-medium text-neutral-700 transition hover:text-neutral-950 ${focusRing}`}
           >
-            <ArrowLeft className="w-3.5 h-3.5" /> Continue Shopping
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" /> Continue shopping
           </Link>
-          <h1 className="text-3xl md:text-5xl font-black text-neutral-900 mt-4 uppercase tracking-tight">
-            Your Cart
-          </h1>
+          <h1 className={`mt-2 ${pageHeading}`}>Your cart</h1>
         </div>
 
         {items.length === 0 ? (
-          <div className="text-center py-24 bg-white border border-neutral-200/60 rounded-3xl transition-colors">
-            <h2 className="text-xl font-bold text-neutral-800">Your cart is empty</h2>
-            <p className="text-sm text-neutral-500 mt-2 max-w-md mx-auto leading-relaxed">
+          <div className={`${raisedSurface} px-6 py-16 text-center sm:py-20`}>
+            <h2 className="text-xl font-semibold text-neutral-950">Your cart is empty</h2>
+            <p className="mx-auto mt-2 max-w-md text-base leading-relaxed text-neutral-600">
               Browse our kitchen and gym picks — add what you like and checkout when you&apos;re ready.
             </p>
-            <Link
-              href="/"
-              className="mt-8 inline-block bg-neutral-900 text-white px-8 py-3 rounded-full text-xs font-bold uppercase tracking-widest transition hover:scale-95 shadow-md"
-            >
-              Explore Products
+            <Link href="/" className={`mt-8 ${primaryButton}`}>
+              Explore products
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-10">
             {/* Items Column */}
-            <div className="lg:col-span-8 space-y-6">
-              <div className="border border-neutral-200/60 rounded-3xl bg-white overflow-hidden transition-colors">
-                <div className="px-6 py-5 border-b border-neutral-100 bg-neutral-50">
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
-                    Selected Items ({items.reduce((acc, curr) => acc + curr.qty, 0)})
-                  </span>
+            <div className="space-y-6 lg:col-span-8">
+              <div className={`${raisedSurface} overflow-hidden`}>
+                <div className="border-b border-[#DCE0E7] bg-[#F6F7F9] px-5 py-4 sm:px-6">
+                  <h2 className="text-sm font-semibold text-neutral-800">
+                    Selected items ({items.reduce((acc, curr) => acc + curr.qty, 0)})
+                  </h2>
                 </div>
-                <div className="divide-y divide-neutral-100">
+                <div className="divide-y divide-[#DCE0E7]">
                   {items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-6 hover:bg-neutral-50/55 transition"
+                      className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-6"
                     >
-                      <div className="flex items-center gap-5">
+                      <div className="flex min-w-0 items-center gap-4 sm:gap-5">
                         {/* Product Image */}
-                        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-neutral-200/30 bg-neutral-50">
+                        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-[#DCE0E7] bg-white">
                           <div className="relative h-full w-full">
                             <Image
                               src={item.image}
@@ -71,49 +76,49 @@ export default function CartPage() {
                           </div>
                         </div>
                         {/* Title & Brand */}
-                        <div>
+                        <div className="min-w-0">
                           <Link
                             href={productHref(item)}
-                            className="text-sm font-bold text-neutral-900 tracking-tight leading-tight hover:underline"
+                            className={`rounded-sm text-[15px] font-semibold leading-snug text-neutral-950 hover:underline ${focusRing}`}
                           >
                             {item.name}
                           </Link>
-                          <span className="text-[10px] uppercase tracking-wider font-bold text-neutral-400 mt-1 block">
+                          <span className="mt-1 block text-xs font-medium text-neutral-600">
                             HomeVibe
                           </span>
                         </div>
                       </div>
 
                       {/* Quantity & Price Controls */}
-                      <div className="flex items-center justify-between sm:justify-end gap-8 shrink-0">
+                      <div className="flex shrink-0 items-center justify-between gap-3 sm:justify-end sm:gap-6">
                         {/* Quantity Counter */}
-                        <div className="flex items-center bg-neutral-50 border border-neutral-200 rounded-full h-9">
+                        <div className="flex items-center rounded-full border border-[#7D8594] bg-white">
                           <button
                             onClick={() => updateQty(item.id, item.qty - 1)}
-                            className="px-3.5 h-full flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition"
+                            className={iconButton}
                             aria-label="Decrease quantity"
                           >
-                            <Minus className="w-3.5 h-3.5" />
+                            <Minus aria-hidden="true" className="h-4 w-4" />
                           </button>
-                          <span className="text-xs font-bold px-2 text-neutral-800 w-6 text-center">
+                          <span className="w-7 text-center text-sm font-semibold tabular-nums text-neutral-950">
                             {item.qty}
                           </span>
                           <button
                             onClick={() => updateQty(item.id, item.qty + 1)}
-                            className="px-3.5 h-full flex items-center justify-center text-neutral-500 hover:text-neutral-900 transition"
+                            className={iconButton}
                             aria-label="Increase quantity"
                           >
-                            <Plus className="w-3.5 h-3.5" />
+                            <Plus aria-hidden="true" className="h-4 w-4" />
                           </button>
                         </div>
 
                         {/* Price Breakdown */}
-                        <div className="text-right min-w-[90px]">
-                          <span className="block text-sm font-bold text-neutral-900">
+                        <div className="min-w-[90px] text-right">
+                          <span className="block text-base font-semibold tabular-nums text-[#8f4710]">
                             {formatPrice(item.price * item.qty)}
                           </span>
                           {item.qty > 1 && (
-                            <span className="block text-[10px] text-neutral-400 mt-0.5 font-medium">
+                            <span className="mt-0.5 block text-xs text-neutral-600">
                               {formatPrice(item.price)} each
                             </span>
                           )}
@@ -122,10 +127,10 @@ export default function CartPage() {
                         {/* Remove Action */}
                         <button
                           onClick={() => removeItem(item.id)}
-                          className="p-2 bg-neutral-50 hover:bg-neutral-100 rounded-full text-neutral-400 hover:text-red-500 transition"
+                          className={`${iconButton} hover:text-red-700`}
                           aria-label="Remove item"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 aria-hidden="true" className="h-[18px] w-[18px]" />
                         </button>
                       </div>
                     </div>
@@ -135,68 +140,63 @@ export default function CartPage() {
 
               {/* Guarantees Section */}
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="flex gap-4 p-5 bg-white border border-neutral-200/60 rounded-2xl transition-colors">
-                  <ShieldCheck className="w-6 h-6 text-neutral-900 shrink-0 stroke-[1.5]" />
+                <div className="flex gap-3 rounded-2xl border border-[#DCE0E7] bg-white p-5">
+                  <ShieldCheck aria-hidden="true" className="h-6 w-6 shrink-0 stroke-[1.5] text-[#a85414]" />
                   <div>
-                    <h4 className="text-xs font-bold text-neutral-900">12-Month In-House Warranty</h4>
-                    <p className="text-[10px] text-neutral-500 mt-1 leading-relaxed">Parts and labour covered — we&apos;ll help if something goes wrong.</p>
+                    <h3 className="text-sm font-semibold text-neutral-950">12-month in-house warranty</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-neutral-600">Parts and labour covered — we&apos;ll help if something goes wrong.</p>
                   </div>
                 </div>
-                <div className="flex gap-4 p-5 bg-white border border-neutral-200/60 rounded-2xl transition-colors">
-                  <Truck className="w-6 h-6 text-neutral-900 shrink-0 stroke-[1.5]" />
+                <div className="flex gap-3 rounded-2xl border border-[#DCE0E7] bg-white p-5">
+                  <Truck aria-hidden="true" className="h-6 w-6 shrink-0 stroke-[1.5] text-[#a85414]" />
                   <div>
-                    <h4 className="text-xs font-bold text-neutral-900">Free Delivery in Nairobi</h4>
-                    <p className="text-[10px] text-neutral-500 mt-1 leading-relaxed">We deliver, unpack, and can install on request.</p>
+                    <h3 className="text-sm font-semibold text-neutral-950">Free delivery in Nairobi</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-neutral-600">We deliver, unpack, and can install on request.</p>
                   </div>
                 </div>
-                <div className="flex gap-4 p-5 bg-white border border-neutral-200/60 rounded-2xl transition-colors">
-                  <RotateCcw className="w-6 h-6 text-neutral-900 shrink-0 stroke-[1.5]" />
+                <div className="flex gap-3 rounded-2xl border border-[#DCE0E7] bg-white p-5">
+                  <RotateCcw aria-hidden="true" className="h-6 w-6 shrink-0 stroke-[1.5] text-[#a85414]" />
                   <div>
-                    <h4 className="text-xs font-bold text-neutral-900">Easy Returns</h4>
-                    <p className="text-[10px] text-neutral-500 mt-1 leading-relaxed">5-day returns on unopened items. WhatsApp us if you need help.</p>
+                    <h3 className="text-sm font-semibold text-neutral-950">Easy returns</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-neutral-600">5-day returns on unopened items. WhatsApp us if you need help.</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Order Summary Sidebar */}
-            <div className="lg:col-span-4 bg-white border border-neutral-200/60 rounded-3xl p-6 shadow-sm transition-colors">
-              <h2 className="text-xs uppercase tracking-wider font-black text-neutral-900 pb-4 border-b border-neutral-100">
-                Order Summary
-              </h2>
+            <div className={`${raisedSurface} p-6 lg:col-span-4`}>
+              <h2 className={`border-b border-[#DCE0E7] pb-4 ${panelHeading}`}>Order summary</h2>
 
-              <div className="space-y-4 py-6 border-b border-neutral-100 text-xs font-semibold text-neutral-600">
+              <dl className="space-y-3 border-b border-[#DCE0E7] py-5 text-sm text-neutral-700">
                 <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span className="text-neutral-900">{formatPrice(total)}</span>
+                  <dt>Subtotal</dt>
+                  <dd className="font-semibold tabular-nums text-neutral-950">{formatPrice(total)}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt>Delivery</dt>
+                  <dd className="max-w-[65%] text-right font-semibold text-emerald-800">
+                    Free within Nairobi. Other areas: we confirm the cost before dispatch.
+                  </dd>
                 </div>
                 <div className="flex justify-between">
-                  <span>Delivery</span>
-                  <span className="text-emerald-500 font-bold uppercase tracking-wider text-[10px]">Complimentary</span>
+                  <dt>Installation</dt>
+                  <dd className="font-semibold text-emerald-800">Included</dd>
                 </div>
-                <div className="flex justify-between">
-                  <span>Installation</span>
-                  <span className="text-emerald-500 font-bold uppercase tracking-wider text-[10px]">Included</span>
-                </div>
+              </dl>
+
+              <div className="flex items-baseline justify-between py-5">
+                <span className="text-base font-semibold text-neutral-950">Estimated total</span>
+                <span className="text-2xl font-semibold tabular-nums text-neutral-950">{formatPrice(total)}</span>
               </div>
 
-              <div className="flex justify-between items-baseline py-6">
-                <span className="text-xs uppercase tracking-wider font-black text-neutral-900">Estimated Total</span>
-                <span className="text-2xl font-black text-neutral-950">{formatPrice(total)}</span>
-              </div>
-
-              <Link
-                href="/checkout"
-                className="block w-full text-center py-3.5 bg-neutral-900 text-white text-xs font-bold tracking-widest uppercase rounded-full hover:bg-black active:scale-[0.98] transition shadow-lg"
-              >
-                Proceed to Checkout
+              <Link href="/checkout" className={`${primaryButton} h-12 w-full active:scale-[0.98]`}>
+                Proceed to checkout
               </Link>
 
-              <div className="mt-6 text-center">
-                <span className="text-[10px] text-neutral-400 leading-relaxed block">
-                  Need installments? WhatsApp us — we&apos;ll walk you through the options.
-                </span>
-              </div>
+              <p className="mt-5 text-center text-sm leading-relaxed text-neutral-600">
+                Need installments? WhatsApp us — we&apos;ll walk you through the options.
+              </p>
             </div>
           </div>
         )}

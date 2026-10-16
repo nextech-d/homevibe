@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { fieldInput, fieldLabel, pageHeading, primaryButton, raisedSurface, textLink } from "../../components/homeSurfaces";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,40 +41,54 @@ export default function LoginPage() {
 
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-md items-center px-6 py-16">
-      <div className="w-full rounded-3xl border border-neutral-200/60 bg-white p-8 shadow-sm">
-        <h1 className="text-sm font-black uppercase tracking-wider text-neutral-900">Sign in</h1>
-        <p className="mt-2 text-xs text-neutral-500">Access your orders and saved addresses.</p>
+      <div className={`${raisedSurface} w-full p-6 sm:p-8`}>
+        <h1 className={pageHeading}>Sign in</h1>
+        <p className="mt-2 text-base text-neutral-600">Access your orders and saved addresses.</p>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-          {error && <p className="text-xs font-semibold text-red-600">{error}</p>}
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
-          />
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            className="w-full rounded-xl border border-neutral-300 px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900"
-          />
+        <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+          {error && (
+            <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
+              {error}
+            </p>
+          )}
+          <div>
+            <label htmlFor="login-email" className={fieldLabel}>Email</label>
+            <input
+              id="login-email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+              className={fieldInput}
+            />
+          </div>
+          <div>
+            <label htmlFor="login-password" className={fieldLabel}>Password</label>
+            <input
+              id="login-password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className={fieldInput}
+            />
+          </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-full bg-neutral-900 py-3.5 text-xs font-bold uppercase tracking-widest text-white hover:bg-black disabled:opacity-50"
+            className={`${primaryButton} h-12 w-full`}
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-neutral-500">
+        <p className="mt-6 text-center text-sm text-neutral-600">
           No account?{" "}
-          <Link href="/account/register" className="font-semibold text-neutral-900 hover:underline">
+          <Link href="/account/register" className={`inline-flex min-h-11 items-center ${textLink}`}>
             Create one
           </Link>
         </p>

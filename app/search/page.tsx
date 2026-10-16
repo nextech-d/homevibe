@@ -6,7 +6,9 @@ export default function SearchPage() {
     <Suspense
       fallback={
         <div className="flex min-h-[50vh] items-center justify-center">
-          <p className="text-xs font-bold uppercase tracking-wider text-neutral-400">Searching...</p>
+          <p role="status" className="text-sm font-medium text-neutral-600">
+            Searching…
+          </p>
         </div>
       }
     >

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Breadcrumbs from "./Breadcrumbs";
+import { pageHeading, raisedSurface, textLink } from "./homeSurfaces";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ContentPostType } from "@prisma/client";
@@ -69,49 +71,50 @@ export default async function ContentPostDetail({
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen pb-24">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
-      <article className="mx-auto max-w-3xl px-6 py-12">
-        <nav className="mb-8 text-sm text-neutral-500">
-          <Link href="/" className="hover:text-neutral-900">
-            Home
-          </Link>
-          <span className="mx-2">/</span>
-          <Link href={listHref} className="hover:text-neutral-900">
-            {listLabel}
-          </Link>
-        </nav>
-
-        <header className="mb-10 border-b border-neutral-200 pb-8">
-          <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">{listLabel}</p>
-          <h1 className="mt-3 text-4xl font-light tracking-tight text-neutral-900">{post.title}</h1>
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
-            {post.publishedAt && (
-              <time dateTime={post.publishedAt}>{formatContentDate(post.publishedAt)}</time>
-            )}
-            {post.author && (
-              <>
-                <span aria-hidden>·</span>
-                <span>{post.author}</span>
-              </>
-            )}
-          </div>
-          {post.excerpt && (
-            <p className="mt-4 text-lg leading-relaxed text-neutral-600">{post.excerpt}</p>
-          )}
-        </header>
-
-        <div
-          className="prose-content max-w-none"
-          dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }}
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        <Breadcrumbs
+          className="mb-6"
+          items={[
+            { label: "Home", href: "/" },
+            { label: listLabel, href: listHref },
+            { label: post.title },
+          ]}
         />
+        <article className={`${raisedSurface} px-5 py-8 sm:px-10 sm:py-12`}>
+          <header className="mb-8 border-b border-[#DCE0E7] pb-8">
+            <p className="text-sm font-semibold text-[#8f4710]">{listLabel}</p>
+            <h1 className={`mt-2 ${pageHeading}`}>{post.title}</h1>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-neutral-600">
+              {post.publishedAt && (
+                <time dateTime={post.publishedAt}>{formatContentDate(post.publishedAt)}</time>
+              )}
+              {post.author && (
+                <>
+                  <span aria-hidden>·</span>
+                  <span>{post.author}</span>
+                </>
+              )}
+            </div>
+            {post.excerpt && (
+              <p className="mt-4 text-lg leading-relaxed text-neutral-600">{post.excerpt}</p>
+            )}
+          </header>
 
-        <footer className="mt-12 border-t border-neutral-200 pt-8">
-          <Link href={listHref} className="text-sm font-semibold text-emerald-600 hover:underline">
-            ← All {listLabel.toLowerCase()}
-          </Link>
-        </footer>
-      </article>
+          {/* Styled by the classes renderMarkdown puts on each element. */}
+          <div
+            className="max-w-none [&>:first-child]:mt-0"
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }}
+          />
+
+          <footer className="mt-12 border-t border-[#DCE0E7] pt-6">
+            <Link href={listHref} className={`inline-flex min-h-11 items-center text-sm ${textLink}`}>
+              ← All {listLabel.toLowerCase()}
+            </Link>
+          </footer>
+        </article>
+      </div>
     </div>
   );
 }

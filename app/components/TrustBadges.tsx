@@ -31,14 +31,12 @@ export default function TrustBadges({ variant = "inline" }: TrustBadgesProps) {
         return (
           <div
             key={badge.label}
-            className="flex items-start gap-2.5 rounded-xl border border-neutral-200/70 bg-[color:var(--surface)] p-3"
+            className="flex items-start gap-2.5 rounded-xl border border-[#DCE0E7] bg-white p-3"
           >
-            <Icon className="mt-0.5 h-4 w-4 shrink-0 text-neutral-700" />
+            <Icon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-[#a85414]" />
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-neutral-900">
-                {badge.label}
-              </p>
-              <p className="mt-0.5 text-[10px] leading-snug text-neutral-500">{badge.detail}</p>
+              <p className="text-[13px] font-semibold leading-snug text-neutral-950">{badge.label}</p>
+              <p className="mt-0.5 text-xs leading-snug text-neutral-600">{badge.detail}</p>
             </div>
           </div>
         );

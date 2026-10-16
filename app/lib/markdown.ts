@@ -25,7 +25,7 @@ function inlineMarkdown(text: string): string {
     // their text alone - a javascript: link in a product body is not a link.
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_match, label: string, url: string) =>
       isSafeLinkTarget(url)
-        ? `<a href="${url}" class="text-emerald-600 hover:underline">${label}</a>`
+        ? `<a href="${url}" class="rounded-sm font-semibold text-[#8f4710] underline underline-offset-2 hover:no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a85414]">${label}</a>`
         : label
     )
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
@@ -59,8 +59,8 @@ function columnAlignments(delimiter: string): (string | null)[] {
 function cell(tag: "th" | "td", text: string, align: string | null | undefined): string {
   const classes =
     tag === "th"
-      ? "border-b border-neutral-300 px-3 py-2 font-semibold text-neutral-900"
-      : "border-b border-neutral-200 px-3 py-2 align-top";
+      ? "border-b border-[#DCE0E7] bg-[#F6F7F9] px-3 py-2 font-semibold text-neutral-950"
+      : "border-b border-[#DCE0E7] px-3 py-2 align-top";
   const style = align ? ` style="text-align:${align}"` : "";
   return `<${tag} class="${classes}"${style}>${inlineMarkdown(escapeHtml(text))}</${tag}>`;
 }
@@ -92,8 +92,8 @@ export function renderMarkdown(source: string): string {
     closeList();
     html.push(
       tag === "ol"
-        ? '<ol class="my-4 list-decimal space-y-2 pl-6 text-neutral-700">'
-        : '<ul class="my-4 list-disc space-y-2 pl-6 text-neutral-700">'
+        ? '<ol class="my-4 list-decimal space-y-2 pl-6 text-base leading-relaxed text-neutral-700 marker:font-semibold marker:text-[#8f4710]">'
+        : '<ul class="my-4 list-disc space-y-2 pl-6 text-base leading-relaxed text-neutral-700 marker:text-[#a85414]">'
     );
     listTag = tag;
   }
@@ -136,25 +136,26 @@ export function renderMarkdown(source: string): string {
         .join("");
 
       // Scrolls in its own box: a wide table must not make the page scroll.
+      // Focusable, so a keyboard can scroll it too, with the site's ring.
       html.push(
-        `<div class="my-6 overflow-x-auto"><table class="w-full border-collapse text-left text-sm text-neutral-700"><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></div>`
+        `<div class="my-6 overflow-x-auto rounded-xl border border-[#DCE0E7] bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a85414]" tabindex="0" role="region" aria-label="Table"><table class="w-full border-collapse text-left text-sm text-neutral-800 [&_tbody_tr:last-child>td]:border-b-0"><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table></div>`
       );
       continue;
     }
 
     if (trimmed.startsWith("### ")) {
       closeList();
-      html.push(`<h3 class="mt-8 text-lg font-semibold text-neutral-900">${inlineMarkdown(escapeHtml(trimmed.slice(4)))}</h3>`);
+      html.push(`<h3 class="mt-8 text-lg font-semibold tracking-tight text-neutral-950">${inlineMarkdown(escapeHtml(trimmed.slice(4)))}</h3>`);
       continue;
     }
     if (trimmed.startsWith("## ")) {
       closeList();
-      html.push(`<h2 class="mt-10 text-xl font-semibold text-neutral-900">${inlineMarkdown(escapeHtml(trimmed.slice(3)))}</h2>`);
+      html.push(`<h2 class="mt-10 text-xl font-semibold tracking-tight text-neutral-950">${inlineMarkdown(escapeHtml(trimmed.slice(3)))}</h2>`);
       continue;
     }
     if (trimmed.startsWith("# ")) {
       closeList();
-      html.push(`<h1 class="mt-10 text-2xl font-bold text-neutral-900">${inlineMarkdown(escapeHtml(trimmed.slice(2)))}</h1>`);
+      html.push(`<h1 class="mt-10 text-2xl font-semibold tracking-tight text-neutral-950">${inlineMarkdown(escapeHtml(trimmed.slice(2)))}</h1>`);
       continue;
     }
     if (trimmed.startsWith("- ")) {
@@ -176,13 +177,13 @@ export function renderMarkdown(source: string): string {
     if (quoted && quoted[1].trim()) {
       closeList();
       html.push(
-        `<blockquote class="my-6 border-l-2 border-neutral-300 pl-4 italic text-neutral-600">${inlineMarkdown(escapeHtml(quoted[1]))}</blockquote>`
+        `<blockquote class="my-6 border-l-2 border-[#a85414] pl-4 italic text-neutral-700">${inlineMarkdown(escapeHtml(quoted[1]))}</blockquote>`
       );
       continue;
     }
 
     closeList();
-    html.push(`<p class="my-4 leading-relaxed text-neutral-700">${inlineMarkdown(escapeHtml(trimmed))}</p>`);
+    html.push(`<p class="my-4 text-base leading-relaxed text-neutral-700">${inlineMarkdown(escapeHtml(trimmed))}</p>`);
   }
 
   closeList();

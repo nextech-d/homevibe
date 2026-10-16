@@ -12,7 +12,10 @@ import {
 import ProductCard from "./ProductCard";
 import { useAddToCart } from "../hooks/useAddToCart";
 import { type CatalogProduct } from "../lib/inventory";
-import { ChevronRight, SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import { SlidersHorizontal, ArrowUpDown } from "lucide-react";
+import Breadcrumbs from "./Breadcrumbs";
+import StatusPanel from "./StatusPanel";
+import { chip, chipActive, focusRing, pageHeading, primaryButton, raisedSurface } from "./homeSurfaces";
 
 type CategoryCatalogProps = {
   category: Category;
@@ -52,106 +55,121 @@ export default function CategoryCatalog({ category, subSlug, products }: Categor
 
   if (subSlug && !subcategoryMeta) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-6">
-        <div className="max-w-md text-center">
-          <h1 className="text-2xl font-bold text-neutral-900">Subcategory Not Found</h1>
-          <p className="mt-2 text-sm text-neutral-500">
-            This subcategory doesn&apos;t exist under {category.label}.
-          </p>
-          <Link
-            href={categoryHref(category.slug)}
-            className="mt-6 inline-block rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-white"
-          >
-            View All {category.label}
-          </Link>
-        </div>
+      <div className="flex min-h-[70vh] items-center justify-center px-6 py-16">
+        <StatusPanel
+          title="Subcategory not found"
+          actions={
+            <Link href={categoryHref(category.slug)} className={primaryButton}>
+              View all {category.label.toLowerCase()}
+            </Link>
+          }
+        >
+          This subcategory doesn&apos;t exist under {category.label}.
+        </StatusPanel>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] pb-24">
+    <div className="min-h-screen pb-24">
       <div className="mx-auto max-w-7xl px-6 py-8">
-        <nav className="mb-8 flex flex-wrap items-center justify-center gap-2 text-center text-xs font-semibold tracking-wide text-neutral-500">
-          <Link href="/" className="transition hover:text-neutral-900">
-            Home
-          </Link>
-          <ChevronRight className="h-3 w-3" />
-          {activeSubLabel ? (
-            <>
-              <Link href={categoryHref(category.slug)} className="transition hover:text-neutral-900">
-                {category.label}
-              </Link>
-              <ChevronRight className="h-3 w-3" />
-              <span className="text-neutral-900">{activeSubLabel}</span>
-            </>
-          ) : (
-            <span className="text-neutral-900">{category.label}</span>
-          )}
-        </nav>
+        <Breadcrumbs
+          className="mb-6"
+          items={
+            activeSubLabel
+              ? [
+                  { label: "Home", href: "/" },
+                  { label: category.label, href: categoryHref(category.slug) },
+                  { label: activeSubLabel },
+                ]
+              : [{ label: "Home", href: "/" }, { label: category.label }]
+          }
+        />
 
-        <header className="mx-auto mb-8 max-w-3xl border-b border-neutral-300/70 pb-8 text-center">
-          <h1 className="text-3xl font-black uppercase tracking-tight text-neutral-900 md:text-5xl">
-            {activeSubLabel ?? category.label}{" "}
-            {!activeSubLabel && (
-              <span className="font-light text-neutral-400">Collection</span>
+        <header className="mb-8">
+          <h1 className={pageHeading}>
+            {activeSubLabel ?? (
+              <>
+                {category.label} <span className="text-neutral-600">collection</span>
+              </>
             )}
           </h1>
-          <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-neutral-500">
-            {category.description}
-          </p>
+          {category.description && (
+            <p className="mt-3 max-w-[60ch] text-base leading-relaxed text-neutral-600">
+              {category.description}
+            </p>
+          )}
 
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <Link
-              href={categoryHref(category.slug)}
-              className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition ${
-                !subSlug
-                  ? "bg-neutral-900 text-white"
-                  : "border border-neutral-300 text-neutral-600 hover:border-neutral-400"
-              }`}
-            >
-              All
-            </Link>
-            {subNavItems.map((sub) => (
-              <Link
-                key={sub.slug}
-                href={categoryHref(category.slug, sub.slug)}
-                className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition ${
-                  subSlug === sub.slug
-                    ? "bg-neutral-900 text-white"
-                    : "border border-neutral-300 text-neutral-600 hover:border-neutral-400"
-                }`}
-              >
-                {sub.label}
-              </Link>
-            ))}
-          </div>
+          {subNavItems.length > 0 && (
+            <nav aria-label={`${category.label} subcategories`} className="mt-6">
+              <ul className="flex flex-wrap gap-2.5">
+                <li>
+                  <Link
+                    href={categoryHref(category.slug)}
+                    aria-current={!subSlug ? "page" : undefined}
+                    className={!subSlug ? chipActive : chip}
+                  >
+                    All
+                  </Link>
+                </li>
+                {subNavItems.map((sub) => (
+                  <li key={sub.slug}>
+                    <Link
+                      href={categoryHref(category.slug, sub.slug)}
+                      aria-current={subSlug === sub.slug ? "page" : undefined}
+                      className={subSlug === sub.slug ? chipActive : chip}
+                    >
+                      {sub.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
         </header>
 
-        <div className="mx-auto mb-6 flex max-w-3xl flex-col items-center justify-between gap-3 rounded-2xl border border-neutral-200/60 bg-[color:var(--surface)] px-4 py-3 sm:flex-row">
-          <span className="text-xs font-bold text-neutral-500">
-            Displaying <span className="text-neutral-900">{filteredProducts.length}</span> products
-          </span>
-          <div className="flex shrink-0 items-center gap-2">
-            <ArrowUpDown className="h-3.5 w-3.5 text-neutral-400" />
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-neutral-600" aria-live="polite">
+            <span className="font-semibold text-neutral-950 tabular-nums">{filteredProducts.length}</span>{" "}
+            {filteredProducts.length === 1 ? "product" : "products"}
+          </p>
+          <div className="relative">
+            <label htmlFor="category-sort" className="sr-only">
+              Sort products
+            </label>
+            <ArrowUpDown
+              aria-hidden="true"
+              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600"
+            />
             <select
+              id="category-sort"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="cursor-pointer border-0 bg-transparent pr-6 text-xs font-bold text-neutral-700 focus:ring-0"
+              className={`min-h-11 cursor-pointer appearance-none rounded-full border border-[#DCE0E7] bg-white pl-10 pr-10 text-sm font-medium text-neutral-800 transition-colors hover:border-[#a85414] ${focusRing}`}
             >
-              <option value="default">Default Arrangement</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="name-asc">Product Name (A-Z)</option>
+              <option value="default">Recommended</option>
+              <option value="price-asc">Price: low to high</option>
+              <option value="price-desc">Price: high to low</option>
+              <option value="name-asc">Name (A to Z)</option>
             </select>
+            <svg
+              aria-hidden="true"
+              className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
         </div>
 
         {filteredProducts.length === 0 ? (
-          <div className="rounded-3xl border border-neutral-200/60 bg-[color:var(--surface)] py-20 text-center">
-            <SlidersHorizontal className="mx-auto mb-4 h-12 w-12 stroke-[1.25] text-neutral-300" />
-            <h3 className="text-sm font-bold text-neutral-800">No matching appliances</h3>
-            <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-neutral-500">
+          <div className={`${raisedSurface} px-6 py-16 text-center`}>
+            <SlidersHorizontal aria-hidden="true" className="mx-auto mb-4 h-10 w-10 stroke-[1.25] text-neutral-500" />
+            <h2 className="text-lg font-semibold text-neutral-950">No matching appliances</h2>
+            <p className="mx-auto mt-1 max-w-xs text-sm leading-relaxed text-neutral-600">
               Try a different subcategory.
             </p>
           </div>

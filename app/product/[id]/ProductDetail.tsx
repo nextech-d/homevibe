@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import { getCategorySlug, getSubcategoryLabel, categoryHref } from "../../data/categories";
 import { useCart } from "../../context/CartContext";
 import { isOutOfStock, type Appliance, type CatalogProduct } from "../../lib/inventory";
@@ -25,6 +24,15 @@ import WhatsAppIcon from "../../components/WhatsAppIcon";
 import { ShoppingCart, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { renderMarkdown } from "../../lib/markdown";
+import Breadcrumbs from "../../components/Breadcrumbs";
+import {
+  focusRing,
+  pageHeading,
+  primaryButton,
+  raisedSurface,
+  secondaryButton,
+  sectionHeading,
+} from "../../components/homeSurfaces";
 /**
  * The description: HTML already sanitised on the server (descriptionHtml),
  * or plain text. This component only renders - the sanitiser and its
@@ -34,14 +42,14 @@ function ProductDescriptionBody({ text, html }: { text: string; html: string | n
   if (html !== null) {
     return (
       <div
-        className="product-description w-full text-sm text-neutral-600 [&_b]:font-bold [&_strong]:font-bold [&_i]:italic [&_em]:italic [&_u]:underline [&_p]:mb-3 [&_p]:min-h-[1.25em] [&_p:last-child]:mb-0 [&_div]:mb-3 [&_div]:min-h-[1.25em] [&_div:last-child]:mb-0"
+        className="product-description w-full text-sm text-neutral-700 [&_b]:font-bold [&_strong]:font-bold [&_i]:italic [&_em]:italic [&_u]:underline [&_p]:mb-3 [&_p]:min-h-[1.25em] [&_p:last-child]:mb-0 [&_div]:mb-3 [&_div]:min-h-[1.25em] [&_div:last-child]:mb-0"
         dangerouslySetInnerHTML={{ __html: html }}
       />
     );
   }
 
   return (
-    <div className="w-full whitespace-pre-wrap text-sm text-neutral-600">
+    <div className="w-full whitespace-pre-wrap text-sm leading-relaxed text-neutral-700">
       {text}
     </div>
   );
@@ -116,38 +124,34 @@ export default function ProductDetail({
     product.subcategory.toLowerCase() !== categorySlug.toLowerCase();
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] font-sans pb-24">
+    <div className="min-h-screen font-sans pb-24">
       <div className="mx-auto max-w-7xl px-6 py-8">
         {/* Reads as written rather than shouted: a product name in caps -
             "HISENSE 205L DOUBLE DOOR FRIDGE REF205DR (WATER DISPENSER)" - is
             hard to scan and loses the casing the catalogue stores. */}
-        <nav className="mb-12 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold tracking-wide text-neutral-500">
-          <Link href="/" className="hover:text-neutral-900 transition">Home</Link>
-          <span className="text-neutral-400">/</span>
-          <Link href={`/category/${categorySlug}`} className="hover:text-neutral-900 transition">
-            {product.category}
-          </Link>
-          {showSubcategoryCrumb ? (
-            <>
-              <span className="text-neutral-400">/</span>
-              <Link
-                href={categoryHref(categorySlug, product.subcategory)}
-                className="hover:text-neutral-900 transition"
-              >
-                {getSubcategoryLabel(categorySlug, product.subcategory)}
-              </Link>
-            </>
-          ) : null}
-          <span className="text-neutral-400">/</span>
-          <span className="min-w-0 max-w-full text-neutral-900 sm:line-clamp-2">{product.name}</span>
-        </nav>
+        <Breadcrumbs
+          className="mb-8"
+          items={[
+            { label: "Home", href: "/" },
+            { label: product.category, href: `/category/${categorySlug}` },
+            ...(showSubcategoryCrumb
+              ? [
+                  {
+                    label: getSubcategoryLabel(categorySlug, product.subcategory),
+                    href: categoryHref(categorySlug, product.subcategory),
+                  },
+                ]
+              : []),
+            { label: product.name },
+          ]}
+        />
 
         {/* Twelve columns means eleven gaps: at 96px (gap-24) that's 1056px,
             more than the 976px of content at 1024px, so the wide gap waits
             for xl. */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 xl:gap-24 w-full">
           <div className="lg:col-span-5 flex flex-col gap-4">
-            <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-neutral-200/60 bg-neutral-50 shadow-inner group">
+            <div className={`${raisedSurface} group relative aspect-square w-full overflow-hidden`}>
               <Image
                 src={activeImage}
                 alt={product.name}
@@ -162,31 +166,36 @@ export default function ProductDetail({
                     type="button"
                     onClick={() => showGalleryImage(safeIndex - 1)}
                     aria-label="Previous image"
-                    className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/90 text-neutral-800 shadow-md transition hover:bg-white"
+                    className={`absolute left-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#DCE0E7] bg-white/95 text-neutral-800 shadow-md transition hover:border-[#a85414] ${focusRing}`}
                   >
-                    <ChevronLeft size={20} />
+                    <ChevronLeft size={20} aria-hidden="true" />
                   </button>
                   <button
                     type="button"
                     onClick={() => showGalleryImage(safeIndex + 1)}
                     aria-label="Next image"
-                    className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-neutral-200/80 bg-white/90 text-neutral-800 shadow-md transition hover:bg-white"
+                    className={`absolute right-3 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[#DCE0E7] bg-white/95 text-neutral-800 shadow-md transition hover:border-[#a85414] ${focusRing}`}
                   >
-                    <ChevronRight size={20} />
+                    <ChevronRight size={20} aria-hidden="true" />
                   </button>
                 </>
               )}
             </div>
 
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide w-full">
+            {/* Real buttons, so the keyboard reaches them; p-1 on the row leaves
+                room for the focus ring, which the scroller would otherwise clip. */}
+            <div className="flex w-full gap-3 overflow-x-auto p-1 pb-2">
               {gallery.map((img, idx) => (
-                <div
+                <button
+                  type="button"
                   key={idx}
                   onClick={() => setActiveIndex(idx)}
-                  className={`h-20 w-20 shrink-0 cursor-pointer overflow-hidden rounded-xl border-2 p-1 transition-all duration-200 ${
+                  aria-label={`Show image ${idx + 1} of ${gallery.length}`}
+                  aria-pressed={safeIndex === idx}
+                  className={`h-20 w-20 shrink-0 cursor-pointer overflow-hidden rounded-xl border-2 bg-white p-1 transition-all duration-200 ${focusRing} ${
                     safeIndex === idx
-                      ? "border-neutral-900 bg-neutral-50 shadow-md"
-                      : "border-transparent bg-neutral-50 opacity-70 hover:border-neutral-300 hover:opacity-100"
+                      ? "border-neutral-950 shadow-md"
+                      : "border-[#DCE0E7] hover:border-[#a85414]"
                   }`}
                 >
                   <div className="relative h-full w-full overflow-hidden rounded-lg">
@@ -198,50 +207,48 @@ export default function ProductDetail({
                       className="object-contain p-1"
                     />
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
 
           <div className="lg:col-span-7 flex flex-col pt-2 lg:pt-8 w-full">
-            <h1 className="text-3xl lg:text-4xl font-bold text-neutral-900 tracking-tight leading-tight">
-              {product.name}
-            </h1>
-            <div className="mt-6 flex items-baseline gap-4">
-              <span className="text-3xl font-light tracking-tighter text-neutral-900">
+            <h1 className={pageHeading}>{product.name}</h1>
+            <div className="mt-5 flex items-baseline gap-4">
+              <span className="text-3xl font-semibold tabular-nums tracking-tight text-[#8f4710]">
                 {formatPrice(product.price)}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-x-12 gap-y-8 my-10">
+            <dl className="my-8 grid grid-cols-2 gap-x-6 gap-y-5 sm:gap-x-12">
               <div>
-                <span className="block text-[10px] font-black uppercase tracking-widest text-neutral-500">Category</span>
-                <span className="block mt-1.5 text-sm font-semibold text-neutral-900">{product.category}</span>
+                <dt className="text-sm text-neutral-600">Category</dt>
+                <dd className="mt-1 text-base font-semibold text-neutral-950">{product.category}</dd>
               </div>
               <div>
-                <span className="block text-[10px] font-black uppercase tracking-widest text-neutral-500">Brand</span>
-                <span className="block mt-1.5 text-sm font-semibold text-neutral-900">{product.brand}</span>
+                <dt className="text-sm text-neutral-600">Brand</dt>
+                <dd className="mt-1 text-base font-semibold text-neutral-950">{product.brand}</dd>
               </div>
               <div>
-                <span className="block text-[10px] font-black uppercase tracking-widest text-neutral-500">Availability</span>
-                <span className="block mt-1.5 text-sm font-semibold text-neutral-900">{product.status}</span>
+                <dt className="text-sm text-neutral-600">Availability</dt>
+                <dd className="mt-1 text-base font-semibold text-neutral-950">{product.status}</dd>
               </div>
               <div>
-                <span className="block text-[10px] font-black uppercase tracking-widest text-neutral-500">Authenticity</span>
-                <span className="flex items-center gap-1.5 mt-1.5 text-sm font-semibold text-neutral-900">
-                  <CheckCircle2 size={16} className="text-neutral-900" />
-                  100% Genuine
-                </span>
+                <dt className="text-sm text-neutral-600">Authenticity</dt>
+                <dd className="mt-1 flex items-center gap-1.5 text-base font-semibold text-neutral-950">
+                  <CheckCircle2 size={16} aria-hidden="true" className="text-[#a85414]" />
+                  100% genuine
+                </dd>
               </div>
-            </div>
+            </dl>
 
-            <div className="h-px w-full bg-neutral-300/70"></div>
+            <div className="h-px w-full bg-[#DCE0E7]"></div>
 
             <div className="my-8">
               <TrustBadges />
             </div>
 
-            <div className="h-px w-full bg-neutral-300/70"></div>
+            <div className="h-px w-full bg-[#DCE0E7]"></div>
 
             <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center sm:items-start">
               <QuantitySelector qty={qty} onChange={setQty} variant="pill" />
@@ -257,14 +264,14 @@ export default function ProductDetail({
                 <button
                   onClick={handleAddToCart}
                   disabled={added}
-                  className={`w-full lg:w-60 flex items-center justify-center gap-2 px-6 h-11 rounded-full font-bold uppercase tracking-widest text-[10px] transition active:scale-[0.98] shadow-lg ${
+                  className={`${
                     added
-                      ? "bg-emerald-500 text-white shadow-emerald-500/20"
-                      : "bg-neutral-900 hover:bg-black text-white shadow-neutral-900/10"
-                  }`}
+                      ? `inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-emerald-700 px-6 text-sm font-semibold text-white ${focusRing}`
+                      : primaryButton
+                  } h-12 w-full active:scale-[0.98] lg:w-60`}
                 >
-                  <ShoppingCart size={14} />
-                  {added ? "Added!" : "Add to Cart"}
+                  <ShoppingCart size={16} aria-hidden="true" />
+                  {added ? "Added" : "Add to cart"}
                 </button>
 
                 {/* Secondary to Add to Cart, and a real link rather than a
@@ -275,7 +282,7 @@ export default function ProductDetail({
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex w-full lg:w-60 items-center justify-center gap-2 px-6 h-11 rounded-full border-2 border-[#25D366] bg-transparent text-[#25D366] font-bold uppercase tracking-widest text-[10px] transition hover:bg-[#25D366] hover:text-white active:scale-[0.98]"
+                  className={`${secondaryButton} h-12 w-full active:scale-[0.98] lg:w-60`}
                 >
                   <WhatsAppIcon className="h-4 w-4 shrink-0" />
                   {outOfStock ? "Ask about availability" : "Order on WhatsApp"}
@@ -288,27 +295,35 @@ export default function ProductDetail({
         {/* One column for both, so the description and the long-form section
             stay matched by construction rather than by two classes agreeing. */}
         <div className="mt-16 w-full">
-        {product.description.trim() ? (
-          <div className="w-full">
-            <h4 className="mb-8 text-[10px] font-black uppercase tracking-widest text-neutral-500">
-              Product Description
-            </h4>
-            <ProductDescriptionBody text={product.description} html={descriptionHtml} />
-          </div>
+        {/* The long-form reads on a white panel, held to a readable measure:
+            full width at 1280px ran lines to 180 characters. */}
+        {product.description.trim() || product.body?.trim() ? (
+          <section
+            aria-labelledby="product-description"
+            className={`${raisedSurface} px-5 py-8 sm:px-10 sm:py-10`}
+          >
+            <div className="mx-auto max-w-3xl">
+              <h2 id="product-description" className={`mb-6 ${sectionHeading}`}>
+                Product description
+              </h2>
+              {product.description.trim() ? (
+                <ProductDescriptionBody text={product.description} html={descriptionHtml} />
+              ) : null}
+
+              {product.body?.trim() ? (
+                // Continues the description rather than starting a new block: small
+                // gap, and the renderer's own top margin on the first heading zeroed
+                // so the two don't stack up to ~100px of air.
+                <div className="mt-6 w-full [&>div>:first-child]:mt-0">
+                  {/* Markdown, rendered by the same converter the blog uses - which
+                      escapes the source before formatting it. */}
+                  <div dangerouslySetInnerHTML={{ __html: renderMarkdown(product.body) }} />
+                </div>
+              ) : null}
+            </div>
+          </section>
         ) : null}
 
-        {product.body?.trim() ? (
-          // Continues the description rather than starting a new block: small
-          // gap, and the renderer's own top margin on the first heading zeroed
-          // so the two don't stack up to ~100px of air.
-          <div className="mt-6 w-full [&>div>:first-child]:mt-0">
-            {/* Markdown, rendered by the same converter the blog uses - which
-                escapes the source before formatting it. */}
-            <div dangerouslySetInnerHTML={{ __html: renderMarkdown(product.body) }} />
-          </div>
-        ) : null}
-
-        {/* Inside the prose wrapper, so it lines up with the copy above it. */}
         <WhyBuyFromUs />
         </div>
 
@@ -317,10 +332,10 @@ export default function ProductDetail({
         <ProductHighlights items={product.highlights ?? []} />
 
         {related.length > 0 && (
-          <div className="mt-24 pt-12 border-t border-neutral-300/70 w-full">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold tracking-tight text-neutral-950">Related Collections</h2>
-              <p className="text-sm text-neutral-500 mt-1">
+          <section className="mt-20 w-full">
+            <div className="mb-6">
+              <h2 className={sectionHeading}>Related collections</h2>
+              <p className="mt-2 text-base text-neutral-600">
                 Complete your space with complementary {product.category.toLowerCase()} appliances.
               </p>
             </div>
@@ -329,7 +344,7 @@ export default function ProductDetail({
                 <ProductCard key={rp.id} appliance={rp} compact />
               ))}
             </div>
-          </div>
+          </section>
         )}
       </div>
     </div>

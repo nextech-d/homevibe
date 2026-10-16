@@ -1,18 +1,19 @@
 import Link from "next/link";
+import StatusPanel from "../../components/StatusPanel";
+import { primaryButton } from "../../components/homeSurfaces";
 
 /** Keeps the branded "not found" page the client component used to render. */
 export default function ProductNotFound() {
   return (
-    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold text-neutral-900">Product Not Found</h1>
-        <Link
-          href="/"
-          className="mt-4 inline-block text-emerald-600 hover:underline font-semibold"
-        >
-          Return to Home
-        </Link>
-      </div>
+    <div className="flex min-h-[70vh] items-center justify-center px-6 py-16">
+      <StatusPanel
+        title="Product not found"
+        actions={
+          <Link href="/" className={primaryButton}>
+            Return to home
+          </Link>
+        }
+      />
     </div>
   );
 }

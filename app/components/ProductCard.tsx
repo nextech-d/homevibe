@@ -10,7 +10,7 @@ import { formatPrice } from "../lib/formatPrice";
 import { productWhatsAppUrl } from "../lib/whatsapp";
 import { useWhatsAppNumber } from "../context/WhatsAppContext";
 import WhatsAppIcon from "./WhatsAppIcon";
-import { raisedSurface } from "./homeSurfaces";
+import { focusRing, raisedSurface } from "./homeSurfaces";
 import {
   getProductCardImage,
   PRODUCT_IMAGE_SIZES,
@@ -22,8 +22,6 @@ type ProductCardProps = {
   added?: boolean;
   compact?: boolean;
   imageSizes?: string;
-  /** The homepage's look: a white panel with the hero's hairline and soft shadow, and the price in the accent. */
-  raised?: boolean;
 };
 
 export default function ProductCard({
@@ -32,15 +30,14 @@ export default function ProductCard({
   added = false,
   compact = false,
   imageSizes = PRODUCT_IMAGE_SIZES.card,
-  raised = false,
 }: ProductCardProps) {
   const cardImage = getProductCardImage(appliance);
   const whatsappNumber = useWhatsAppNumber();
 
-  const surface = raised
-    ? `${raisedSurface} transition-colors hover:border-[#c9ced8]`
-    : "rounded-xl border border-neutral-100 bg-white shadow-sm transition hover:shadow-md";
-  const cardShell = `@container group relative flex h-full w-full cursor-pointer flex-col overflow-hidden ${surface} ${
+  // The ring goes round the whole card when its name link has keyboard focus:
+  // the link is stretched over the card, so a ring on the link itself would
+  // circle only the name. The card's overflow-hidden would clip one inside it.
+  const cardShell = `@container group relative flex h-full w-full cursor-pointer flex-col overflow-hidden ${raisedSurface} transition-colors hover:border-[#c9ced8] has-[.card-link:focus-visible]:outline-2 has-[.card-link:focus-visible]:outline-offset-2 has-[.card-link:focus-visible]:outline-[#a85414] ${
     compact ? "pb-3" : "pb-4"
   }`;
 
@@ -68,7 +65,7 @@ export default function ProductCard({
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Ask about ${appliance.name} on WhatsApp`}
-          className="group/wa absolute bottom-1 right-1 z-10 flex h-11 w-11 items-center justify-center rounded-full active:scale-95"
+          className={`group/wa absolute bottom-1 right-1 z-10 flex h-11 w-11 items-center justify-center rounded-full active:scale-95 ${focusRing}`}
         >
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-[#25D366] shadow-md ring-1 ring-black/5 transition group-hover/wa:bg-[#25D366] group-hover/wa:text-white">
             <WhatsAppIcon className="h-5 w-5 shrink-0" />
@@ -84,7 +81,10 @@ export default function ProductCard({
         >
           {/* The name is the link text, and the pseudo-element stretches the
               anchor over the whole card so the card stays clickable. */}
-          <Link href={productHref(appliance)} className="after:absolute after:inset-0">
+          <Link
+            href={productHref(appliance)}
+            className="card-link after:absolute after:inset-0 focus-visible:outline-none"
+          >
             {appliance.name}
           </Link>
         </h3>
@@ -96,7 +96,7 @@ export default function ProductCard({
             price instead, full width. */}
         <div className="mt-auto flex flex-col gap-2 pt-2 @min-[15.5rem]:flex-row @min-[15.5rem]:items-center @min-[15.5rem]:justify-between">
           <p
-            className={`shrink-0 font-bold tabular-nums ${raised ? "text-[#8f4710]" : "text-neutral-950"} ${
+            className={`shrink-0 font-bold tabular-nums text-[#8f4710] ${
               compact ? "text-xs" : "text-sm"
             }`}
           >
@@ -108,9 +108,9 @@ export default function ProductCard({
               onClick={(e) => onAddToCart(e, appliance)}
               disabled={added}
               // Above the stretched anchor, so Add to Cart stays a button.
-              className={`relative z-10 inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition active:scale-[0.98] @min-[15.5rem]:w-auto ${
+              className={`relative z-10 inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition active:scale-[0.98] @min-[15.5rem]:w-auto ${focusRing} ${
                 added
-                  ? "bg-emerald-500 text-white"
+                  ? "bg-emerald-700 text-white"
                   : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
               }`}
             >

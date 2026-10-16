@@ -2,7 +2,9 @@
 
 :root {
   --transition-smooth: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  --bg: #fafafa;
+  /* The hero's background, site-wide: every page sits on it and every panel
+     on it is white (see app/components/homeSurfaces.ts). */
+  --bg: #edeff3;
   --fg: #171717;
   --surface: #ffffff;
   --surface-2: #f5f5f5;
@@ -39,4 +41,87 @@ body {
   display: block;
   font-size: 0.875rem;
   line-height: 1.25rem;
+}
+
+/*
+ * The rest of a pasted HTML description. Tailwind's reset strips list bullets,
+ * heading sizes and table borders, and the sanitiser lets all of them through,
+ * so without these a spec sheet arrived as one undifferentiated block.
+ */
+.product-description :is(h1, h2, h3, h4, h5, h6) {
+  margin: 1.5rem 0 0.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #0a0a0a;
+}
+.product-description :is(h1, h2) {
+  font-size: 1.125rem;
+}
+.product-description :is(h3, h4, h5, h6) {
+  font-size: 1rem;
+}
+.product-description > :first-child {
+  margin-top: 0;
+}
+.product-description :is(ul, ol) {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.product-description ul {
+  list-style: disc;
+}
+.product-description ol {
+  list-style: decimal;
+}
+.product-description li + li {
+  margin-top: 0.25rem;
+}
+.product-description li::marker {
+  color: #a85414;
+}
+.product-description a {
+  font-weight: 600;
+  color: #8f4710;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/*
+ * A table is its own horizontal scroller: on a 360px phone a wide spec table
+ * scrolls inside itself, never the page. display:block is what lets a table
+ * scroll; width:max-content keeps a narrow table at its natural width.
+ */
+.product-description table {
+  display: block;
+  max-width: 100%;
+  width: max-content;
+  overflow-x: auto;
+  margin: 0 0 1rem;
+  border: 1px solid #dce0e7;
+  border-radius: 0.75rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+.product-description :is(th, td) {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #dce0e7;
+  text-align: left;
+  vertical-align: top;
+}
+.product-description tr:last-child > :is(th, td) {
+  border-bottom: 0;
+}
+.product-description th,
+.product-description thead td {
+  background: #f6f7f9;
+  font-weight: 600;
+  color: #0a0a0a;
+}
+.product-description caption {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
 }

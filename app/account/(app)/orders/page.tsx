@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { formatPrice } from "../../../lib/formatPrice";
+import { panelHeading, raisedSurface, textLink } from "../../../components/homeSurfaces";
 import { getCurrentUser, listOrdersForUser } from "../../../lib/users.server";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -25,30 +26,30 @@ export default async function AccountOrdersPage() {
 
   return (
     <div>
-      <h2 className="text-sm font-black uppercase tracking-wider text-neutral-900">Order history</h2>
+      <h2 className={`${panelHeading} text-xl`}>Order history</h2>
       {orders.length === 0 ? (
-        <p className="mt-4 text-xs text-neutral-500">You haven&apos;t placed any orders yet.</p>
+        <p className="mt-4 text-sm text-neutral-600">You haven&apos;t placed any orders yet.</p>
       ) : (
         <ul className="mt-6 space-y-4">
           {orders.map((order) => (
-            <li key={order.trackingId} className="rounded-2xl border border-neutral-200/60 bg-white p-5">
-              <div className="flex flex-wrap justify-between gap-2 text-xs">
-                <span className="font-mono font-bold text-emerald-600">{order.trackingId}</span>
+            <li key={order.trackingId} className={`${raisedSurface} p-5`}>
+              <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span className="font-mono font-bold text-[#8f4710]">{order.trackingId}</span>
                 <Link
                   href={`/track-order?id=${encodeURIComponent(order.trackingId)}`}
-                  className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 hover:text-neutral-900"
+                  className={`inline-flex min-h-11 items-center ${textLink}`}
                 >
                   Track status →
                 </Link>
               </div>
-              <p className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
+              <p className="mt-1 text-sm font-medium text-neutral-700">
                 {STATUS_LABELS[order.status] ?? order.status}
-                <span className="mx-2 text-neutral-300">·</span>
+                <span aria-hidden="true" className="mx-2 text-neutral-500">·</span>
                 {PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}
-                <span className="mx-2 text-neutral-300">·</span>
+                <span aria-hidden="true" className="mx-2 text-neutral-500">·</span>
                 {new Date(order.orderDate).toLocaleDateString("en-KE")}
               </p>
-              <ul className="mt-3 divide-y divide-neutral-100 text-xs text-neutral-600">
+              <ul className="mt-3 divide-y divide-[#DCE0E7] text-sm text-neutral-700">
                 {order.items.map((item) => (
                   <li key={`${order.trackingId}-${item.name}`} className="flex justify-between py-2">
                     <span>{item.name} × {item.qty}</span>
@@ -56,7 +57,7 @@ export default async function AccountOrdersPage() {
                   </li>
                 ))}
               </ul>
-              <p className="mt-3 text-right text-xs font-bold text-neutral-900">
+              <p className="mt-3 text-right text-sm font-semibold tabular-nums text-neutral-950">
                 Total {formatPrice(order.total)}
               </p>
             </li>

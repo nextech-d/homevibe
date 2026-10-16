@@ -5,7 +5,8 @@ import { type Brand } from "../data/brands";
 import ProductCard from "./ProductCard";
 import { useAddToCart } from "../hooks/useAddToCart";
 import { type CatalogProduct } from "../lib/inventory";
-import { ChevronRight } from "lucide-react";
+import Breadcrumbs from "./Breadcrumbs";
+import { pageHeading, primaryButton, raisedSurface } from "./homeSurfaces";
 
 type BrandCatalogProps = {
   brand: Brand;
@@ -17,40 +18,29 @@ export default function BrandCatalog({ brand, products }: BrandCatalogProps) {
   const { handleAddToCart, addedIds } = useAddToCart();
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
-      <div className="mx-auto max-w-7xl px-6 py-10">
-        <nav className="mb-8 flex items-center gap-2 text-xs font-semibold text-neutral-500">
-          <Link href="/" className="transition hover:text-neutral-900">
-            Home
-          </Link>
-          <ChevronRight className="h-3 w-3" />
-          <span className="text-neutral-900">{brand.name}</span>
-        </nav>
+    <div className="min-h-screen pb-24">
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <Breadcrumbs className="mb-6" items={[{ label: "Home", href: "/" }, { label: brand.name }]} />
 
-        <div className="mb-10 text-center">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
-            {brand.origin} · {brand.tier === "signature" ? "Top Brand" : "Partner Brand"}
-          </span>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-black md:text-4xl">
-            {brand.name}
-          </h1>
-          <p className="mx-auto mt-3 max-w-lg text-sm text-black/60">
+        <header className="mb-8">
+          <p className="text-sm font-medium text-neutral-600">
+            {brand.origin} · {brand.tier === "signature" ? "Top brand" : "Partner brand"}
+          </p>
+          <h1 className={`mt-1 ${pageHeading}`}>{brand.name}</h1>
+          <p className="mt-3 max-w-[60ch] text-base leading-relaxed text-neutral-600">
             Browse {products.length} {products.length === 1 ? "product" : "products"} from{" "}
             {brand.name} available at HomeVibe.
           </p>
-        </div>
+        </header>
 
         {products.length === 0 ? (
-          <div className="rounded-3xl border border-neutral-200/60 bg-white py-20 text-center">
-            <h3 className="text-sm font-bold text-neutral-800">No products yet</h3>
-            <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-neutral-500">
+          <div className={`${raisedSurface} px-6 py-16 text-center`}>
+            <h2 className="text-lg font-semibold text-neutral-950">No products yet</h2>
+            <p className="mx-auto mt-1 max-w-xs text-sm leading-relaxed text-neutral-600">
               We&apos;re adding {brand.name} items soon. Check back or browse all products.
             </p>
-            <Link
-              href="/#featured-products"
-              className="mt-6 inline-block rounded-full bg-neutral-900 px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-white hover:bg-black"
-            >
-              View Featured Products
+            <Link href="/#featured-products" className={`mt-6 ${primaryButton}`}>
+              View featured products
             </Link>
           </div>
         ) : (

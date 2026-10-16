@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { raisedSurface, sectionHeading } from "./homeSurfaces";
 
 /**
  * The handful of things worth knowing about a product before reading its
@@ -16,20 +17,18 @@ export default function ProductHighlights({ items }: { items: string[] }) {
   if (highlights.length === 0) return null;
 
   return (
-    <section className="mt-24 w-full border-t border-neutral-300/70 pt-12">
-      <h2 className="mb-8 text-2xl font-bold tracking-tight text-neutral-950">
-        Worth knowing
-      </h2>
+    <section className="mt-20 w-full">
+      <h2 className={`mb-6 ${sectionHeading}`}>Worth knowing</h2>
       {/* Two columns from md up, matching the questions below: a stack of
           short lines wastes the width the rest of the page uses. */}
-      <ul className="grid list-none grid-cols-1 gap-3 pl-0 md:grid-cols-2">
+      <ul className="grid list-none grid-cols-1 gap-4 pl-0 md:grid-cols-2">
         {highlights.map((highlight) => (
           <li
             key={highlight}
-            className="flex items-start gap-3 rounded-xl border border-neutral-200 bg-white p-4 shadow-sm"
+            className={`${raisedSurface} flex items-start gap-3 p-5`}
           >
-            <Check size={16} className="mt-0.5 shrink-0 text-emerald-600" aria-hidden />
-            <span className="text-sm leading-relaxed text-neutral-800">{highlight}</span>
+            <Check size={16} className="mt-1 shrink-0 text-[#a85414]" aria-hidden />
+            <span className="text-base leading-relaxed text-neutral-800">{highlight}</span>
           </li>
         ))}
       </ul>

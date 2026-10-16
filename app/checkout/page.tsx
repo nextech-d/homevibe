@@ -16,6 +16,16 @@ import {
   getOrCreateCheckoutIdempotencyKey,
 } from "../lib/checkout-idempotency";
 import { PIXEL_CURRENCY, pixelContentId, pixelContents, trackPixel } from "../lib/pixel";
+import {
+  fieldCheckbox,
+  fieldInput,
+  fieldLabel,
+  focusRing,
+  panelHeading,
+  primaryButton,
+  raisedSurface,
+  secondaryButton,
+} from "../components/homeSurfaces";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -164,100 +174,113 @@ export default function CheckoutPage() {
 
   if (!hydrated && step !== 2) {
     return (
-      <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
-        <p className="text-xs font-bold uppercase tracking-wider text-neutral-400">Loading checkout...</p>
+      <div className="flex min-h-screen items-center justify-center">
+        <p role="status" className="text-sm font-medium text-neutral-600">Loading checkout…</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] transition-colors duration-300 pb-24">
-      <div className="mx-auto max-w-4xl px-6 py-12">
+    <div className="min-h-screen pb-24">
+      <div className="mx-auto max-w-5xl px-6 py-10">
         <DemoModeBanner className="mb-8" />
 
         {step === 1 && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-            <form onSubmit={handlePlaceOrder} className="lg:col-span-7 bg-white border border-neutral-200/60 rounded-3xl p-6 md:p-8 space-y-6 transition-colors">
-              <h2 className="text-sm uppercase tracking-wider font-black text-neutral-900 pb-3 border-b border-neutral-100">
-                Delivery Details
-              </h2>
+          <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
+            <form onSubmit={handlePlaceOrder} className={`${raisedSurface} space-y-6 p-6 md:p-8 lg:col-span-7`}>
+              <h1 className={`border-b border-[#DCE0E7] pb-4 ${panelHeading} text-xl`}>Delivery details</h1>
 
               {deliveryError && (
-                <p className="text-xs font-semibold text-red-600">{deliveryError}</p>
+                <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
+                  {deliveryError}
+                </p>
               )}
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1.5">Full Name *</label>
+                  <label htmlFor="checkout-name" className={fieldLabel}>Full name *</label>
                   <input
+                    id="checkout-name"
                     type="text"
+                    autoComplete="name"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter your name"
-                    className="w-full rounded-xl border border-neutral-300 bg-transparent px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 text-neutral-900"
+                    className={fieldInput}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                {/* Stacked on a phone: side by side at 360px each field was
+                    120px wide and clipped its own placeholder. */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1.5">Email Address *</label>
+                    <label htmlFor="checkout-email" className={fieldLabel}>Email address *</label>
                     <input
+                      id="checkout-email"
                       type="email"
+                      autoComplete="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@domain.com"
-                      className="w-full rounded-xl border border-neutral-300 bg-transparent px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 text-neutral-900"
+                      className={fieldInput}
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1.5">Phone Number *</label>
+                    <label htmlFor="checkout-phone" className={fieldLabel}>Phone number *</label>
                     <input
+                      id="checkout-phone"
                       type="tel"
+                      autoComplete="tel"
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+254 700 000 000"
-                      className="w-full rounded-xl border border-neutral-300 bg-transparent px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 text-neutral-900"
+                      className={fieldInput}
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1.5">Physical Address *</label>
+                  <label htmlFor="checkout-address" className={fieldLabel}>Physical address *</label>
                   <input
+                    id="checkout-address"
                     type="text"
+                    autoComplete="street-address"
                     required
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="Apartment suite, street address"
-                    className="w-full rounded-xl border border-neutral-300 bg-transparent px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 text-neutral-900"
+                    className={fieldInput}
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-neutral-400 mb-1.5">City *</label>
+                  <label htmlFor="checkout-city" className={fieldLabel}>City *</label>
                   <input
+                    id="checkout-city"
                     type="text"
+                    autoComplete="address-level2"
                     required
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    placeholder="e.g. Nairobi, Kampala"
-                    className="w-full rounded-xl border border-neutral-300 bg-transparent px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-neutral-900 text-neutral-900"
+                    placeholder="e.g. Nairobi, Mombasa"
+                    className={fieldInput}
                   />
                 </div>
               </div>
 
               {isLoggedIn && (
-                <label className="flex items-center gap-2 text-xs text-neutral-600">
+                <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm text-neutral-700">
                   <input
                     type="checkbox"
                     checked={saveAddress}
                     onChange={(e) => setSaveAddress(e.target.checked)}
+                    className={fieldCheckbox}
                   />
                   Save this address to my account
                 </label>
               )}
 
-              <p className="text-[11px] leading-relaxed text-neutral-500">
+              <p className="text-sm leading-relaxed text-neutral-600">
                 Payment is arranged after you order — we&apos;ll call or WhatsApp you to confirm
                 delivery and payment details. No card or M-Pesa is charged on this site yet.
               </p>
@@ -265,57 +288,53 @@ export default function CheckoutPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3.5 bg-neutral-900 text-white text-xs font-bold tracking-widest uppercase rounded-full hover:bg-black active:scale-[0.98] transition shadow-lg disabled:opacity-50"
+                className={`${primaryButton} h-12 w-full active:scale-[0.98]`}
               >
-                {loading ? "Placing order..." : "Place order"} <ArrowRight className="w-3.5 h-3.5" />
+                {loading ? "Placing order..." : "Place order"} <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </button>
             </form>
 
-            <div className="lg:col-span-5 space-y-6">
-              <div className="bg-neutral-100 border border-neutral-200/40 rounded-3xl p-6 transition-colors">
-                <div className="flex items-center justify-between pb-3 border-b border-neutral-200/60">
-                  <h3 className="text-xs uppercase tracking-wider font-black text-neutral-900">
-                    Your Order Summary
-                  </h3>
+            <div className="space-y-6 lg:col-span-5">
+              <div className={`${raisedSurface} p-6`}>
+                <div className="flex items-center justify-between border-b border-[#DCE0E7] pb-3">
+                  <h2 className={panelHeading}>Your order summary</h2>
                   <Link
                     href="/cart"
-                    className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 hover:text-neutral-900 transition"
+                    className={`-mr-2 inline-flex min-h-11 items-center rounded-full px-2 text-sm font-semibold text-[#8f4710] hover:underline ${focusRing}`}
                   >
                     Edit cart
                   </Link>
                 </div>
-                <div className="divide-y divide-neutral-200/40 py-2 max-h-56 overflow-y-auto">
+                <div className="max-h-56 divide-y divide-[#DCE0E7] overflow-y-auto py-2">
                   {items.map((item) => (
-                    <div key={item.id} className="flex justify-between py-3 items-center gap-2">
-                      <span className="text-xs text-neutral-600 truncate pr-3">
-                        {item.name} <span className="text-[10px] font-bold text-neutral-400">x{item.qty}</span>
+                    <div key={item.id} className="flex items-center justify-between gap-2 py-3">
+                      <span className="truncate pr-3 text-sm text-neutral-700">
+                        {item.name} <span className="text-xs font-semibold text-neutral-600">x{item.qty}</span>
                       </span>
-                      <span className="text-xs font-bold text-neutral-900 shrink-0">
+                      <span className="shrink-0 text-sm font-semibold tabular-nums text-neutral-950">
                         {formatPrice(item.price * item.qty)}
                       </span>
                     </div>
                   ))}
                 </div>
-                <div className="pt-4 border-t border-neutral-200/60 flex justify-between items-baseline">
-                  <span className="text-xs uppercase tracking-wider font-bold text-neutral-400">Order Total</span>
-                  <span className="text-xl font-black text-neutral-950">{formatPrice(total)}</span>
+                <div className="flex items-baseline justify-between border-t border-[#DCE0E7] pt-4">
+                  <span className="text-base font-semibold text-neutral-950">Order total</span>
+                  <span className="text-2xl font-semibold tabular-nums text-neutral-950">{formatPrice(total)}</span>
                 </div>
               </div>
 
-              <div className="bg-white border border-neutral-200/60 rounded-3xl p-6">
-                <h3 className="text-xs uppercase tracking-wider font-black text-neutral-900 pb-3 border-b border-neutral-100">
-                  Prefer WhatsApp?
-                </h3>
-                <p className="text-[10px] text-neutral-500 mt-2.5 leading-relaxed">
+              <div className={`${raisedSurface} p-6`}>
+                <h2 className={`border-b border-[#DCE0E7] pb-3 ${panelHeading}`}>Prefer WhatsApp?</h2>
+                <p className="mt-3 text-sm leading-relaxed text-neutral-600">
                   Send your order directly and our team will confirm availability and delivery.
                 </p>
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-4 flex items-center justify-center gap-2 w-full py-3 bg-transparent border-2 border-emerald-500 text-emerald-500 font-bold uppercase tracking-widest text-[9px] rounded-full hover:bg-emerald-500 hover:text-white transition active:scale-[0.95]"
+                  className={`${secondaryButton} mt-4 w-full active:scale-[0.98]`}
                 >
-                  <PhoneCall className="w-3.5 h-3.5" /> Order on WhatsApp
+                  <PhoneCall aria-hidden="true" className="h-4 w-4" /> Order on WhatsApp
                 </a>
               </div>
             </div>
@@ -323,59 +342,49 @@ export default function CheckoutPage() {
         )}
 
         {step === 2 && (
-          <div className="max-w-md mx-auto text-center bg-white border border-neutral-200/60 rounded-3xl p-8 shadow-xl transition-colors py-16 animate-in fade-in zoom-in-95 duration-300">
-            <CheckCircle className="w-16 h-16 text-neutral-950 stroke-[1.25] mx-auto mb-6 animate-bounce" />
-            <h2 className="text-xl md:text-2xl font-black text-neutral-900 uppercase tracking-tight">Order placed!</h2>
-            <p className="text-xs text-neutral-500 mt-2 leading-relaxed">
-              Thanks, <span className="font-semibold text-neutral-800">{name}</span>. We&apos;ve saved your order and will be in touch soon.
+          <div className={`${raisedSurface} mx-auto max-w-md px-6 py-12 text-center sm:px-8`}>
+            <CheckCircle aria-hidden="true" className="mx-auto mb-6 h-14 w-14 stroke-[1.25] text-emerald-700" />
+            <h1 className="text-2xl font-medium tracking-tight text-neutral-950 md:text-3xl">Order placed!</h1>
+            <p className="mt-2 text-base leading-relaxed text-neutral-600">
+              Thanks, <span className="font-semibold text-neutral-950">{name}</span>. We&apos;ve saved your order and will be in touch soon.
             </p>
 
             {SITE.demoMode && <DemoModeBanner variant="checkout-success" className="mt-4" />}
 
-            <div className="bg-neutral-50 rounded-2xl p-5 border border-neutral-100 my-8 text-left text-xs font-semibold text-neutral-600 space-y-2">
-              <div className="flex justify-between">
-                <span>Name</span>
-                <span className="text-neutral-900">{name}</span>
+            <dl className="my-8 space-y-2 rounded-xl border border-[#DCE0E7] bg-[#F6F7F9] p-5 text-left text-sm text-neutral-700">
+              <div className="flex justify-between gap-4">
+                <dt>Name</dt>
+                <dd className="font-semibold text-neutral-950">{name}</dd>
               </div>
-              <div className="flex justify-between">
-                <span>Order reference</span>
-                <span className="text-emerald-600 font-bold font-mono tracking-wider">{trackingId}</span>
+              <div className="flex justify-between gap-4">
+                <dt>Order reference</dt>
+                <dd className="font-mono font-bold tracking-wider text-[#8f4710]">{trackingId}</dd>
               </div>
-              <div className="flex justify-between">
-                <span>Delivery</span>
-                <span className="text-neutral-900 truncate max-w-[200px]">{address}, {city}</span>
+              <div className="flex justify-between gap-4">
+                <dt>Delivery</dt>
+                <dd className="max-w-[200px] truncate font-semibold text-neutral-950">{address}, {city}</dd>
               </div>
-              <div className="flex justify-between border-t border-neutral-200/60 pt-2 mt-2">
-                <span className="text-neutral-400">Total</span>
-                <span className="text-neutral-900 font-bold">{formatPrice(orderTotal)}</span>
+              <div className="mt-2 flex justify-between gap-4 border-t border-[#DCE0E7] pt-2">
+                <dt>Total</dt>
+                <dd className="font-semibold tabular-nums text-neutral-950">{formatPrice(orderTotal)}</dd>
               </div>
-            </div>
+            </dl>
 
-            <p className="text-[10px] text-neutral-400 mb-6 leading-relaxed max-w-xs mx-auto">
-              Save your reference <span className="font-mono font-bold text-neutral-600">{trackingId}</span> to
-              track status anytime. We&apos;ll also call or WhatsApp you at{" "}
-              <span className="font-bold">{phone}</span> within 2 hours.
+            <p className="mx-auto mb-6 max-w-xs text-sm leading-relaxed text-neutral-600">
+              Save your reference <span className="font-mono font-bold text-neutral-950">{trackingId}</span> to
+              track status anytime. We&apos;ll call you to confirm your order.
             </p>
 
             <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <Link
-                href={`/track-order?id=${encodeURIComponent(trackingId)}`}
-                className="inline-block px-8 py-3 bg-emerald-600 text-white text-xs font-bold tracking-widest uppercase rounded-full hover:bg-emerald-700 transition active:scale-95 shadow-md"
-              >
+              <Link href={`/track-order?id=${encodeURIComponent(trackingId)}`} className={primaryButton}>
                 Track order
               </Link>
               {isLoggedIn && (
-                <Link
-                  href="/account/orders"
-                  className="inline-block px-8 py-3 border border-neutral-300 text-neutral-700 text-xs font-bold tracking-widest uppercase rounded-full hover:border-neutral-900 hover:text-neutral-900 transition active:scale-95"
-                >
+                <Link href="/account/orders" className={secondaryButton}>
                   My orders
                 </Link>
               )}
-              <Link
-                href="/"
-                className="inline-block px-8 py-3 bg-neutral-900 text-white text-xs font-bold tracking-widest uppercase rounded-full hover:bg-black transition active:scale-95 shadow-md"
-              >
+              <Link href="/" className={secondaryButton}>
                 Return home
               </Link>
             </div>

@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { raisedSurface } from "./homeSurfaces";
 
 /**
  * The same promise on all 117 product pages, so it lives in the template
@@ -12,7 +13,7 @@ const POINTS = [
   },
   {
     lead: "We service what we sell.",
-    body: "Twelve months from us, with our own technicians, at your home or our workshop. Where a brand adds a longer manufacturer warranty, the product page says so. No third-party service centre to chase.",
+    body: "Twelve months from us, with our own technicians. Where a brand adds a longer manufacturer warranty, the product page says so. No third-party service centre to chase.",
   },
   {
     lead: "We stock the parts.",
@@ -28,15 +29,15 @@ const CLOSER = "Genuine units, sourced directly from the manufacturer.";
 
 export default function WhyBuyFromUs() {
   return (
-    // Bordered and on the surface colour so it reads as the shop talking, not
-    // as another section of the product's own copy.
+    // Its own panel, apart from the description, so it reads as the shop
+    // talking rather than as another section of the product's own copy.
     <section
       aria-labelledby="why-buy-from-us"
-      className="mt-10 rounded-2xl border border-neutral-200/80 bg-[color:var(--surface)] p-6 sm:p-8"
+      className={`${raisedSurface} mt-8 p-6 sm:p-10`}
     >
       <h2
         id="why-buy-from-us"
-        className="text-lg font-bold tracking-tight text-neutral-950 sm:text-xl"
+        className="text-xl font-medium tracking-tight text-neutral-950 sm:text-2xl"
       >
         Why buy from us
       </h2>
@@ -44,8 +45,8 @@ export default function WhyBuyFromUs() {
       <ul className="mt-5 space-y-4">
         {POINTS.map((point) => (
           <li key={point.lead} className="flex gap-3">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-neutral-900" aria-hidden="true" />
-            <p className="text-sm leading-relaxed text-neutral-700">
+            <Check className="mt-1 h-4 w-4 shrink-0 text-[#a85414]" aria-hidden="true" />
+            <p className="text-base leading-relaxed text-neutral-700">
               <strong className="font-semibold text-neutral-950">{point.lead}</strong>{" "}
               {point.body}
             </p>
@@ -53,7 +54,7 @@ export default function WhyBuyFromUs() {
         ))}
       </ul>
 
-      <p className="mt-6 border-t border-neutral-200/80 pt-4 text-sm font-semibold text-neutral-950">
+      <p className="mt-6 border-t border-[#DCE0E7] pt-4 text-base font-semibold text-neutral-950">
         {CLOSER}
       </p>
     </section>

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Minus, Plus } from "lucide-react";
+import { focusRing } from "./homeSurfaces";
 
 type QuantitySelectorProps = {
   qty: number;
@@ -23,27 +24,33 @@ export default function QuantitySelector({
 
   if (variant === "pill") {
     return (
-      <div className="flex h-11 w-28 shrink-0 items-center overflow-hidden rounded-full border-2 border-neutral-900 bg-transparent">
+      // 48px tall to sit level with the buttons beside it; each half is a
+      // 44px-wide target with its own focus ring, drawn inside the pill.
+      <div className="flex h-12 w-32 shrink-0 items-center rounded-full border border-[#7D8594] bg-white">
         <button
           type="button"
           onClick={decrement}
           disabled={qty <= min}
-          className="flex h-full w-10 items-center justify-center text-neutral-900 transition hover:bg-neutral-200 disabled:opacity-40"
+          className={`flex h-full w-11 items-center justify-center rounded-l-full text-neutral-900 transition hover:bg-[#F6F7F9] disabled:opacity-40 focus-visible:outline-offset-[-2px] ${focusRing}`}
           aria-label="Decrease quantity"
         >
-          <Minus size={14} />
+          <Minus size={16} aria-hidden="true" />
         </button>
-        <div className="flex h-full flex-1 items-center justify-center text-sm font-bold text-neutral-900">
+        <div
+          aria-live="polite"
+          aria-label={`Quantity ${qty}`}
+          className="flex h-full flex-1 items-center justify-center text-base font-semibold tabular-nums text-neutral-950"
+        >
           {qty}
         </div>
         <button
           type="button"
           onClick={increment}
           disabled={qty >= max}
-          className="flex h-full w-10 items-center justify-center text-neutral-900 transition hover:bg-neutral-200 disabled:opacity-40"
+          className={`flex h-full w-11 items-center justify-center rounded-r-full text-neutral-900 transition hover:bg-[#F6F7F9] disabled:opacity-40 focus-visible:outline-offset-[-2px] ${focusRing}`}
           aria-label="Increase quantity"
         >
-          <Plus size={14} />
+          <Plus size={16} aria-hidden="true" />
         </button>
       </div>
     );

@@ -1,5 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import AccountTabs from "./AccountTabs";
+import { pageHeading } from "../../components/homeSurfaces";
 import { getCurrentUser } from "../../lib/users.server";
 
 export default async function AccountAppLayout({
@@ -12,23 +13,13 @@ export default async function AccountAppLayout({
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-neutral-200 pb-6">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-[#DCE0E7] pb-6">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">My account</p>
-          <h1 className="text-lg font-black text-neutral-900">{user.name}</h1>
-          <p className="text-xs text-neutral-500">{user.email}</p>
+          <p className="text-sm font-medium text-neutral-600">My account</p>
+          <h1 className={`mt-1 ${pageHeading}`}>{user.name}</h1>
+          <p className="mt-1 text-sm text-neutral-600">{user.email}</p>
         </div>
-        <nav className="flex gap-2">
-          <Link href="/account" className="rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-100">
-            Overview
-          </Link>
-          <Link href="/account/orders" className="rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-100">
-            Orders
-          </Link>
-          <Link href="/account/addresses" className="rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-100">
-            Addresses
-          </Link>
-        </nav>
+        <AccountTabs />
       </div>
       {children}
     </div>

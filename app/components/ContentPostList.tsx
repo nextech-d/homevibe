@@ -6,11 +6,17 @@ import {
   type ContentPostData,
 } from "../lib/content.server";
 import { formatContentDate } from "../lib/markdown";
+import { focusRing, pageHeading, raisedSurface, textLink } from "./homeSurfaces";
 
 function PostCard({ post }: { post: ContentPostData }) {
   return (
-    <article className="group rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm transition hover:border-neutral-300 hover:shadow-md">
-      <div className="flex flex-wrap items-center gap-2 text-xs font-medium uppercase tracking-wider text-neutral-500">
+    // One link per card, stretched over it, as the product cards do: the title
+    // and "Read more" used to be two tab stops to the same page. The ring goes
+    // round the card when that link has keyboard focus.
+    <article
+      className={`${raisedSurface} group relative p-6 transition-colors hover:border-[#c9ced8] has-[.card-link:focus-visible]:outline-2 has-[.card-link:focus-visible]:outline-offset-2 has-[.card-link:focus-visible]:outline-[#a85414] sm:p-8`}
+    >
+      <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-600">
         {post.publishedAt && <time dateTime={post.publishedAt}>{formatContentDate(post.publishedAt)}</time>}
         {post.author && (
           <>
@@ -19,20 +25,20 @@ function PostCard({ post }: { post: ContentPostData }) {
           </>
         )}
       </div>
-      <h2 className="mt-3 text-xl font-semibold text-neutral-900 group-hover:text-emerald-700">
-        <Link href={contentPostPath(post.type, post.slug)} className="hover:underline">
+      <h2 className="mt-2 text-xl font-semibold tracking-tight text-neutral-950 md:text-2xl">
+        <Link
+          href={contentPostPath(post.type, post.slug)}
+          className="card-link after:absolute after:inset-0 group-hover:underline focus-visible:outline-none"
+        >
           {post.title}
         </Link>
       </h2>
       {post.excerpt && (
-        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-neutral-600">{post.excerpt}</p>
+        <p className="mt-3 line-clamp-3 text-base leading-relaxed text-neutral-600">{post.excerpt}</p>
       )}
-      <Link
-        href={contentPostPath(post.type, post.slug)}
-        className="mt-4 inline-flex text-sm font-semibold text-emerald-600 hover:text-emerald-700"
-      >
+      <span aria-hidden="true" className="mt-4 inline-flex text-sm font-semibold text-[#8f4710]">
         Read more →
-      </Link>
+      </span>
     </article>
   );
 }
@@ -49,40 +55,43 @@ export default async function ContentPostList({
   const posts = await listPublishedPosts(type);
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen pb-24">
       <div className="mx-auto max-w-4xl px-6 py-12">
-        <header className="mb-10 text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-neutral-500">HomeVibe</p>
-          <h1 className="mt-2 text-4xl font-light tracking-tight text-neutral-900">{title}</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-neutral-600">{description}</p>
+        <header className="mb-8">
+          <p className="text-sm font-medium text-neutral-600">HomeVibe</p>
+          <h1 className={`mt-1 ${pageHeading}`}>{title}</h1>
+          <p className="mt-3 max-w-2xl text-base leading-relaxed text-neutral-600">{description}</p>
         </header>
 
         {posts.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center">
-            <p className="text-neutral-600">No published posts yet. Check back soon.</p>
-            <Link href="/" className="mt-4 inline-block text-sm font-semibold text-emerald-600 hover:underline">
+          <div className={`${raisedSurface} px-6 py-16 text-center`}>
+            <p className="text-base text-neutral-700">No published posts yet. Check back soon.</p>
+            <Link href="/" className={`mt-4 inline-flex min-h-11 items-center text-sm ${textLink}`}>
               Back to home
             </Link>
           </div>
         ) : (
-          <div className="grid gap-6">
+          <div className="grid gap-5">
             {posts.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
           </div>
         )}
 
-        <div className="mt-10 text-center">
-          <Link href="/" className="text-sm font-medium text-neutral-500 hover:text-neutral-900">
+        <div className="mt-10 flex items-center justify-center gap-3 text-sm">
+          <Link
+            href="/"
+            className={`inline-flex min-h-11 items-center rounded-sm font-medium text-neutral-700 hover:text-neutral-950 hover:underline ${focusRing}`}
+          >
             ← Home
           </Link>
-          <span className="mx-3 text-neutral-300">|</span>
+          <span aria-hidden="true" className="text-neutral-500">|</span>
           {type === "blog" ? (
-            <Link href="/articles" className="text-sm font-medium text-emerald-600 hover:underline">
+            <Link href="/articles" className={`inline-flex min-h-11 items-center ${textLink}`}>
               Guides & articles
             </Link>
           ) : (
-            <Link href="/blog" className="text-sm font-medium text-emerald-600 hover:underline">
+            <Link href="/blog" className={`inline-flex min-h-11 items-center ${textLink}`}>
               Blog
             </Link>
           )}

@@ -29,10 +29,7 @@ export default async function Home() {
   const featured = featuredSelection(candidates, featuredColumns).map(toCatalogProduct);
 
   return (
-    // The hero's #EDEFF3 runs the whole homepage, so the hero is part of the
-    // page rather than a band across it. Homepage only: --bg stays #FAFAFA on
-    // every other page.
-    <div className="relative min-h-screen bg-[#EDEFF3] font-sans">
+    <div className="relative min-h-screen font-sans">
       <FaqJsonLd items={faqItems} />
       <main className="mx-auto max-w-7xl px-6 py-12">
         <HomeHero />
