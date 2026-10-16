@@ -18,10 +18,16 @@ export default function FeaturedProductsGrid({
 }: FeaturedProductsGridProps) {
   const featured = inventory.filter((item) => item.isFeatured);
   if (featured.length > 0) {
+    // Flex rather than grid so a short last row - nine products across four
+    // columns - sits centred instead of leaving one card stranded on the left.
+    // The widths are the grid's: two across (one gap), four across from lg.
     return (
-      <div className="grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4">
+      <div className="flex flex-wrap justify-center gap-x-5 gap-y-8">
         {featured.map((appliance) => (
-          <div key={appliance.id} className={itemClassName}>
+          <div
+            key={appliance.id}
+            className={`${itemClassName} basis-[calc((100%-1.25rem)/2)] lg:basis-[calc((100%-3.75rem)/4)]`}
+          >
             {renderItem(appliance)}
           </div>
         ))}

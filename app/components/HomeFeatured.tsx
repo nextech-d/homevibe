@@ -29,6 +29,7 @@ export default function HomeFeatured({
           appliance={appliance}
           onAddToCart={handleAddToCart}
           added={addedIds[appliance.id]}
+          raised
         />
       )}
     />

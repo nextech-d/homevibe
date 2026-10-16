@@ -50,10 +50,10 @@ export const SITE_SETTING_KEYS = [
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   name: "HomeVibe",
   tagline: "Kitchen & gym gear you can trust",
-  email: "hello@homevibe.co.ke",
+  email: "Homevibekenya@gmail.com",
   phone: "+254 182 230 250",
   whatsapp: "254182230250",
-  region: "East & Central Africa",
+  region: "Kenya",
   city: "Nairobi",
   facebookUrl: "https://facebook.com/homevibe",
   instagramUrl: "https://instagram.com/homevibe",

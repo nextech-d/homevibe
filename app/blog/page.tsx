@@ -5,7 +5,7 @@ import { buildPageMetadata } from "../lib/seo";
 export const metadata: Metadata = buildPageMetadata({
   title: "Blog",
   description:
-    "News, tips, and updates from HomeVibe — kitchen and gym gear in Nairobi and East Africa.",
+    "News, tips, and updates from HomeVibe — kitchen and gym gear in Nairobi and across Kenya.",
   path: "/blog",
 });
 

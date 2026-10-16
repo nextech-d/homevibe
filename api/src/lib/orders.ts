@@ -1,4 +1,5 @@
 import { randomInt } from "node:crypto";
+import { waitUntil } from "@vercel/functions";
 import type { OrderStatus, PaymentStatus } from "@prisma/client";
 import type { CartItem } from "../types.js";
 import { getPrisma } from "./db.js";
@@ -324,7 +325,9 @@ export async function createOrder(payload: OrderPayload) {
     items: resolvedItems,
   };
 
-  void sendOrderEmails(result);
+  // waitUntil, not void: Vercel can freeze the function once it has answered,
+  // cutting off a send that is still in flight.
+  waitUntil(sendOrderEmails(result));
 
   return result;
 }
@@ -508,12 +511,12 @@ export async function updateOrder(
   });
 
   if (updates.status && updates.status !== existing.status) {
-    void sendOrderStatusEmail({
+    waitUntil(sendOrderStatusEmail({
       trackingId: order.trackingId,
       status: statusLabel(order.status),
       customerName: order.customerName,
       customerEmail: order.customerEmail,
-    });
+    }));
   }
 
   return mapOrderToAdmin(order);
