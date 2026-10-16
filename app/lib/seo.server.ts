@@ -4,6 +4,8 @@ import { cache } from "react";
 
 import { SITE } from "../config/site";
 import { getPrisma } from "./db";
+import { DEFAULT_OG_IMAGE, HOMEPAGE_DESCRIPTION, HOMEPAGE_TITLE_SUFFIX } from "./seo";
+import { absoluteUrl } from "./site-url";
 import { getSiteSettingsData, type SiteSettingsData } from "./storefront.server";
 
 export type SeoSettingsData = {
@@ -73,14 +75,9 @@ export async function getSeoContext(): Promise<SeoContext> {
   const [site, seo] = await Promise.all([getSiteSettingsData(), getSeoSettingsData()]);
   const siteName = site.name.trim() || SITE.name;
 
-  const homepageTitle =
-    seo.homepageTitle.trim() || `${siteName} — Home & Gym Appliances`;
-
-  const homepageDescription =
-    seo.homepageDescription.trim() ||
-    `${site.tagline || SITE.tagline}. Shop kitchen and gym equipment in ${site.city || SITE.city} with free delivery, installation help, and M-Pesa across ${site.region || SITE.region}.`;
-
-  const defaultOgImage = seo.defaultOgImageUrl.trim() || undefined;
+  const homepageTitle = seo.homepageTitle.trim() || `${siteName} | ${HOMEPAGE_TITLE_SUFFIX}`;
+  const homepageDescription = seo.homepageDescription.trim() || HOMEPAGE_DESCRIPTION;
+  const defaultOgImage = seo.defaultOgImageUrl.trim() || absoluteUrl(DEFAULT_OG_IMAGE.path);
   const googleSiteVerification = seo.googleSiteVerification.trim() || undefined;
 
   return {
