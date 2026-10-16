@@ -73,7 +73,7 @@ export default async function ContentPostDetail({
   return (
     <div className="min-h-screen pb-24">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
-      <div className="mx-auto max-w-3xl px-6 py-8">
+      <div className="mx-auto max-w-7xl px-6 py-8">
         <Breadcrumbs
           className="mb-6"
           items={[

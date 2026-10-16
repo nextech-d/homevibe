@@ -13,6 +13,14 @@
 export const raisedSurface =
   "rounded-2xl border border-[#DCE0E7] bg-white shadow-[-4px_-4px_12px_rgba(255,255,255,0.9),4px_4px_14px_rgba(112,122,142,0.2)]";
 
+/**
+ * raisedSurface from 640px up only: on a phone the homepage's sections sit on
+ * the page, so their cards keep the full width. Spelled out, not derived from
+ * raisedSurface, because Tailwind only generates classes it finds written.
+ */
+export const raisedSurfaceFromSm =
+  "sm:rounded-2xl sm:border sm:border-[#DCE0E7] sm:bg-white sm:shadow-[-4px_-4px_12px_rgba(255,255,255,0.9),4px_4px_14px_rgba(112,122,142,0.2)]";
+
 /** A tinted strip or nested box inside a white panel: an order summary's rows, a table header. */
 export const insetSurface = "rounded-xl border border-[#DCE0E7] bg-[#F6F7F9]";
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { brandHref, type Brand } from "../data/brands";
 import { useInventory } from "../context/ProductsContext";
 import { useNavBrands } from "../context/BrandsContext";
-import { focusRing, raisedSurface, sectionHeading } from "./homeSurfaces";
+import { focusRing, raisedSurface, raisedSurfaceFromSm, sectionHeading } from "./homeSurfaces";
 
 function productCountForBrand(brandName: string, inventory: { brand: string }[]): number {
   return inventory.filter((p) => p.brand.toLowerCase() === brandName.toLowerCase()).length;
@@ -46,7 +46,7 @@ export default function FeaturedBrands() {
   const partnerChips = brands.filter((brand) => !brand.isFeatured);
 
   return (
-    <section id="featured-brands" className="mt-20">
+    <section id="featured-brands" className={`${raisedSurfaceFromSm} mt-20 sm:px-10 sm:py-10`}>
       <h2 className={`mb-6 ${sectionHeading}`}>Brands we stock</h2>
 
       {/* No featured brands, no grid: an empty one still left its gap above
