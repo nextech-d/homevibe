@@ -10,6 +10,7 @@ import { formatPrice } from "../lib/formatPrice";
 import { productWhatsAppUrl } from "../lib/whatsapp";
 import { useWhatsAppNumber } from "../context/WhatsAppContext";
 import WhatsAppIcon from "./WhatsAppIcon";
+import { raisedSurface } from "./homeSurfaces";
 import {
   getProductCardImage,
   PRODUCT_IMAGE_SIZES,
@@ -21,6 +22,8 @@ type ProductCardProps = {
   added?: boolean;
   compact?: boolean;
   imageSizes?: string;
+  /** The homepage's look: a white panel with the hero's hairline and soft shadow, and the price in the accent. */
+  raised?: boolean;
 };
 
 export default function ProductCard({
@@ -29,13 +32,17 @@ export default function ProductCard({
   added = false,
   compact = false,
   imageSizes = PRODUCT_IMAGE_SIZES.card,
+  raised = false,
 }: ProductCardProps) {
   const cardImage = getProductCardImage(appliance);
   const whatsappNumber = useWhatsAppNumber();
 
-  const cardShell = compact
-    ? "@container group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-3 shadow-sm transition hover:shadow-md"
-    : "@container group relative flex h-full w-full cursor-pointer flex-col overflow-hidden rounded-xl border border-neutral-100 bg-white pb-4 shadow-sm transition hover:shadow-md";
+  const surface = raised
+    ? `${raisedSurface} transition-colors hover:border-[#c9ced8]`
+    : "rounded-xl border border-neutral-100 bg-white shadow-sm transition hover:shadow-md";
+  const cardShell = `@container group relative flex h-full w-full cursor-pointer flex-col overflow-hidden ${surface} ${
+    compact ? "pb-3" : "pb-4"
+  }`;
 
   const contentPadding = compact ? "px-3" : "px-4";
 
@@ -89,7 +96,7 @@ export default function ProductCard({
             price instead, full width. */}
         <div className="mt-auto flex flex-col gap-2 pt-2 @min-[15.5rem]:flex-row @min-[15.5rem]:items-center @min-[15.5rem]:justify-between">
           <p
-            className={`shrink-0 font-bold tabular-nums text-neutral-950 ${
+            className={`shrink-0 font-bold tabular-nums ${raised ? "text-[#8f4710]" : "text-neutral-950"} ${
               compact ? "text-xs" : "text-sm"
             }`}
           >
@@ -101,14 +108,14 @@ export default function ProductCard({
               onClick={(e) => onAddToCart(e, appliance)}
               disabled={added}
               // Above the stretched anchor, so Add to Cart stays a button.
-              className={`relative z-10 inline-flex w-full shrink-0 items-center justify-center gap-1.5 rounded-lg @min-[15.5rem]:w-auto px-3 py-2 text-[10px] font-semibold transition active:scale-[0.98] ${
+              className={`relative z-10 inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition active:scale-[0.98] @min-[15.5rem]:w-auto ${
                 added
                   ? "bg-emerald-500 text-white"
                   : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
               }`}
             >
               <ShoppingCart className="h-3.5 w-3.5 shrink-0" />
-              {added ? "Added!" : "Add to Cart"}
+              {added ? "Added" : "Add to cart"}
             </button>
           )}
         </div>
