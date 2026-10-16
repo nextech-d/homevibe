@@ -52,7 +52,16 @@ function isImageSource(value: string | undefined): value is string {
 
 const EMPTY: HeroData = { product: null, companions: null, tilePhotos: {} };
 
-/** One read-only query for the hero product, its companions and the six tile photos. */
+/**
+ * One read-only query for the hero product, its companions and the six tile
+ * photos.
+ *
+ * Nothing to read - no DATABASE_URL (a Preview build), or the product is gone
+ * - returns empty data, and the hero shows its static washer instead. A query
+ * that fails throws: this page is regenerated in the background, and a render
+ * that throws leaves the last good page in place, where an empty hero would
+ * have replaced it with a degraded one.
+ */
 export async function getHeroData(categorySlugs: string[]): Promise<HeroData> {
   if (!process.env.DATABASE_URL) {
     return EMPTY;
@@ -102,7 +111,6 @@ export async function getHeroData(categorySlugs: string[]): Promise<HeroData> {
         : {},
     };
   } catch (error) {
-    console.error("Failed to load hero products from database:", error);
-    return EMPTY;
+    throw new Error("Failed to load hero products from database", { cause: error });
   }
 }
