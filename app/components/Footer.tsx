@@ -23,7 +23,8 @@ const linkClass = `inline-flex min-h-11 min-w-11 items-center text-sm text-neutr
 const headingClass = "text-sm font-semibold text-neutral-950";
 
 /** Calm, matching pills: the brand colours they replaced shouted over the page. */
-const socialClass = `inline-flex min-h-11 items-center gap-2 rounded-full border border-[#DCE0E7] bg-white px-4 text-sm font-medium text-neutral-800 transition-colors hover:border-[#a85414] hover:text-neutral-950 ${focusRing}`;
+/** A social link: its icon and name, plain like the footer's other links. */
+const socialClass = `${linkClass} gap-2.5`;
 
 export default async function Footer() {
   const [categories, site] = await Promise.all([getAllCategories(), getSiteSettingsData()]);
@@ -92,9 +93,9 @@ export default async function Footer() {
           <div className="col-span-2 lg:col-span-1">
             <h3 className={headingClass}>Get in touch with us</h3>
             <p className="mt-3 text-sm text-neutral-700">Questions about an order?</p>
-            {/* One per line, icon beside the name, all one width so the column
-                reads as a list: a row of pills wrapped unevenly. */}
-            <div className="mt-3 flex w-full max-w-52 flex-col gap-2">
+            {/* One per line, icon beside the name, as plain links: the pills
+                around them read as four buttons competing for attention. */}
+            <div className="mt-2 flex flex-col items-start">
               <a
                 href={buildWhatsAppUrl("Hi, I'd like to speak with HomeVibe.", site.whatsapp)}
                 target="_blank"
@@ -135,15 +136,18 @@ export default async function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-[#DCE0E7] pt-6 sm:flex-row">
+        {/* The copyright on the left, how to pay in the centre: the empty third
+            column balances the first, so the payments sit on the true centre.
+            On a phone there's no room for both, so the copyright goes first. */}
+        <div className="mt-8 grid grid-cols-1 items-center gap-4 border-t border-[#DCE0E7] pt-6 sm:grid-cols-[1fr_auto_1fr]">
           <p className="text-xs text-neutral-600">
             © {new Date().getFullYear()} {site.name}
           </p>
           {/* Three badges of one size in one row down to 320px, each named in
               text. M-Pesa's wordmark is its name, so that one is spelled out
               for screen readers only. */}
-          <div className="flex flex-col items-center gap-2 sm:items-end">
-            <p id="payment-methods" className="text-center text-xs text-neutral-600 sm:text-right">
+          <div className="flex flex-col items-center gap-2">
+            <p id="payment-methods" className="text-center text-xs text-neutral-600">
               {PAYMENT_SUMMARY}
             </p>
             <ul aria-labelledby="payment-methods" className="flex items-stretch gap-2">

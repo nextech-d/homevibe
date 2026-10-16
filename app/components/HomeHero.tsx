@@ -32,7 +32,7 @@ const FALLBACK_IMAGE = "/hero/hisense-wd3q1043bt.webp";
 
 const HEADLINE = "Washers, fridges and TVs, delivered free in Nairobi";
 const SUPPORTING_LINE =
-  "Hisense, TCL, Ramtons and Von, with delivery countrywide. Our own technicians install and service what we sell. Pay by M-Pesa, bank transfer, or cash on delivery within Nairobi.";
+  "Hisense, TCL, Ramtons and Von, with delivery countrywide. Our own technicians install and service what we sell.";
 
 /** The header's accent and focus ring, so the hero and the nav read as one. */
 const focusRing =
