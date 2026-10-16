@@ -4,7 +4,7 @@ import HomeHero from "./components/HomeHero";
 import HomeFeatured from "./components/HomeFeatured";
 import HomeFaq from "./components/HomeFaq";
 import FaqJsonLd from "./components/FaqJsonLd";
-import { raisedSurfaceFromSm, sectionHeading } from "./components/homeSurfaces";
+import { sectionHeading } from "./components/homeSurfaces";
 import { getFeaturedCandidates } from "./lib/inventory.server";
 import { getFaqItemsData, getFeaturedColumnIds } from "./lib/storefront.server";
 import { featuredSelection, toCatalogProduct } from "./lib/inventory";
@@ -34,7 +34,7 @@ export default async function Home() {
       <main className="mx-auto max-w-7xl px-6 py-12">
         <HomeHero />
 
-        <section id="featured-products" className={`${raisedSurfaceFromSm} sm:px-10 sm:py-10`}>
+        <section id="featured-products">
           <h2 className={`mb-6 ${sectionHeading}`}>Featured products</h2>
 
           <HomeFeatured products={featured} featuredColumns={featuredColumns} />

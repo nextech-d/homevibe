@@ -35,7 +35,7 @@ export default async function Footer() {
   const [categories, site] = await Promise.all([getAllCategories(), getSiteSettingsData()]);
 
   return (
-    <footer className="mt-auto border-t border-[#DCE0E7] bg-[#EDEFF3]">
+    <footer className="mt-auto border-t border-[#DCE0E7] bg-white">
       <div className="mx-auto max-w-7xl px-6 py-10">
         {/* Shop and Support sit side by side even on a phone: their 44px links
             stacked in one column made the footer longer than the screen twice over. */}

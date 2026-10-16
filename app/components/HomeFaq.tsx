@@ -1,19 +1,14 @@
 "use client";
 
 import { useId, useState } from "react";
-import { ChevronDown } from "lucide-react";
 import type { FaqItemData } from "../lib/storefront";
 import FaqAnswer from "./FaqAnswer";
-import { focusRing, raisedSurfaceFromSm, sectionHeading } from "./homeSurfaces";
+import { raisedSurface, sectionHeading } from "./homeSurfaces";
 
 /**
  * The homepage FAQ. Only the open/closed state is client-side; every question
  * and answer is server-rendered, which is what the FAQPage markup alongside it
  * describes.
- *
- * One white panel, like the sections above it: the heading on the left from
- * 1024px up, the questions as one ruled list beside it. One column, so opening
- * a question never leaves a gap beside it the way a two-column grid did.
  */
 export default function HomeFaq({ items }: { items: FaqItemData[] }) {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
@@ -22,41 +17,42 @@ export default function HomeFaq({ items }: { items: FaqItemData[] }) {
   if (items.length === 0) return null;
 
   return (
-    <section
-      id="faq"
-      aria-labelledby={`${baseId}-heading`}
-      className={`${raisedSurfaceFromSm} mt-20 mb-8 grid gap-6 sm:px-10 sm:py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-12`}
-    >
-      <h2 id={`${baseId}-heading`} className={sectionHeading}>
-        Frequently asked questions
-      </h2>
-      <div className="border-t border-[#DCE0E7]">
+    <section id="faq" className="mt-20 mb-8">
+      <h2 className={`mb-6 ${sectionHeading}`}>Frequently asked questions</h2>
+      <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-2">
         {items.map((faq, i) => {
-          const open = openFAQ === i;
           const buttonId = `${baseId}-q${i}`;
           const panelId = `${baseId}-a${i}`;
           return (
-            <div key={faq.id} className="border-b border-[#DCE0E7]">
+            <div
+              key={faq.id}
+              // The focus ring goes on the panel, outside it, so it follows the rounded
+              // corners; drawn on the button, overflow-hidden clipped it square.
+              className={`${raisedSurface} overflow-hidden has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-[#a85414]`}
+            >
               {/* The heading holds the button, not the other way round: a
                   button may only contain phrasing content. */}
               <h3>
                 <button
                   id={buttonId}
                   type="button"
-                  onClick={() => setOpenFAQ(open ? null : i)}
-                  aria-expanded={open}
+                  onClick={() => setOpenFAQ(openFAQ === i ? null : i)}
+                  aria-expanded={openFAQ === i}
                   aria-controls={panelId}
-                  className={`group flex min-h-14 w-full items-center justify-between gap-4 rounded-lg py-4 text-left text-base font-semibold leading-snug text-neutral-950 ${focusRing}`}
+                  className="flex min-h-14 w-full items-center justify-between gap-4 px-5 py-4 text-left text-[15px] font-semibold leading-snug text-neutral-950 transition-colors hover:bg-neutral-50 focus-visible:outline-none"
                 >
-                  <span className="group-hover:text-[#8f4710]">{faq.question}</span>
-                  <span
+                  <span>{faq.question}</span>
+                  <svg
                     aria-hidden="true"
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#DCE0E7] text-neutral-700 transition-[rotate,background-color,border-color] duration-300 group-hover:border-[#a85414] ${
-                      open ? "rotate-180 border-[#a85414] bg-[#a85414]/10 text-[#8f4710]" : ""
+                    className={`h-4 w-4 shrink-0 text-neutral-500 transition-transform duration-300 ${
+                      openFAQ === i ? "rotate-180" : ""
                     }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <ChevronDown className="h-4 w-4" />
-                  </span>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </button>
               </h3>
               {/* Rendered either way so the answer is in the HTML; hidden by CSS
@@ -65,9 +61,9 @@ export default function HomeFaq({ items }: { items: FaqItemData[] }) {
                 id={panelId}
                 role="region"
                 aria-labelledby={buttonId}
-                className={open ? "pb-5 pr-12" : "hidden"}
+                className={openFAQ === i ? "px-5 pb-5" : "hidden"}
               >
-                <p className="text-base leading-relaxed text-neutral-700">
+                <p className="border-t border-[#DCE0E7] pt-3 text-sm leading-relaxed text-neutral-700">
                   <FaqAnswer answer={faq.answer} />
                 </p>
               </div>
