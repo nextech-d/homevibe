@@ -24,6 +24,27 @@ type PageMetadataInput = {
   ogType?: "website" | "product";
 };
 
+/** Homepage copy, used when the admin's SEO fields are empty. */
+export const HOMEPAGE_TITLE_SUFFIX = "Washers, Fridges & TVs, Free Delivery in Nairobi";
+export const HOMEPAGE_DESCRIPTION =
+  "Hisense, TCL, Ramtons and Von washers, fridges, TVs and microwaves. Free delivery in Nairobi, delivery countrywide, our own technicians, M-Pesa.";
+
+/** The site-wide share image, used when the admin hasn't set one. */
+export const DEFAULT_OG_IMAGE = { path: "/og-home.jpg", width: 1200, height: 630 } as const;
+
+/**
+ * Product photos are square, at 600px. The built-in share image is 1200x630.
+ * An admin-set default could be any size, so it goes out without dimensions
+ * rather than with wrong ones.
+ */
+function ogImageSize(input: PageMetadataInput): { width: number; height: number } | Record<string, never> {
+  if (input.image) return { width: 600, height: 600 };
+  if (input.defaultOgImage === absoluteUrl(DEFAULT_OG_IMAGE.path)) {
+    return { width: DEFAULT_OG_IMAGE.width, height: DEFAULT_OG_IMAGE.height };
+  }
+  return {};
+}
+
 export function buildPageMetadata(input: PageMetadataInput): Metadata {
   const siteName = input.siteName ?? SITE.name;
   const title = input.title.includes(siteName)
@@ -32,7 +53,7 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
   const canonical = input.path ? absoluteUrl(input.path) : getSiteUrl();
   const imageUrl = input.image ?? input.defaultOgImage;
   const ogImage = imageUrl
-    ? [{ url: imageUrl, width: 600, height: 600, alt: input.title }]
+    ? [{ url: imageUrl, ...ogImageSize(input), alt: input.title }]
     : undefined;
 
   return {
@@ -69,28 +90,15 @@ const siteIconMetadata: Pick<Metadata, "icons"> = {
   },
 };
 
-export const siteKeywords = [
-  "kitchen appliances",
-  "gym equipment",
-  "home appliances",
-  "Nairobi",
-  "Kenya",
-  "East Africa",
-  "M-Pesa",
-  "Sub-Zero",
-  "Life Fitness",
-  "HomeVibe",
-];
-
 export const rootMetadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   ...buildPageMetadata({
-    title: `${SITE.name} — Home & Gym Appliances`,
-    description: `${SITE.tagline}. Shop kitchen and gym equipment in ${SITE.city} with free delivery, installation help, and M-Pesa across ${SITE.region}.`,
+    title: `${SITE.name} | ${HOMEPAGE_TITLE_SUFFIX}`,
+    description: HOMEPAGE_DESCRIPTION,
     path: "/",
+    defaultOgImage: absoluteUrl(DEFAULT_OG_IMAGE.path),
   }),
   ...siteIconMetadata,
-  keywords: siteKeywords,
   authors: [{ name: SITE.name }],
   creator: SITE.name,
   formatDetection: {
@@ -118,7 +126,6 @@ export async function buildRootMetadataFromContext(): Promise<Metadata> {
       default: ctx.homepageTitle,
       template: `%s | ${ctx.siteName}`,
     },
-    keywords: siteKeywords,
     authors: [{ name: ctx.siteName }],
     creator: ctx.siteName,
     formatDetection: {
