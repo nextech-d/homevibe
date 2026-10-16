@@ -158,7 +158,7 @@ export default function CartDrawer() {
               </span>
             </div>
             <p className="mb-5 text-sm leading-relaxed text-neutral-600">
-              Free within Nairobi. Other areas: we confirm the cost before dispatch. Delivery, installation, and a 12-month in-house warranty included.
+              Free within Nairobi. Other areas: we confirm the cost before dispatch. Installation and a 12-month in-house warranty included.
             </p>
             <div className="space-y-3">
               <Link
