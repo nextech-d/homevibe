@@ -10,7 +10,7 @@ export const SITE = {
   },
   /** Meta (Facebook) Pixel ID. Empty disables the pixel entirely. */
   metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() ?? "",
-  email: "hello@homevibe.co.ke",
+  email: "Homevibekenya@gmail.com",
   phone: "+254 182 230 250",
   region: "Kenya",
   city: "Nairobi",
