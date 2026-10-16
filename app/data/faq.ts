@@ -10,10 +10,6 @@ export const FAQ_LIST = [
     a: "Every product carries a 12-month warranty on parts and labour, serviced by our own technicians. Some manufacturers add longer cover on specific components - the product page says so where that applies.",
   },
   {
-    q: "Do you ship internationally?",
-    a: `We deliver throughout ${SITE.region}. For other destinations, email ${SITE.email} and we'll quote you directly.`,
-  },
-  {
     q: "Are the appliances smart home compatible?",
     a: "Many models connect to Wi-Fi and work with Alexa, Google Assistant, or Apple HomeKit. Check the product page for details on each item.",
   },

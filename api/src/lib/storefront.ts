@@ -53,7 +53,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   email: "hello@homevibe.co.ke",
   phone: "+254 182 230 250",
   whatsapp: "254182230250",
-  region: "East & Central Africa",
+  region: "Kenya",
   city: "Nairobi",
   facebookUrl: "https://facebook.com/homevibe",
   instagramUrl: "https://instagram.com/homevibe",

@@ -12,7 +12,7 @@ export const SITE = {
   metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID?.trim() ?? "",
   email: "hello@homevibe.co.ke",
   phone: "+254 182 230 250",
-  region: "East & Central Africa",
+  region: "Kenya",
   city: "Nairobi",
   currency: {
     code: "KES",

@@ -183,12 +183,12 @@ function withBrand(name: string, brand: string): string {
   return name.toLowerCase().includes(trimmed.toLowerCase()) ? name : `${trimmed} ${name}`;
 }
 
-/** Where we deliver, e.g. "Nairobi and East & Central Africa". */
+/**
+ * Where we deliver, e.g. "Kenya". The region is the whole delivery area and
+ * already contains the city, so "Nairobi and Kenya" would read as two places.
+ */
 function deliveryArea(ctx: SeoContext): string {
-  const city = ctx.site.city.trim();
-  const region = ctx.site.region.trim();
-  if (city && region) return `${city} and ${region}`;
-  return city || region;
+  return ctx.site.region.trim() || ctx.site.city.trim();
 }
 
 type ProductLike = {
