@@ -5,6 +5,8 @@ export type Brand = {
   origin: string;
   /** Admin flag; absent on the static fallback brands, which show as chips. */
   isFeatured?: boolean;
+  /** A logo uploaded in the admin; see BUNDLED_BRAND_LOGOS for the fallback. */
+  logoUrl?: string | null;
 };
 
 /** Fallback when the catalog API is unavailable — keep in sync with live DB brands. */

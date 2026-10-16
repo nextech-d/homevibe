@@ -13,18 +13,12 @@ test("busiest brand first, name breaks a tie", () => {
   assert.deepEqual(order.map((b) => b.name), ["Hisense", "Ramtons", "Von", "Mika", "Skyworth"]);
 });
 
-test("a brand with one product, or none, isn't listed", () => {
-  const order = navBrands([brand("Shock Pad", 1), brand("TCL", 38), brand("Empty", 0), brand("Pair", 2)]);
-  assert.deepEqual(order.map((b) => b.name), ["TCL", "Pair"]);
+test("every brand with a published product is listed, one-product brands too", () => {
+  const order = navBrands([brand("Shock Pad", 1), brand("TCL", 38), brand("Samsung", 1)]);
+  assert.deepEqual(order.map((b) => b.name), ["TCL", "Samsung", "Shock Pad"]);
 });
 
-test("a featured brand is listed whatever its product count, in count order", () => {
-  const order = navBrands([
-    brand("Shock Pad", 1),
-    brand("Samsung", 1, true),
-    brand("Hisense", 58),
-    brand("Coming Soon", 0, true),
-    brand("Von", 13),
-  ]);
-  assert.deepEqual(order.map((b) => b.name), ["Hisense", "Von", "Samsung", "Coming Soon"]);
+test("a brand with no published products isn't listed unless it's featured", () => {
+  const order = navBrands([brand("Empty", 0), brand("Hisense", 58), brand("Coming Soon", 0, true)]);
+  assert.deepEqual(order.map((b) => b.name), ["Hisense", "Coming Soon"]);
 });

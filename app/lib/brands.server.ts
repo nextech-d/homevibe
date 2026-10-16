@@ -56,6 +56,7 @@ export const getBrandsFromDb = cache(async (): Promise<Brand[] | null> => {
           tier: true,
           origin: true,
           isFeatured: true,
+          logoUrl: true,
           _count: { select: { products: { where: { isPublished: true } } } },
         },
       })
@@ -65,7 +66,14 @@ export const getBrandsFromDb = cache(async (): Promise<Brand[] | null> => {
       return null;
     }
 
-    return rows.map(({ name, slug, tier, origin, isFeatured }) => ({ name, slug, tier, origin, isFeatured }));
+    return rows.map(({ name, slug, tier, origin, isFeatured, logoUrl }) => ({
+      name,
+      slug,
+      tier,
+      origin,
+      isFeatured,
+      logoUrl,
+    }));
   } catch (error) {
     console.error("Failed to load brands from database:", error);
     return null;

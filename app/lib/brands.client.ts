@@ -15,15 +15,17 @@ export async function fetchBrandsClient(): Promise<Brand[]> {
         tier: Brand["tier"];
         origin: string;
         isFeatured?: boolean;
+        logoUrl?: string | null;
       }>;
     };
     if (data.success && Array.isArray(data.brands) && data.brands.length > 0) {
-      return data.brands.map(({ name, slug, tier, origin, isFeatured }) => ({
+      return data.brands.map(({ name, slug, tier, origin, isFeatured, logoUrl }) => ({
         name,
         slug,
         tier,
         origin,
         isFeatured,
+        logoUrl,
       }));
     }
   } catch {
