@@ -295,32 +295,29 @@ export default function ProductDetail({
         {/* One column for both, so the description and the long-form section
             stay matched by construction rather than by two classes agreeing. */}
         <div className="mt-16 w-full">
-        {/* The long-form reads on a white panel, held to a readable measure:
-            full width at 1280px ran lines to 180 characters. */}
+        {/* The long-form reads on a white panel, across its full width. */}
         {product.description.trim() || product.body?.trim() ? (
           <section
             aria-labelledby="product-description"
             className={`${raisedSurface} px-5 py-8 sm:px-10 sm:py-10`}
           >
-            <div className="mx-auto max-w-3xl">
-              <h2 id="product-description" className={`mb-6 ${sectionHeading}`}>
-                Product description
-              </h2>
-              {product.description.trim() ? (
-                <ProductDescriptionBody text={product.description} html={descriptionHtml} />
-              ) : null}
+            <h2 id="product-description" className={`mb-6 ${sectionHeading}`}>
+              Product description
+            </h2>
+            {product.description.trim() ? (
+              <ProductDescriptionBody text={product.description} html={descriptionHtml} />
+            ) : null}
 
-              {product.body?.trim() ? (
-                // Continues the description rather than starting a new block: small
-                // gap, and the renderer's own top margin on the first heading zeroed
-                // so the two don't stack up to ~100px of air.
-                <div className="mt-6 w-full [&>div>:first-child]:mt-0">
-                  {/* Markdown, rendered by the same converter the blog uses - which
-                      escapes the source before formatting it. */}
-                  <div dangerouslySetInnerHTML={{ __html: renderMarkdown(product.body) }} />
-                </div>
-              ) : null}
-            </div>
+            {product.body?.trim() ? (
+              // Continues the description rather than starting a new block: small
+              // gap, and the renderer's own top margin on the first heading zeroed
+              // so the two don't stack up to ~100px of air.
+              <div className="mt-6 w-full [&>div>:first-child]:mt-0">
+                {/* Markdown, rendered by the same converter the blog uses - which
+                    escapes the source before formatting it. */}
+                <div dangerouslySetInnerHTML={{ __html: renderMarkdown(product.body) }} />
+              </div>
+            ) : null}
           </section>
         ) : null}
 
