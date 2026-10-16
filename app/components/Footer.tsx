@@ -4,25 +4,18 @@ import { categoryHref } from "../data/categories";
 import { getAllCategories } from "../lib/categories.server";
 import { getSiteSettingsData } from "../lib/storefront.server";
 import { buildWhatsAppUrl } from "../lib/whatsapp";
-import { Mail, Phone } from "lucide-react";
+import { Landmark, Mail, Phone } from "lucide-react";
 import WhatsAppIcon from "./WhatsAppIcon";
 import { FacebookIcon, InstagramIcon, TikTokIcon } from "./SocialIcons";
 import { focusRing } from "./homeSurfaces";
-import {
-  MpesaLogo,
-  VisaLogo,
-  MastercardLogo,
-  PayPalLogo,
-  CashLogo,
-} from "./PaymentLogos";
+import { CashLogo, MpesaLogo } from "./PaymentLogos";
 
-const PAYMENT_METHODS = [
-  { label: "M-Pesa", Logo: MpesaLogo },
-  { label: "Visa", Logo: VisaLogo },
-  { label: "Mastercard", Logo: MastercardLogo },
-  { label: "PayPal", Logo: PayPalLogo },
-  { label: "Cash", Logo: CashLogo },
-] as const;
+/** The ways we take payment - and only those: no cards, no PayPal. */
+const PAYMENT_SUMMARY = "Pay by M-Pesa, bank transfer, or cash on delivery within Nairobi.";
+
+/** One size for every payment badge: three fit in a row on a 320px screen. */
+const paymentBadge =
+  "flex h-16 w-[5.25rem] items-center justify-center rounded-lg border border-[#DCE0E7] bg-white px-1.5 sm:w-28";
 
 /** Footer links: 44px tall on touch screens, tighter from lg where a pointer is the norm. */
 const linkClass = `inline-flex min-h-11 min-w-11 items-center text-sm text-neutral-700 transition-colors hover:text-neutral-950 lg:min-h-8 ${focusRing}`;
@@ -146,22 +139,28 @@ export default async function Footer() {
           <p className="text-xs text-neutral-600">
             © {new Date().getFullYear()} {site.name}
           </p>
-          {/* One size of badge, each mark fitted inside it, in a single row
-              down to 320px. role="img" is what makes a screen reader read
-              the label; on a bare span it was silent. */}
-          <ul className="flex items-center justify-center gap-2">
-            {PAYMENT_METHODS.map(({ label, Logo }) => (
-              <li
-                key={label}
-                role="img"
-                aria-label={label}
-                title={label}
-                className="flex h-9 w-14 items-center justify-center rounded-lg border border-[#DCE0E7] bg-white"
-              >
-                <Logo className="h-4 w-auto max-w-9" />
+          {/* Three badges of one size in one row down to 320px, each named in
+              text. M-Pesa's wordmark is its name, so that one is spelled out
+              for screen readers only. */}
+          <div className="flex flex-col items-center gap-2 sm:items-end">
+            <p id="payment-methods" className="text-center text-xs text-neutral-600 sm:text-right">
+              {PAYMENT_SUMMARY}
+            </p>
+            <ul aria-labelledby="payment-methods" className="flex items-stretch gap-2">
+              <li className={paymentBadge}>
+                <MpesaLogo className="h-5 w-auto max-w-full" />
+                <span className="sr-only">M-Pesa</span>
               </li>
-            ))}
-          </ul>
+              <li className={`${paymentBadge} flex-col gap-1 text-center`}>
+                <Landmark aria-hidden="true" className="h-4 w-4 shrink-0 text-neutral-700" />
+                <span className="text-[11px] font-medium leading-tight text-neutral-800">Bank transfer</span>
+              </li>
+              <li className={`${paymentBadge} flex-col gap-1 text-center`}>
+                <CashLogo className="h-4 w-auto shrink-0" />
+                <span className="text-[11px] font-medium leading-tight text-neutral-800">Cash on delivery</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </footer>

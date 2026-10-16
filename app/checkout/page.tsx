@@ -282,7 +282,8 @@ export default function CheckoutPage() {
 
               <p className="text-sm leading-relaxed text-neutral-600">
                 Payment is arranged after you order — we&apos;ll call or WhatsApp you to confirm
-                delivery and payment details. No card or M-Pesa is charged on this site yet.
+                delivery and payment details. Pay by M-Pesa, bank transfer, or cash on delivery
+                within Nairobi; nothing is charged on this site yet.
               </p>
 
               <button
