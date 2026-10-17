@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { getInventory, getPublishedProductByParam } from "../../lib/inventory.server";
-import { relatedProducts, toCatalogProduct } from "../../lib/inventory";
+import { getPublishedProductByParam, getRelatedCandidates } from "../../lib/inventory.server";
+import { productAddOns, relatedProducts, toCatalogProduct } from "../../lib/inventory";
 import ProductDetail from "./ProductDetail";
 import { descriptionLooksLikeHtml, sanitizeDescriptionHtml } from "../../lib/descriptionHtml";
 
@@ -32,7 +32,12 @@ export default async function ProductPage({ params }: Props) {
 
   // Chosen here so the rail is in the initial HTML: it was the last thing on
   // the page still waiting for the browser's catalogue fetch.
-  const related = relatedProducts(await getInventory(), product).map(toCatalogProduct);
+  const candidates = await getRelatedCandidates(product);
+  const related = relatedProducts(candidates, product).map(toCatalogProduct);
+  const addOnSelection = productAddOns(candidates, product);
+  const addOns = addOnSelection
+    ? { heading: addOnSelection.heading, products: addOnSelection.products.map(toCatalogProduct) }
+    : null;
 
   // Sanitised here, on the server, so the HTML in the page is always clean
   // and the sanitiser never ships to the browser.
@@ -40,5 +45,12 @@ export default async function ProductPage({ params }: Props) {
     ? sanitizeDescriptionHtml(product.description)
     : null;
 
-  return <ProductDetail product={product} related={related} descriptionHtml={descriptionHtml} />;
+  return (
+    <ProductDetail
+      product={product}
+      related={related}
+      addOns={addOns}
+      descriptionHtml={descriptionHtml}
+    />
+  );
 }

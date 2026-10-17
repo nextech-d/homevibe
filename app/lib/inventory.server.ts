@@ -5,6 +5,8 @@ import { cache } from "react";
 import { type Appliance } from "../data/products";
 import { getPrisma } from "./db";
 import { mapDbProductToAppliance } from "./mapProduct";
+import { relatedSubcategories } from "./inventory";
+import { PRODUCT_ADD_ONS } from "../config/site";
 
 const productInclude = {
   brand: true,
@@ -90,6 +92,53 @@ export async function getFeaturedCandidates(
     return rows.map(mapDbProductToAppliance);
   } catch (error) {
     console.error("Failed to load featured products from database:", error);
+    return [];
+  }
+}
+
+/**
+ * What a product page's related items and add-ons are chosen from, in one
+ * query: published products in the subcategories relatedProducts() may draw
+ * on, plus the configured add-ons. Up to a few dozen rows rather than the
+ * whole catalogue the page used to load for this.
+ */
+export async function getRelatedCandidates(
+  product: Pick<Appliance, "id" | "category" | "subcategory">
+): Promise<Appliance[]> {
+  const subcategories = relatedSubcategories(product.subcategory);
+  const addOnIds = PRODUCT_ADD_ONS[product.subcategory]?.productIds ?? [];
+  if (subcategories.length === 0 && addOnIds.length === 0) return [];
+
+  if (!process.env.DATABASE_URL) {
+    return [];
+  }
+
+  const prisma = getPrisma();
+  if (!prisma) {
+    return [];
+  }
+
+  try {
+    const rows = await prisma.product.findMany({
+      where: {
+        isPublished: true,
+        id: { not: product.id },
+        OR: [
+          {
+            subcategory: {
+              slug: { in: subcategories },
+              category: { label: product.category },
+            },
+          },
+          { id: { in: [...addOnIds] } },
+        ],
+      },
+      include: productInclude,
+      orderBy: { id: "asc" },
+    });
+    return rows.map(mapDbProductToAppliance);
+  } catch (error) {
+    console.error("Failed to load related products from database:", error);
     return [];
   }
 }
