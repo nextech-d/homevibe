@@ -29,6 +29,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.5,
     },
+    {
+      url: `${base}/privacy-policy`,
+      lastModified: new Date("2026-10-17"),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
   ];
 
   const categories: MetadataRoute.Sitemap = categoriesList.flatMap((category) => {

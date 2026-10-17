@@ -1,7 +1,7 @@
 export const SITE = {
   name: "HomeVibe",
   /** Where new-order notifications go. */
-  email: process.env.ORDER_NOTIFY_EMAIL?.trim() || "Homevibekenya@gmail.com",
+  email: process.env.ORDER_NOTIFY_EMAIL?.trim() || "homevibekenya@gmail.com",
   phone: "+254 182 230 250",
   currency: {
     code: "KES",

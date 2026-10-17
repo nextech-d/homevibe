@@ -25,6 +25,7 @@ import {
   primaryButton,
   raisedSurface,
   secondaryButton,
+  textLink,
 } from "../components/homeSurfaces";
 
 export default function CheckoutPage() {
@@ -293,6 +294,13 @@ export default function CheckoutPage() {
               >
                 {loading ? "Placing order..." : "Place order"} <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </button>
+              <p className="text-center text-xs text-neutral-600">
+                By placing an order you agree to our{" "}
+                <Link href="/privacy-policy" className={textLink}>
+                  Privacy Policy
+                </Link>
+                .
+              </p>
             </form>
 
             <div className="space-y-6 lg:col-span-5">

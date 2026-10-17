@@ -87,6 +87,7 @@ export default async function Footer() {
               <li><Link href="/cart" className={linkClass}>Your cart</Link></li>
               <li><Link href="/checkout" className={linkClass}>Checkout</Link></li>
               <li><Link href="/track-order" className={linkClass}>Track order</Link></li>
+              <li><Link href="/privacy-policy" className={linkClass}>Privacy Policy</Link></li>
             </ul>
           </div>
 
