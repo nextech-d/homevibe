@@ -1,4 +1,6 @@
 import type { NextConfig } from "next";
+import { PHASE_DEVELOPMENT_SERVER } from "next/constants";
+import { assertNotProductionDatabase } from "./shared/prod-db-guard";
 
 function assertCheckoutApiUrlForProductionBuild(): void {
   const isProductionBuild =
@@ -200,4 +202,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+/** `next dev` never runs against production's database unless ALLOW_PROD_DB=1. */
+export default function config(phase: string): NextConfig {
+  if (phase === PHASE_DEVELOPMENT_SERVER) assertNotProductionDatabase("the dev server");
+  return nextConfig;
+}

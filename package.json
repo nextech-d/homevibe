@@ -16,10 +16,10 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "db:push": "prisma db push",
-    "db:seed": "prisma db seed",
-    "db:studio": "prisma studio",
-    "db:migrate": "prisma migrate dev"
+    "db:push": "tsx scripts/guard-db.ts \"prisma db push\" && prisma db push",
+    "db:seed": "tsx scripts/guard-db.ts \"prisma db seed\" && prisma db seed",
+    "db:studio": "tsx scripts/guard-db.ts \"prisma studio\" && prisma studio",
+    "db:migrate": "tsx scripts/guard-db.ts \"prisma migrate dev\" && prisma migrate dev"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.1",
