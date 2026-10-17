@@ -154,6 +154,13 @@ const nextConfig: NextConfig = {
         destination: "/product/ramtons-rm-589-23l-microwave-grill",
         permanent: true,
       },
+      // The Von VRT-125DRAG was renamed from a slug that read like a 125-litre
+      // freezer; it's a fridge with a 33L freezer on top.
+      {
+        source: "/product/von-vrt-125drag-top-mount-freezer-125l",
+        destination: "/product/von-vrt-125drag-125l-double-door-fridge",
+        permanent: true,
+      },
     ];
   },
   images: {
