@@ -96,8 +96,8 @@ export async function listBrandsForSitemap(): Promise<{ slug: string }[]> {
       select: { slug: true },
     });
   } catch (error) {
-    console.error("Failed to load brands for sitemap:", error);
-    return [];
+    // Thrown, like the sitemap's products: a partial sitemap reads as pages removed.
+    throw new Error("Failed to load brands for sitemap", { cause: error });
   }
 }
 

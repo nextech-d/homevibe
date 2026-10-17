@@ -15,20 +15,35 @@ import { fetchInventoryClient, type Appliance } from "../lib/inventory";
  * shipped invented products at invented prices - the product page's related
  * rail was doing exactly that in production. Nothing is better than fiction.
  */
-const ProductsContext = createContext<Appliance[]>([]);
+type InventoryState = {
+  products: Appliance[];
+  /** "error" when the fetch failed: an empty list then means nothing, not "no products". */
+  status: "loading" | "ready" | "error";
+};
+
+const ProductsContext = createContext<InventoryState>({ products: [], status: "loading" });
 
 export function ProductsProvider({ children }: { children: ReactNode }) {
-  const [inventory, setInventory] = useState<Appliance[]>([]);
+  const [state, setState] = useState<InventoryState>({ products: [], status: "loading" });
 
   useEffect(() => {
-    fetchInventoryClient().then(setInventory);
+    fetchInventoryClient().then(
+      (products) => setState({ products, status: "ready" }),
+      (error) => {
+        console.error("Failed to load products:", error);
+        setState({ products: [], status: "error" });
+      }
+    );
   }, []);
 
-  return (
-    <ProductsContext.Provider value={inventory}>{children}</ProductsContext.Provider>
-  );
+  return <ProductsContext.Provider value={state}>{children}</ProductsContext.Provider>;
 }
 
 export function useInventory(): Appliance[] {
-  return useContext(ProductsContext);
+  return useContext(ProductsContext).products;
+}
+
+/** For pages that must not present an empty list as a real answer. */
+export function useInventoryStatus(): InventoryState["status"] {
+  return useContext(ProductsContext).status;
 }

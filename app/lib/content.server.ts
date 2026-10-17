@@ -104,8 +104,8 @@ export async function listAllPublishedPostsForSitemap(): Promise<
       orderBy: { updatedAt: "desc" },
     });
   } catch (error) {
-    console.error("Failed to load content posts for sitemap:", error);
-    return [];
+    // Thrown, like the sitemap's products: a partial sitemap reads as pages removed.
+    throw new Error("Failed to load content posts for sitemap", { cause: error });
   }
 }
 
