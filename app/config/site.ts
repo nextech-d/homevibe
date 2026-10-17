@@ -32,31 +32,36 @@ export const TRUST_BADGES = [
 /**
  * The product page's trust points: one plain line each, in the order shown.
  * Separate from TRUST_BADGES above, which the homepage hero also uses.
- * Every line is checked by the claims guard (app/lib/claims.ts); "installation"
- * shows only on the subcategories in INSTALLATION_SUBCATEGORIES.
+ * Every line is checked by the claims guard (app/lib/claims.ts). The
+ * installation line comes from INSTALLATION_WORDING, per subcategory.
  */
 export const PRODUCT_TRUST_POINTS = [
   { id: "delivery", text: "Free delivery in Nairobi, delivery countrywide" },
   { id: "warranty", text: "12-month warranty on parts and labour, serviced by our own technicians" },
   { id: "payment", text: "Pay by M-Pesa, bank transfer, or cash on delivery in Nairobi" },
-  { id: "installation", text: "Installation included" },
 ] as const;
 
+const FREE_INSTALLATION = "Free installation in Nairobi (parts paid separately)";
+
 /**
- * Subcategories (by slug) where we install what we sell, so the product page
- * says "Installation included". By subcategory rather than category: Heating &
- * Cooling holds plug-in heaters as well as air conditioners. The empty ones are
- * listed so a product added there later gets the line without a code change.
+ * Where we install what we sell, by subcategory slug, and what the product
+ * page says about it. Confirmed by the client 2026-10-17: installation labour
+ * is free within Nairobi only, TV wall mounting included; brackets and any
+ * parts are extra. A subcategory missing here gets no installation line.
+ *
+ * By subcategory rather than category: Heating & Cooling holds plug-in heaters
+ * as well as air conditioners. The empty ones are listed so a product added
+ * there later gets the line without a code change.
  */
-export const INSTALLATION_SUBCATEGORIES: readonly string[] = [
-  "laundry",
-  "refrigerators",
-  "tvs",
-  "air-conditioners",
-  "hand-dryer",
-  "freezers",
-  "dishwashers",
-  "cooktops",
-  "rangetops",
-  "wine-cellars",
-];
+export const INSTALLATION_WORDING: Readonly<Record<string, string>> = {
+  tvs: "Free wall mounting in Nairobi (bracket not included)",
+  laundry: FREE_INSTALLATION,
+  refrigerators: FREE_INSTALLATION,
+  "air-conditioners": FREE_INSTALLATION,
+  "hand-dryer": FREE_INSTALLATION,
+  freezers: FREE_INSTALLATION,
+  dishwashers: FREE_INSTALLATION,
+  cooktops: FREE_INSTALLATION,
+  rangetops: FREE_INSTALLATION,
+  "wine-cellars": FREE_INSTALLATION,
+};

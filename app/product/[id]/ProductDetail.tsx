@@ -20,7 +20,7 @@ import ProductHighlights from "../../components/ProductHighlights";
 import WhyBuyFromUs from "../../components/WhyBuyFromUs";
 import QuantitySelector from "../../components/QuantitySelector";
 import { brandHref } from "../../data/brands";
-import { PinnedProductBar, ProductFacts, ProductTrustPoints } from "./ProductHeaderParts";
+import { keepWhole, PinnedProductBar, ProductFacts, ProductTrustPoints } from "./ProductHeaderParts";
 import WhatsAppIcon from "../../components/WhatsAppIcon";
 import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
@@ -167,7 +167,7 @@ export default function ProductDetail({
             taller gallery adds, so the price-to-buttons gap stays fixed. */}
         <div className={`${raisedSurfaceFromSm} grid w-full grid-cols-1 gap-6 sm:p-8 lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-x-12 lg:gap-y-0 lg:p-10 xl:gap-x-16`}>
           <div className="w-full lg:col-span-7 lg:col-start-6 lg:row-start-1">
-            <h1 className={pageHeading}>{product.name}</h1>
+            <h1 className={pageHeading}>{keepWhole(product.name)}</h1>
             <p className="mt-4 text-3xl font-semibold tabular-nums tracking-tight text-[#8f4710] lg:mt-5">
               {formatPrice(product.price)}
             </p>

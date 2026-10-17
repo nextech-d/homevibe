@@ -3,18 +3,22 @@
 import { Fragment, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ShieldCheck, ShoppingCart, Truck, Wallet, Wrench, type LucideIcon } from "lucide-react";
-import { INSTALLATION_SUBCATEGORIES, PRODUCT_TRUST_POINTS } from "../../config/site";
+import { INSTALLATION_WORDING, PRODUCT_TRUST_POINTS } from "../../config/site";
 import WhatsAppIcon from "../../components/WhatsAppIcon";
 import { focusRing } from "../../components/homeSurfaces";
 
 /**
- * Hyphenated words ("12-month", "M-Pesa") kept whole: a browser may break a
- * line after a hyphen, which split "in-house" across two lines in the old
- * cards. The real hyphen stays, so copied text reads the same.
+ * Hyphenated words ("12-month", "M-Pesa", "55-Inch") kept whole, and with
+ * `brackets`, bracketed asides too ("(bracket not included)"). A browser may
+ * break a line after a hyphen - it split "in-house" across two lines in the old
+ * cards, and "QD-" from "MiniLED" in a product name - and a wrapped aside left
+ * "included)" alone on a line. The text itself is unchanged, so copied text
+ * reads the same.
  */
-function keepHyphenatedWhole(text: string): ReactNode {
-  return text.split(/(\S+-\S+)/).map((part, i) =>
-    /\S-\S/.test(part) ? (
+export function keepWhole(text: string, { brackets = false }: { brackets?: boolean } = {}): ReactNode {
+  const pattern = brackets ? /(\([^)]*\)|\S+-\S+)/ : /(\S+-\S+)/;
+  return text.split(pattern).map((part, i) =>
+    (brackets && /^\(.*\)$/.test(part)) || /\S-\S/.test(part) ? (
       <span key={i} className="whitespace-nowrap">
         {part}
       </span>
@@ -87,7 +91,7 @@ export function ProductFacts({
   );
 }
 
-const TRUST_ICONS: Record<(typeof PRODUCT_TRUST_POINTS)[number]["id"], LucideIcon> = {
+const TRUST_ICONS: Record<(typeof PRODUCT_TRUST_POINTS)[number]["id"] | "installation", LucideIcon> = {
   delivery: Truck,
   warranty: ShieldCheck,
   payment: Wallet,
@@ -96,11 +100,14 @@ const TRUST_ICONS: Record<(typeof PRODUCT_TRUST_POINTS)[number]["id"], LucideIco
 
 /**
  * The trust points, quietly: an icon and one line each. Installation only
- * where we install (INSTALLATION_SUBCATEGORIES).
+ * where we install, in that subcategory's wording (INSTALLATION_WORDING).
  */
 export function ProductTrustPoints({ subcategory }: { subcategory: string }) {
-  const installs = INSTALLATION_SUBCATEGORIES.includes(subcategory);
-  const points = PRODUCT_TRUST_POINTS.filter((point) => point.id !== "installation" || installs);
+  const installation = INSTALLATION_WORDING[subcategory];
+  const points: { id: keyof typeof TRUST_ICONS; text: string }[] = [
+    ...PRODUCT_TRUST_POINTS,
+    ...(installation ? [{ id: "installation" as const, text: installation }] : []),
+  ];
 
   return (
     <ul className="space-y-2.5">
@@ -109,7 +116,7 @@ export function ProductTrustPoints({ subcategory }: { subcategory: string }) {
         return (
           <li key={point.id} className="flex items-start gap-2.5 text-sm leading-snug text-neutral-700">
             <Icon aria-hidden="true" className="mt-px h-4 w-4 shrink-0 text-[#a85414]" strokeWidth={1.8} />
-            <span>{keepHyphenatedWhole(point.text)}</span>
+            <span>{keepWhole(point.text, { brackets: true })}</span>
           </li>
         );
       })}
