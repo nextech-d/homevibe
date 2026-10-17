@@ -17,8 +17,7 @@ export type { Appliance };
  */
 export type CatalogProduct = Pick<
   Appliance,
-  /** `status` is here for the card's WhatsApp enquiry, which asks about a
-      product differently when it is out of stock. */
+  /** `status` is here for the card's Low stock / Out of stock badge. */
   "id" | "slug" | "name" | "price" | "status"
 > & {
   image: string;
