@@ -143,4 +143,9 @@ body {
   body:has([data-pinned-bar]) {
     padding-bottom: calc(4.125rem + env(safe-area-inset-bottom));
   }
+  /* While the bar is showing (not stepped aside, so not inert), the cart
+     toast sits above it rather than over its buttons. */
+  body:has([data-pinned-bar]:not([inert])) {
+    --pinned-bar-offset: calc(4.125rem + env(safe-area-inset-bottom));
+  }
 }

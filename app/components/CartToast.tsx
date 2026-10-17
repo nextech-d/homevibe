@@ -10,11 +10,14 @@ export default function CartToast() {
 
   if (!toast) return null;
 
+  // --pinned-bar-offset is set only while the product page's phone bar is
+  // showing (globals.css); everywhere else it's unset and the toast sits 24px
+  // from the bottom as before.
   return (
     <div
       role="status"
       aria-live="polite"
-      className="fixed bottom-6 left-1/2 z-[60] w-[min(92vw,380px)] -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4 duration-300"
+      className="fixed bottom-[calc(1.5rem+var(--pinned-bar-offset,0px))] left-1/2 z-[60] w-[min(92vw,380px)] -translate-x-1/2 animate-in fade-in slide-in-from-bottom-4 duration-300"
     >
       <div className={`${raisedSurface} flex items-center gap-3 py-2 pl-4 pr-2 shadow-2xl`}>
         <CheckCircle2 aria-hidden="true" className="h-5 w-5 shrink-0 text-emerald-700" />
