@@ -23,9 +23,12 @@ const productDetailInclude = {
  * Load published products from Postgres. Memoised per request: a category page
  * renders the grid and the structured data describing it from one query.
  *
- * An unreachable database yields an empty catalogue, not the demo one: these
- * results are server-rendered, and a page of invented products at invented
- * prices is worse than a page with none.
+ * Nothing to read - no DATABASE_URL (a Preview build) - yields an empty
+ * catalogue, never the demo one: a page of invented products at invented
+ * prices is worse than a page with none. A query that fails throws, as
+ * getHeroData does: these pages are regenerated in the background, and a
+ * render that throws leaves the last good page in place, where an empty grid
+ * would have replaced it with one that looks like we sell nothing.
  */
 export const getInventory = cache(async (): Promise<Appliance[]> => {
   if (!process.env.DATABASE_URL) {
@@ -50,8 +53,7 @@ export const getInventory = cache(async (): Promise<Appliance[]> => {
 
     return rows.map(mapDbProductToAppliance);
   } catch (error) {
-    console.error("Failed to load inventory from database:", error);
-    return [];
+    throw new Error("Failed to load inventory from database", { cause: error });
   }
 });
 
@@ -162,12 +164,18 @@ export const listProductsForSitemap = cache(
         orderBy: { id: "asc" },
       });
     } catch (error) {
-      console.error("Failed to load products for sitemap:", error);
-      return [];
+      // Thrown, not an empty list: a sitemap without products would tell
+      // crawlers they had all gone.
+      throw new Error("Failed to load products for sitemap", { cause: error });
     }
   }
 );
 
+/**
+ * Null means no published product has this id or slug, and the page 404s. A
+ * query that fails throws instead, so an outage never tells a visitor - or a
+ * crawler - that the product is gone; the last good page stays in place.
+ */
 export const getPublishedProduct = cache(async (id: number): Promise<Appliance | null> => {
   if (!process.env.DATABASE_URL) {
     return null;
@@ -185,8 +193,7 @@ export const getPublishedProduct = cache(async (id: number): Promise<Appliance |
     });
     return row ? mapDbProductToAppliance(row) : null;
   } catch (error) {
-    console.error("Failed to load product from database:", error);
-    return null;
+    throw new Error("Failed to load product from database", { cause: error });
   }
 });
 
@@ -214,7 +221,6 @@ export const getPublishedProductByParam = cache(async (param: string): Promise<A
     });
     return row ? mapDbProductToAppliance(row) : null;
   } catch (error) {
-    console.error("Failed to load product from database:", error);
-    return null;
+    throw new Error("Failed to load product from database", { cause: error });
   }
 });
