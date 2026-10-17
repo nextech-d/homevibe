@@ -55,7 +55,7 @@ const TILE_IMAGES: Record<string, string> = {
 
 const HEADLINE = "Washers, fridges and TVs, delivered free in Nairobi";
 const SUPPORTING_LINE =
-  "Hisense, TCL, Ramtons and Von, with delivery countrywide. Our own technicians install and service what we sell.";
+  "Hisense, TCL, Ramtons and Von, with delivery countrywide. Our own technicians install in Nairobi and service what we sell.";
 
 /** The header's accent and focus ring, so the hero and the nav read as one. */
 const focusRing =
@@ -146,32 +146,34 @@ export default async function HomeHero() {
         </div>
 
         {/* A white panel round the three, with the category circles' hairline
-            and shadow, so they read as one group; the photos' own white
-            backgrounds disappear into it.
-            A fixed ratio on a phone and tablet, so the space is held before
-            the photos arrive: 16:9 (about 185px of an 812px screen), then
-            2:1. Beside the text it runs from the headline's top to the
-            category row's foot instead (the three rows it spans).
+            and shadow, so they read as one group - a box within the hero's own
+            panel from 640px; the photos' own white backgrounds disappear into it. A fixed ratio on a
+            phone and tablet, so the space is held before the photos arrive:
+            16:9 (about 185px of an 812px screen), then 2:1. Beside the text
+            it runs from the headline's top to the category row's foot
+            instead (the three rows it spans).
 
-            Inside, a 3:2 box as large as the panel allows either way (cq
-            units: the panel is a size container), and in it the group on one
-            baseline at their real heights relative to each other - fridge
-            about 1.13m, dispenser 1.0m, washer 0.85m - so the fridge is 92%
-            of the box and the rest follow, the washer in the middle. A narrow
-            gap rather than an overlap: the washer is multiplied, so the
+            Inside, the group's own box: as tall as the fridge and as wide as
+            the three plus two gaps (1.37:1), at 82% of whichever way the
+            panel is tighter (cq units: the panel is a size container), so
+            the margins are about 9% all round. Never over 496px wide: that
+            keeps the dispenser, the smallest photo (640px tall), within 2x
+            of its own pixels. On one baseline at their real heights relative
+            to each other - fridge about 1.13m, dispenser 1.0m, washer 0.85m.
+            A gap rather than an overlap: the washer is multiplied, so the
             fridge would show through it. Each is whole, never cropped. */}
         <div className="relative aspect-[16/9] w-full rounded-3xl border border-[var(--hero-edge)] bg-white shadow-[-4px_-4px_12px_rgba(255,255,255,0.9),4px_4px_12px_var(--hero-shade)] [container-type:size] sm:aspect-[2/1] lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:aspect-auto lg:self-stretch">
           {/* Centred with flexbox, not a transform: a transformed parent would
               isolate the multiply blend and leave the white backgrounds showing. */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative aspect-[3/2] w-[min(90cqw,132cqh)]">
+            <div className="relative aspect-[137/100] w-[min(82cqw,112cqh)] max-w-[496px]">
               <div className="absolute inset-0 flex items-end justify-center">
-                <div className="relative aspect-[760/1784] h-[92%]">
+                <div className="relative aspect-[760/1784] h-full">
                   <Image
                     src={FRIDGE_IMAGE}
                     alt=""
                     fill
-                    sizes={heroSizes(0.12, 0.2, 0.23)}
+                    sizes={heroSizes(0.12, 0.17, 0.2)}
                     quality={90}
                     className="object-contain object-bottom"
                   />
@@ -179,13 +181,13 @@ export default async function HomeHero() {
                 {/* The machine's own box (0.85 / 1.13 of the fridge), with the
                     square photo laid over it so the frame round the machine
                     hangs outside. */}
-                <div className="relative ml-[1.5%] aspect-[1211/1707] h-[69%]">
+                <div className="relative ml-[2.9%] aspect-[1211/1707] h-[75.2%]">
                   <div className="absolute left-[-29.3%] top-[-6.8%] h-[112.5%] w-[158.5%]">
                     <Image
                       src={WASHER_IMAGE}
                       alt="Hisense front load washing machine, with a fridge and a water dispenser"
                       fill
-                      sizes={heroSizes(0.24, 0.4, 0.45)}
+                      sizes={heroSizes(0.23, 0.34, 0.39)}
                       quality={90}
                       // Preloaded from the head, and the only one: it's the
                       // largest of the three. fetchPriority="high" on the <img>
@@ -196,12 +198,12 @@ export default async function HomeHero() {
                     />
                   </div>
                 </div>
-                <div className="relative ml-[1.5%] aspect-[242/640] h-[81%]">
+                <div className="relative ml-[2.9%] aspect-[242/640] h-[88.5%]">
                   <Image
                     src={DISPENSER_IMAGE}
                     alt=""
                     fill
-                    sizes={heroSizes(0.1, 0.16, 0.18)}
+                    sizes={heroSizes(0.1, 0.14, 0.16)}
                     quality={90}
                     className="object-contain object-bottom mix-blend-multiply"
                   />
