@@ -65,11 +65,14 @@ function ProductDescriptionBody({ text, html }: { text: string; html: string | n
 export default function ProductDetail({
   product,
   related,
+  addOns,
   descriptionHtml,
 }: {
   product: Appliance;
   /** Chosen on the server, so the rail renders with the rest of the page. */
   related: CatalogProduct[];
+  /** Configured add-ons for this subcategory, or null when there are none to show. */
+  addOns: { heading: string; products: CatalogProduct[] } | null;
   /** The description sanitised on the server, or null when it's plain text. */
   descriptionHtml: string | null;
 }) {
@@ -342,6 +345,17 @@ export default function ProductDetail({
             <div className="grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4">
               {related.map((rp) => (
                 <ProductCard key={rp.id} appliance={rp} compact />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {addOns && (
+          <section className={`${related.length > 0 ? "mt-14" : "mt-20"} w-full`}>
+            <h2 className={`mb-6 ${sectionHeading}`}>{addOns.heading}</h2>
+            <div className="grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4">
+              {addOns.products.map((ap) => (
+                <ProductCard key={ap.id} appliance={ap} compact />
               ))}
             </div>
           </section>

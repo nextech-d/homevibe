@@ -1,6 +1,11 @@
 import { type Appliance } from "../data/products";
 import type { ProductImageSet } from "./productImages";
 import { apiUrl } from "./api-client";
+import {
+  PRODUCT_ADD_ONS,
+  RELATED_FAMILIES,
+  RELATED_HIDDEN_SUBCATEGORIES,
+} from "../config/site";
 
 export type { Appliance };
 
@@ -22,18 +27,65 @@ export type CatalogProduct = Pick<
   isFeatured?: boolean;
 };
 
+/** One full row of cards on desktop, two on a phone. */
+export const RELATED_LIMIT = 4;
+
+type RelatedTarget = Pick<Appliance, "id" | "category" | "subcategory" | "price" | "brand">;
+
 /**
- * The product page's related rail: same category, never the product itself,
- * capped at five. Lives here so the page can select them server-side rather
- * than the rail filtering a client-fetched catalogue.
+ * The subcategories a product's related items may come from: its own first,
+ * then the rest of its family. Empty for a catch-all with no related items.
  */
-export function relatedProducts(
-  inventory: Appliance[],
-  product: { id: number; category: string }
-): Appliance[] {
-  return inventory
-    .filter((item) => item.category === product.category && item.id !== product.id)
-    .slice(0, 5);
+export function relatedSubcategories(subcategory: string): string[] {
+  if (RELATED_HIDDEN_SUBCATEGORIES.includes(subcategory)) return [];
+  const family = RELATED_FAMILIES.find((members) => members.includes(subcategory));
+  return family ? [subcategory, ...family.filter((slug) => slug !== subcategory)] : [subcategory];
+}
+
+/**
+ * The product page's related items, from candidates already limited to
+ * published products: the same subcategory first, then its family, never
+ * anything else - fewer cards, or none, rather than unrelated ones. Within
+ * each, in stock before out of stock, then closest in price, then same brand.
+ */
+export function relatedProducts(candidates: Appliance[], product: RelatedTarget): Appliance[] {
+  const subcategories = relatedSubcategories(product.subcategory);
+  const rank = (a: Appliance, b: Appliance) =>
+    subcategories.indexOf(a.subcategory) - subcategories.indexOf(b.subcategory) ||
+    Number(isOutOfStock(a)) - Number(isOutOfStock(b)) ||
+    Math.abs(a.price - product.price) - Math.abs(b.price - product.price) ||
+    Number(b.brand === product.brand) - Number(a.brand === product.brand) ||
+    a.id - b.id;
+
+  return candidates
+    .filter(
+      (item, index, all) =>
+        item.id !== product.id &&
+        all.findIndex((other) => other.id === item.id) === index &&
+        item.category === product.category &&
+        subcategories.includes(item.subcategory)
+    )
+    .sort(rank)
+    .slice(0, RELATED_LIMIT);
+}
+
+/**
+ * The add-ons configured for a product's subcategory, in the configured order,
+ * leaving out any that aren't among the candidates (unpublished) or are out of
+ * stock. Null when there's nothing to show.
+ */
+export function productAddOns(
+  candidates: Appliance[],
+  product: Pick<Appliance, "id" | "subcategory">
+): { heading: string; products: Appliance[] } | null {
+  const config = PRODUCT_ADD_ONS[product.subcategory];
+  if (!config) return null;
+  const byId = new Map(candidates.map((item) => [item.id, item]));
+  const products = config.productIds
+    .filter((id) => id !== product.id)
+    .map((id) => byId.get(id))
+    .filter((item): item is Appliance => item !== undefined && !isOutOfStock(item));
+  return products.length > 0 ? { heading: config.heading, products } : null;
 }
 
 /**

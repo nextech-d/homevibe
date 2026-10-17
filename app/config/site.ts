@@ -65,3 +65,32 @@ export const INSTALLATION_WORDING: Readonly<Record<string, string>> = {
   rangetops: FREE_INSTALLATION,
   "wine-cellars": FREE_INSTALLATION,
 };
+
+/**
+ * Subcategories, by slug, that may fill each other's related items when one
+ * has too few. A subcategory not listed here only ever shows its own - a
+ * fridge page used to show microwaves because both were "Kitchen".
+ */
+export const RELATED_FAMILIES: readonly (readonly string[])[] = [
+  ["refrigerators", "freezers", "wine-cellars"],
+  ["ovens-ranges", "rangetops", "cooktops"],
+  ["brewers", "espresso-machines"],
+];
+
+/**
+ * Catch-all subcategories whose products have nothing to do with one another
+ * (a sealant, a jump starter, washer footpads): their pages show no related
+ * items at all.
+ */
+export const RELATED_HIDDEN_SUBCATEGORIES: readonly string[] = ["adhesives-and-sealants"];
+
+/**
+ * Add-ons, by subcategory slug: products genuinely useful with what's on the
+ * page, shown in their own section below the related items. Only while they're
+ * published and in stock.
+ */
+export const PRODUCT_ADD_ONS: Readonly<
+  Record<string, { heading: string; productIds: readonly number[] }>
+> = {
+  laundry: { heading: "Useful with this washer", productIds: [116] },
+};
