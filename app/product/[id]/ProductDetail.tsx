@@ -338,7 +338,7 @@ export default function ProductDetail({
 
         {related.length > 0 && (
           <section className="mt-20 w-full">
-            <h2 className={`mb-6 ${sectionHeading}`}>Related collections</h2>
+            <h2 className={`mb-6 ${sectionHeading}`}>Related Items</h2>
             <div className="grid grid-cols-2 gap-x-5 gap-y-8 lg:grid-cols-4">
               {related.map((rp) => (
                 <ProductCard key={rp.id} appliance={rp} compact />
