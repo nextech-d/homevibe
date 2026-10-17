@@ -38,6 +38,8 @@ export default function CheckoutPage() {
   const [trackingId, setTrackingId] = useState("");
   const [orderTotal, setOrderTotal] = useState(0);
   const [deliveryError, setDeliveryError] = useState("");
+  /** Set when the order couldn't reach us (a 5xx or no answer): offers WhatsApp and a call instead. */
+  const [orderUnavailable, setOrderUnavailable] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -115,6 +117,7 @@ export default function CheckoutPage() {
     }
 
     setDeliveryError("");
+    setOrderUnavailable(false);
     setLoading(true);
 
     const idempotencyKey = getOrCreateCheckoutIdempotencyKey(cartFingerprint);
@@ -152,15 +155,22 @@ export default function CheckoutPage() {
           clearCart();
           clearCheckoutIdempotencyKey(cartFingerprint);
           setStep(2);
+        } else if (response.status >= 500) {
+          setOrderUnavailable(true);
         } else {
           alert(data.message || "Checkout failed. Please try again.");
         }
+      } else if (response.status >= 500) {
+        // Our side failed, not the customer's details: the cart stays as it
+        // is, and the panel under the button offers WhatsApp or a call.
+        setOrderUnavailable(true);
       } else {
         alert(data.message || "Checkout failed. Please try again.");
       }
     } catch (err) {
+      // No answer at all, or one that wasn't JSON - a network failure.
       console.error("Order error", err);
-      alert("Unable to place your order. Please try again.");
+      setOrderUnavailable(true);
     } finally {
       setLoading(false);
     }
@@ -294,6 +304,27 @@ export default function CheckoutPage() {
               >
                 {loading ? "Placing order..." : "Place order"} <ArrowRight aria-hidden="true" className="h-4 w-4" />
               </button>
+              {orderUnavailable && (
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-4">
+                  <p className="text-sm font-semibold text-red-800">
+                    We couldn&apos;t place your order online just now. Order on WhatsApp or call us
+                    and we&apos;ll sort it.
+                  </p>
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={`${secondaryButton} w-full active:scale-[0.98] sm:w-auto`}
+                    >
+                      <PhoneCall aria-hidden="true" className="h-4 w-4" /> Order on WhatsApp
+                    </a>
+                    <a href={`tel:${SITE.phone.replace(/\s/g, "")}`} className={textLink}>
+                      {SITE.phone}
+                    </a>
+                  </div>
+                </div>
+              )}
               <p className="text-center text-xs text-neutral-600">
                 By placing an order you agree to our{" "}
                 <Link href="/privacy-policy" className={textLink}>
