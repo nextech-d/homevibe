@@ -161,6 +161,14 @@ const nextConfig: NextConfig = {
         destination: "/product/von-vrt-125drag-125l-double-door-fridge",
         permanent: true,
       },
+      // The Hisense HB25MOBX7 was in the catalogue twice. It's a 25-litre
+      // model; this is the URL of the duplicate that called it 20L, now
+      // unpublished.
+      {
+        source: "/product/hisense-hb25mobx7-built-in-microwave-solo-20l",
+        destination: "/product/hisense-hb25mobx7-built-in-microwave-solo-25l",
+        permanent: true,
+      },
     ];
   },
   images: {
