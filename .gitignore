@@ -60,3 +60,6 @@ product-meta-review.csv
 
 # Local product snapshots taken before catalogue writes
 backups/
+
+# Original files behind the self-hosted images in public/ (hero, category tiles), kept as backups
+/image-originals/

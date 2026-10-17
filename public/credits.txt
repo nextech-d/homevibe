@@ -1,0 +1,28 @@
+Image credits for the self-hosted images in public/.
+Originals are kept outside public/ in image-originals/ (not in git).
+
+HOMEPAGE HERO
+/hero/hisense-wd3q1043bt.webp
+  Catalogue packshot of the Hisense WD3Q1043BT (product #25), as on its product
+  page, 1920x1920. Unedited.
+/hero/von-vrt-125drag-fridge.webp
+  Catalogue packshot of the Von VRT-125DRAG (product #129), a 1920x1920
+  transparent cut-out, trimmed to the fridge (760x1784) and converted to WebP.
+/hero/ramtons-water-dispenser.webp
+  Catalogue packshot of the Ramtons hot, normal & cold water dispenser
+  (product #162), 700x700, trimmed to the dispenser (242x640) and converted to
+  WebP. No free-licence alternative was found: Unsplash and Pexels had no
+  freestanding dispenser on a plain background.
+
+HOMEPAGE CATEGORY TILES
+/categories/*.webp
+  Catalogue packshots of products we sell, from their product pages: trimmed,
+  centred on white and converted to WebP at quality 90 by
+  scripts/build-category-tiles.ts. Not stock photography - chosen over stock
+  on 2026-10-17 because no free library had a consistent set.
+  gym.webp                  #115 York Fitness 50kg dumbbell and barbell set (one dumbbell, cropped)
+  heating-and-cooling.webp  #163 Ramtons 3-bar quartz heater
+  tvs.webp                  #64 TCL 75T6D 75-inch QLED TV
+  kitchen.webp              #31 Hisense H20MOMS11 20L microwave
+  cleaning.webp             #30 Hisense WFVC6010S 6kg front load washer
+  others.webp               #116 Washing machine anti-vibration footpads
