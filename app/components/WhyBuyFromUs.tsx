@@ -25,8 +25,6 @@ const POINTS = [
   },
 ] as const;
 
-const CLOSER = "Genuine units, sourced directly from the manufacturer.";
-
 export default function WhyBuyFromUs() {
   return (
     // Its own panel, apart from the description, so it reads as the shop
@@ -53,10 +51,6 @@ export default function WhyBuyFromUs() {
           </li>
         ))}
       </ul>
-
-      <p className="mt-6 border-t border-[#DCE0E7] pt-4 text-base font-semibold text-neutral-950">
-        {CLOSER}
-      </p>
     </section>
   );
 }
