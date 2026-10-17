@@ -103,6 +103,10 @@ export async function getFeaturedCandidates(
  * query: published products in the subcategories relatedProducts() may draw
  * on, plus the configured add-ons. Up to a few dozen rows rather than the
  * whole catalogue the page used to load for this.
+ *
+ * A query that fails throws, like getPublishedProduct: the product page is
+ * regenerated in the background, and a throw keeps the last good page, with
+ * its related items, where an empty list would have quietly dropped them.
  */
 export async function getRelatedCandidates(
   product: Pick<Appliance, "id" | "category" | "subcategory">
@@ -140,8 +144,7 @@ export async function getRelatedCandidates(
     });
     return rows.map(mapDbProductToAppliance);
   } catch (error) {
-    console.error("Failed to load related products from database:", error);
-    return [];
+    throw new Error("Failed to load related products from database", { cause: error });
   }
 }
 
