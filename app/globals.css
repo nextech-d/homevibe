@@ -132,3 +132,15 @@ body {
   text-align: left;
   font-weight: 600;
 }
+
+/*
+ * The product page's pinned phone bar (PinnedProductBar): keep its height
+ * clear at the bottom of the page, so the footer's last line is never under
+ * it. Only while the bar exists, and only below lg, where it shows. 4.125rem
+ * is the bar: 44px buttons, 10px above and below, the 1px top border.
+ */
+@media (max-width: 63.999rem) {
+  body:has([data-pinned-bar]) {
+    padding-bottom: calc(4.125rem + env(safe-area-inset-bottom));
+  }
+}

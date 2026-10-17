@@ -19,9 +19,10 @@ import ProductFaq from "../../components/ProductFaq";
 import ProductHighlights from "../../components/ProductHighlights";
 import WhyBuyFromUs from "../../components/WhyBuyFromUs";
 import QuantitySelector from "../../components/QuantitySelector";
-import TrustBadges from "../../components/TrustBadges";
+import { brandHref } from "../../data/brands";
+import { PinnedProductBar, ProductFacts, ProductTrustPoints } from "./ProductHeaderParts";
 import WhatsAppIcon from "../../components/WhatsAppIcon";
-import { ShoppingCart, CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { renderMarkdown } from "../../lib/markdown";
 import Breadcrumbs from "../../components/Breadcrumbs";
@@ -30,6 +31,7 @@ import {
   pageHeading,
   primaryButton,
   raisedSurface,
+  raisedSurfaceFromSm,
   secondaryButton,
   sectionHeading,
 } from "../../components/homeSurfaces";
@@ -122,6 +124,14 @@ export default function ProductDetail({
   const categorySlug = getCategorySlug(product.category);
   const showSubcategoryCrumb =
     product.subcategory.toLowerCase() !== categorySlug.toLowerCase();
+  // The facts line names what the product is - "Washing Machines", not the
+  // "Cleaning" it's filed under - with the subcategory's own database label.
+  const factCategoryLabel = showSubcategoryCrumb
+    ? product.subcategoryLabel ?? getSubcategoryLabel(categorySlug, product.subcategory)
+    : product.category;
+  const factCategoryHref = showSubcategoryCrumb
+    ? categoryHref(categorySlug, product.subcategory)
+    : categoryHref(categorySlug);
 
   return (
     <div className="min-h-screen font-sans pb-24">
@@ -146,11 +156,24 @@ export default function ProductDetail({
           ]}
         />
 
-        {/* Twelve columns means eleven gaps: at 96px (gap-24) that's 1056px,
-            more than the 976px of content at 1024px, so the wide gap waits
-            for xl. */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 xl:gap-24 w-full">
-          <div className="lg:col-span-5 flex flex-col gap-4">
+        {/* Three blocks on a twelve-column grid. On a phone they stack title and
+            price, then the gallery, then the rest, so the name and price are on
+            the first screen; from lg the gallery takes the left five columns
+            beside both, the title level with the top of the image box. In one
+            white panel from 640px up, like the homepage's sections; on a phone
+            it sits on the page, full width. The panel's 40px padding leaves
+            896px at 1024px, so the gap is 48px there and 64px from xl. The
+            first row hugs the title and price; the second takes whatever the
+            taller gallery adds, so the price-to-buttons gap stays fixed. */}
+        <div className={`${raisedSurfaceFromSm} grid w-full grid-cols-1 gap-6 sm:p-8 lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-x-12 lg:gap-y-0 lg:p-10 xl:gap-x-16`}>
+          <div className="w-full lg:col-span-7 lg:col-start-6 lg:row-start-1">
+            <h1 className={pageHeading}>{product.name}</h1>
+            <p className="mt-4 text-3xl font-semibold tabular-nums tracking-tight text-[#8f4710] lg:mt-5">
+              {formatPrice(product.price)}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-4 lg:col-span-5 lg:col-start-1 lg:row-span-2 lg:row-start-1">
             <div className={`${raisedSurface} group relative aspect-square w-full overflow-hidden`}>
               <Image
                 src={activeImage}
@@ -212,45 +235,8 @@ export default function ProductDetail({
             </div>
           </div>
 
-          <div className="lg:col-span-7 flex flex-col pt-2 lg:pt-8 w-full">
-            <h1 className={pageHeading}>{product.name}</h1>
-            <div className="mt-5 flex items-baseline gap-4">
-              <span className="text-3xl font-semibold tabular-nums tracking-tight text-[#8f4710]">
-                {formatPrice(product.price)}
-              </span>
-            </div>
-
-            <dl className="my-8 grid grid-cols-2 gap-x-6 gap-y-5 sm:gap-x-12">
-              <div>
-                <dt className="text-sm text-neutral-600">Category</dt>
-                <dd className="mt-1 text-base font-semibold text-neutral-950">{product.category}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-neutral-600">Brand</dt>
-                <dd className="mt-1 text-base font-semibold text-neutral-950">{product.brand}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-neutral-600">Availability</dt>
-                <dd className="mt-1 text-base font-semibold text-neutral-950">{product.status}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-neutral-600">Authenticity</dt>
-                <dd className="mt-1 flex items-center gap-1.5 text-base font-semibold text-neutral-950">
-                  <CheckCircle2 size={16} aria-hidden="true" className="text-[#a85414]" />
-                  100% genuine
-                </dd>
-              </div>
-            </dl>
-
-            <div className="h-px w-full bg-[#DCE0E7]"></div>
-
-            <div className="my-8">
-              <TrustBadges />
-            </div>
-
-            <div className="h-px w-full bg-[#DCE0E7]"></div>
-
-            <div className="mt-6 flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+          <div className="w-full lg:col-span-7 lg:col-start-6 lg:row-start-2 lg:mt-8">
+            <div id="product-actions" className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
               <QuantitySelector qty={qty} onChange={setQty} variant="pill" />
 
               {/* Below lg: one column, so WhatsApp sits directly under Add to
@@ -289,8 +275,30 @@ export default function ProductDetail({
                 </a>
               </div>
             </div>
+
+            <div className="mt-6">
+              <ProductFacts
+                brand={product.brand}
+                brandHref={product.brandSlug ? brandHref(product.brandSlug) : undefined}
+                category={factCategoryLabel}
+                categoryHref={factCategoryHref}
+                status={product.status}
+              />
+            </div>
+
+            <div className="mt-4 border-t border-[#DCE0E7] pt-5">
+              <ProductTrustPoints subcategory={product.subcategory} />
+            </div>
           </div>
         </div>
+
+        <PinnedProductBar
+          watchId="product-actions"
+          onAddToCart={handleAddToCart}
+          added={added}
+          whatsappUrl={whatsappUrl}
+          outOfStock={outOfStock}
+        />
 
         {/* One column for both, so the description and the long-form section
             stay matched by construction rather than by two classes agreeing. */}

@@ -14,6 +14,8 @@ export type Appliance = {
   name: string;
   category: string;
   subcategory: string;
+  /** The subcategory's own label from the database, e.g. "Washing Machines"; product page only. */
+  subcategoryLabel?: string;
   price: number;
   status: string;
   /** Card-size URL — use getProductCardImage() when rendering. */
@@ -23,6 +25,8 @@ export type Appliance = {
   imageSet: ProductImageSet;
   specs: string;
   brand: string;
+  /** For the brand link on the product page; absent where products come from the API. */
+  brandSlug?: string;
   description: string;
   /** Long-form markdown shown under the description; absent on most products. */
   body?: string | null;

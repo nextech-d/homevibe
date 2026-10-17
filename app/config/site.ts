@@ -28,3 +28,35 @@ export const TRUST_BADGES = [
   { label: "Installation included", detail: "Certified technicians" },
   { label: "M-Pesa accepted", detail: "Also bank transfer, or cash on delivery in Nairobi" },
 ] as const;
+
+/**
+ * The product page's trust points: one plain line each, in the order shown.
+ * Separate from TRUST_BADGES above, which the homepage hero also uses.
+ * Every line is checked by the claims guard (app/lib/claims.ts); "installation"
+ * shows only on the subcategories in INSTALLATION_SUBCATEGORIES.
+ */
+export const PRODUCT_TRUST_POINTS = [
+  { id: "delivery", text: "Free delivery in Nairobi, delivery countrywide" },
+  { id: "warranty", text: "12-month warranty on parts and labour, serviced by our own technicians" },
+  { id: "payment", text: "Pay by M-Pesa, bank transfer, or cash on delivery in Nairobi" },
+  { id: "installation", text: "Installation included" },
+] as const;
+
+/**
+ * Subcategories (by slug) where we install what we sell, so the product page
+ * says "Installation included". By subcategory rather than category: Heating &
+ * Cooling holds plug-in heaters as well as air conditioners. The empty ones are
+ * listed so a product added there later gets the line without a code change.
+ */
+export const INSTALLATION_SUBCATEGORIES: readonly string[] = [
+  "laundry",
+  "refrigerators",
+  "tvs",
+  "air-conditioners",
+  "hand-dryer",
+  "freezers",
+  "dishwashers",
+  "cooktops",
+  "rangetops",
+  "wine-cellars",
+];
