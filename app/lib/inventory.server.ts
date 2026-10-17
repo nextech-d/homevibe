@@ -26,7 +26,7 @@ const productDetailInclude = {
  * Nothing to read - no DATABASE_URL (a Preview build) - yields an empty
  * catalogue, never the demo one: a page of invented products at invented
  * prices is worse than a page with none. A query that fails throws, as
- * getHeroData does: these pages are regenerated in the background, and a
+ * getPublishedProduct does: these pages are regenerated in the background, and a
  * render that throws leaves the last good page in place, where an empty grid
  * would have replaced it with one that looks like we sell nothing.
  */

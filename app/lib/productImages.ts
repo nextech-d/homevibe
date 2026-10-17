@@ -85,7 +85,10 @@ export function getProductGallery(source: ImageSource & { images?: string[] }): 
 }
 
 export const PRODUCT_IMAGE_SIZES = {
-  card: "(min-width: 1024px) 280px, (min-width: 640px) 50vw, 100vw",
+  // Two across below 1024px and four from there, in a 1280px page with 1.5rem
+  // gutters and 1.25rem gaps; the photo sits inside a 1rem inset. A phone asks
+  // for half its width, not all of it.
+  card: "(min-width: 1280px) 270px, (min-width: 1024px) calc((100vw - 6.75rem) / 4 - 2rem), calc((100vw - 4.25rem) / 2 - 1.5rem)",
   thumbnail: "80px",
   cart: "72px",
   detail: "(min-width: 1024px) 600px, 100vw",
