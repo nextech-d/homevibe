@@ -155,7 +155,7 @@ Sign up at [resend.com](https://resend.com), verify your domain (or use their sa
 ```
 RESEND_API_KEY=re_...
 EMAIL_FROM=HomeVibe <orders@yourdomain.com>
-ORDER_NOTIFY_EMAIL=Homevibekenya@gmail.com
+ORDER_NOTIFY_EMAIL=homevibekenya@gmail.com
 ```
 
 ## Order tracking (Day 5)
