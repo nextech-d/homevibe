@@ -141,6 +141,14 @@ const nextConfig: NextConfig = {
           "/product/hisense-50q6qken-50-inch-qled-4k-uhd-smart-frameless-tv-dolby-vision-dolby-atmos-and-vidaa-os",
         permanent: true,
       },
+      // ...and the second copy of it (#85), unpublished in favour of #88.
+      {
+        source:
+          "/product/hisense-50q6qken-50-inch-qled-4k-uhd-smart-frameless-tv-dolby-vision-dolby-atmos-and-vidaa-os-duplicate-85",
+        destination:
+          "/product/hisense-50q6qken-50-inch-qled-4k-uhd-smart-frameless-tv-dolby-vision-dolby-atmos-and-vidaa-os",
+        permanent: true,
+      },
       // The Von VMS-206MMK microwave was in the catalogue twice. The kept row
       // has the slug that names it; this one named a Ramtons RM/682 and is
       // now unpublished.
