@@ -66,6 +66,82 @@ export const INSTALLATION_WORDING: Readonly<Record<string, string>> = {
   "wine-cellars": FREE_INSTALLATION,
 };
 
+export type WhyBuyPoint = { lead: string; body: string };
+
+/**
+ * The product page's "Why buy from us" points: first the delivery point
+ * (WHY_BUY_FIRST_POINT, chosen by whether we install that subcategory, per
+ * INSTALLATION_WORDING), then the shared points, then the group's own, by
+ * subcategory slug through WHY_BUY_GROUP below. Washer-only wording (drain
+ * pumps, water pressure) used to show on every product, and installation was
+ * promised on products we don't install.
+ */
+const WHY_BUY_DELIVERY =
+  "Delivery is free and same-day in Nairobi, and within 24 hours elsewhere in Kenya.";
+
+export const WHY_BUY_FIRST_POINT = {
+  installed: {
+    lead: "We install it properly.",
+    body: `In Nairobi our technicians install it for free: unboxed, positioned, connected and tested with you (parts paid separately). ${WHY_BUY_DELIVERY}`,
+  },
+  delivered: { lead: "We deliver fast.", body: WHY_BUY_DELIVERY },
+} as const satisfies Record<string, WhyBuyPoint>;
+
+export const WHY_BUY_SHARED_POINTS: readonly WhyBuyPoint[] = [
+  {
+    lead: "We service what we sell.",
+    body: "Twelve months from us, with our own technicians. Where a brand adds a longer manufacturer warranty, the product page says so. No third-party service centre to chase.",
+  },
+];
+
+export const WHY_BUY_GROUP_POINTS = {
+  washers: [
+    {
+      lead: "We stock the parts.",
+      body: "Drain pumps, door seals, heating elements — we keep them and we'll tell you what a repair costs before you commit to it.",
+    },
+    {
+      lead: "We'll tell you when not to buy.",
+      body: "If your water pressure won't run a front loader, or the machine is too big for your kitchen, we'd rather say so now than deal with it after delivery.",
+    },
+  ],
+  tvs: [
+    {
+      lead: "We mount it properly.",
+      body: `In Nairobi our technicians wall-mount it for free. Tell us your wall type and we'll bring the right fixings (bracket paid separately). ${WHY_BUY_DELIVERY}`,
+    },
+    {
+      lead: "We'll tell you when not to buy.",
+      body: "If the size is wrong for your room, or an app you need isn't on that TV's platform, we'd rather say so now than deal with it after delivery.",
+    },
+  ],
+  fridges: [
+    {
+      lead: "We protect the compressor.",
+      body: "Voltage swings when stima comes back are what damage compressors. We stock stabilisers and will tell you which one your fridge needs.",
+    },
+    {
+      lead: "We'll tell you when not to buy.",
+      body: "If it won't fit through your door or into your kitchen space, we'd rather say so now than deal with it after delivery.",
+    },
+  ],
+  generic: [
+    {
+      lead: "We'll tell you when not to buy.",
+      body: "If it won't fit your space or suit your power supply, we'd rather say so now than deal with it after delivery.",
+    },
+  ],
+} as const satisfies Record<string, readonly WhyBuyPoint[]>;
+
+/** Subcategory slug to its group above; a slug missing here gets "generic". */
+export const WHY_BUY_GROUP: Readonly<Record<string, keyof typeof WHY_BUY_GROUP_POINTS>> = {
+  laundry: "washers",
+  tvs: "tvs",
+  refrigerators: "fridges",
+  freezers: "fridges",
+  "wine-cellars": "fridges",
+};
+
 /**
  * Subcategories, by slug, that may fill each other's related items when one
  * has too few. A subcategory not listed here only ever shows its own - a
