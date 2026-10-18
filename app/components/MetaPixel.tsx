@@ -28,7 +28,11 @@ export default function MetaPixel() {
 
   return (
     <>
-      <Script id="meta-pixel" src={META_PIXEL_SCRIPT} strategy="afterInteractive" />
+      {/* Once the browser is idle rather than straight after hydration, so
+          Meta's script doesn't compete with the first paint. Nothing is lost:
+          events fired before it arrives wait in lib/pixel's fbq queue and are
+          sent, in order, when it loads. */}
+      <Script id="meta-pixel" src={META_PIXEL_SCRIPT} strategy="lazyOnload" />
       <noscript>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
