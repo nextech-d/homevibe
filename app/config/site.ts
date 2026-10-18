@@ -69,16 +69,25 @@ export const INSTALLATION_WORDING: Readonly<Record<string, string>> = {
 export type WhyBuyPoint = { lead: string; body: string };
 
 /**
- * The product page's "Why buy from us" points. The first two hold for every
- * product; the last two are per group, by subcategory slug, through
- * WHY_BUY_GROUP below. Washer-only wording (drain pumps, water pressure) used
- * to show on every product.
+ * The product page's "Why buy from us" points: first the delivery point
+ * (WHY_BUY_FIRST_POINT, chosen by whether we install that subcategory, per
+ * INSTALLATION_WORDING), then the shared points, then the group's own, by
+ * subcategory slug through WHY_BUY_GROUP below. Washer-only wording (drain
+ * pumps, water pressure) used to show on every product, and installation was
+ * promised on products we don't install.
  */
-export const WHY_BUY_SHARED_POINTS: readonly WhyBuyPoint[] = [
-  {
+const WHY_BUY_DELIVERY =
+  "Delivery is free and same-day in Nairobi, and within 24 hours elsewhere in Kenya.";
+
+export const WHY_BUY_FIRST_POINT = {
+  installed: {
     lead: "We install it properly.",
-    body: "Delivered the same day in Nairobi and within 24 hours elsewhere in Kenya, then unboxed, positioned, connected and tested with you before we leave. Not a box dropped at your door.",
+    body: `In Nairobi our technicians install it for free: unboxed, positioned, connected and tested with you (parts paid separately). ${WHY_BUY_DELIVERY}`,
   },
+  delivered: { lead: "We deliver fast.", body: WHY_BUY_DELIVERY },
+} as const satisfies Record<string, WhyBuyPoint>;
+
+export const WHY_BUY_SHARED_POINTS: readonly WhyBuyPoint[] = [
   {
     lead: "We service what we sell.",
     body: "Twelve months from us, with our own technicians. Where a brand adds a longer manufacturer warranty, the product page says so. No third-party service centre to chase.",
@@ -99,7 +108,7 @@ export const WHY_BUY_GROUP_POINTS = {
   tvs: [
     {
       lead: "We mount it properly.",
-      body: "In Nairobi our technicians wall-mount it for free. Tell us your wall type and we'll bring the right fixings (bracket paid separately).",
+      body: `In Nairobi our technicians wall-mount it for free. Tell us your wall type and we'll bring the right fixings (bracket paid separately). ${WHY_BUY_DELIVERY}`,
     },
     {
       lead: "We'll tell you when not to buy.",
@@ -117,10 +126,6 @@ export const WHY_BUY_GROUP_POINTS = {
     },
   ],
   generic: [
-    {
-      lead: "We service what we sell.",
-      body: "Our own technicians handle repairs under the 12-month warranty.",
-    },
     {
       lead: "We'll tell you when not to buy.",
       body: "If it won't fit your space or suit your power supply, we'd rather say so now than deal with it after delivery.",

@@ -1,5 +1,7 @@
 import { Check } from "lucide-react";
 import {
+  INSTALLATION_WORDING,
+  WHY_BUY_FIRST_POINT,
   WHY_BUY_GROUP,
   WHY_BUY_GROUP_POINTS,
   WHY_BUY_SHARED_POINTS,
@@ -8,15 +10,19 @@ import { raisedSurface } from "./homeSurfaces";
 
 /**
  * The shop's promise, in the template rather than in 117 markdown bodies, so
- * it changes in one place, reviewably in git. Shared points first, then the
- * product's group's (app/config/site.ts).
+ * it changes in one place, reviewably in git. Delivery or installation first,
+ * then the shared points, then the product's group's (app/config/site.ts).
  */
 
 export default function WhyBuyFromUs({ subcategory }: { subcategory: string }) {
-  const points = [
-    ...WHY_BUY_SHARED_POINTS,
-    ...WHY_BUY_GROUP_POINTS[WHY_BUY_GROUP[subcategory] ?? "generic"],
-  ];
+  const group = WHY_BUY_GROUP[subcategory] ?? "generic";
+  // TVs' own mount point carries installation and delivery; elsewhere the
+  // first point promises installation only where we install.
+  const first =
+    group === "tvs"
+      ? []
+      : [INSTALLATION_WORDING[subcategory] ? WHY_BUY_FIRST_POINT.installed : WHY_BUY_FIRST_POINT.delivered];
+  const points = [...first, ...WHY_BUY_SHARED_POINTS, ...WHY_BUY_GROUP_POINTS[group]];
 
   return (
     // Its own panel, apart from the description, so it reads as the shop
