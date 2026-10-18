@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "../context/CartContext";
+import { AVAILABILITY_LABEL, useCartPriceCheck } from "../hooks/useCartPriceCheck";
+import CartPriceNotice from "../components/CartPriceNotice";
 import Link from "next/link";
 import { CheckCircle, ArrowRight, PhoneCall } from "lucide-react";
 import { formatPrice } from "../lib/formatPrice";
@@ -31,6 +33,7 @@ import {
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, total, clearCart, hydrated } = useCart();
+  const { pricesChanged, availability } = useCartPriceCheck();
   // The admin-set number the footer and product links dial, not config's.
   const whatsappNumber = useWhatsAppNumber();
   const [step, setStep] = useState<1 | 2>(1);
@@ -345,11 +348,17 @@ export default function CheckoutPage() {
                     Edit cart
                   </Link>
                 </div>
+                {pricesChanged && <CartPriceNotice className="mt-4" />}
                 <div className="max-h-56 divide-y divide-[#DCE0E7] overflow-y-auto py-2">
                   {items.map((item) => (
                     <div key={item.id} className="flex items-center justify-between gap-2 py-3">
                       <span className="truncate pr-3 text-sm text-neutral-700">
                         {item.name} <span className="text-xs font-semibold text-neutral-600">x{item.qty}</span>
+                        {availability[item.id] && (
+                          <span className="block text-xs font-semibold text-[#8A4B00]">
+                            {AVAILABILITY_LABEL[availability[item.id]]}
+                          </span>
+                        )}
                       </span>
                       <span className="shrink-0 text-sm font-semibold tabular-nums text-neutral-950">
                         {formatPrice(item.price * item.qty)}

@@ -161,22 +161,6 @@ export function productsForBrand(inventory: Appliance[], brandName: string): App
   return inventory.filter((product) => product.brand.toLowerCase() === name);
 }
 
-/**
- * Client-side fetch of inventory via the products API. Rejects when the API
- * can't answer, rather than resolving to an empty list that reads as "we sell
- * nothing".
- */
-export async function fetchInventoryClient(): Promise<Appliance[]> {
-  const endpoint = apiUrl("/products") || "/api/products";
-  const res = await fetch(endpoint, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Products API answered ${res.status}`);
-  const data = (await res.json()) as { success?: boolean; products?: Appliance[] };
-  if (!data.success || !Array.isArray(data.products)) {
-    throw new Error("Products API returned no product list");
-  }
-  return data.products;
-}
-
 export async function fetchProductByParamClient(param: string): Promise<Appliance | null> {
   const endpoint = apiUrl(`/products/${encodeURIComponent(param)}`) || `/api/products/${encodeURIComponent(param)}`;
   try {

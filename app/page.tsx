@@ -5,7 +5,7 @@ import HomeFeatured from "./components/HomeFeatured";
 import HomeFaq from "./components/HomeFaq";
 import FaqJsonLd from "./components/FaqJsonLd";
 import { sectionHeading } from "./components/homeSurfaces";
-import { getFeaturedCandidates } from "./lib/inventory.server";
+import { getBrandProductCounts, getFeaturedCandidates } from "./lib/inventory.server";
 import { getFaqItemsData, getFeaturedColumnIds } from "./lib/storefront.server";
 import { featuredSelection, toCatalogProduct } from "./lib/inventory";
 
@@ -17,9 +17,10 @@ import { featuredSelection, toCatalogProduct } from "./lib/inventory";
 export const revalidate = 60;
 
 export default async function Home() {
-  const [featuredColumns, faqItems] = await Promise.all([
+  const [featuredColumns, faqItems, brandProductCounts] = await Promise.all([
     getFeaturedColumnIds(),
     getFaqItemsData(),
+    getBrandProductCounts(),
   ]);
 
   // Chosen here rather than in the grid, so the cards are in the initial HTML
@@ -40,7 +41,7 @@ export default async function Home() {
           <HomeFeatured products={featured} featuredColumns={featuredColumns} />
         </section>
 
-        <FeaturedBrands />
+        <FeaturedBrands productCounts={brandProductCounts} />
 
         <GoogleReviews />
 

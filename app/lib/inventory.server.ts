@@ -4,9 +4,26 @@ import { cache } from "react";
 
 import { type Appliance } from "../data/products";
 import { getPrisma } from "./db";
-import { mapDbProductToAppliance } from "./mapProduct";
+import { mapDbProductToAppliance, stockStatusLabel } from "./mapProduct";
 import { relatedSubcategories } from "./inventory";
 import { PRODUCT_ADD_ONS } from "../config/site";
+
+/**
+ * The client for the catalogue's queries, or null when there's nothing to read.
+ * A Preview build without a DATABASE_URL gets null, and with it an empty
+ * catalogue. Production never does: there a missing DATABASE_URL is a broken
+ * deployment, so it throws - the same as a query that fails - instead of
+ * publishing pages that say we sell nothing.
+ */
+function catalogueDatabase() {
+  if (!process.env.DATABASE_URL) {
+    if (process.env.VERCEL_ENV === "production") {
+      throw new Error("DATABASE_URL is not set in production; refusing to serve an empty catalogue");
+    }
+    return null;
+  }
+  return getPrisma();
+}
 
 const productInclude = {
   brand: true,
@@ -23,19 +40,16 @@ const productDetailInclude = {
  * Load published products from Postgres. Memoised per request: a category page
  * renders the grid and the structured data describing it from one query.
  *
- * Nothing to read - no DATABASE_URL (a Preview build) - yields an empty
- * catalogue, never the demo one: a page of invented products at invented
+ * Nothing to read - no DATABASE_URL in a Preview build - yields an empty
+ * catalogue, never the demo one (in production it throws; see
+ * catalogueDatabase): a page of invented products at invented
  * prices is worse than a page with none. A query that fails throws, as
  * getPublishedProduct does: these pages are regenerated in the background, and a
  * render that throws leaves the last good page in place, where an empty grid
  * would have replaced it with one that looks like we sell nothing.
  */
 export const getInventory = cache(async (): Promise<Appliance[]> => {
-  if (!process.env.DATABASE_URL) {
-    return [];
-  }
-
-  const prisma = getPrisma();
+  const prisma = catalogueDatabase();
   if (!prisma) {
     return [];
   }
@@ -67,11 +81,7 @@ export const getInventory = cache(async (): Promise<Appliance[]> => {
 export async function getFeaturedCandidates(
   columns: { topProductId: number; bottomProductId: number | null }[]
 ): Promise<Appliance[]> {
-  if (!process.env.DATABASE_URL) {
-    return [];
-  }
-
-  const prisma = getPrisma();
+  const prisma = catalogueDatabase();
   if (!prisma) {
     return [];
   }
@@ -115,11 +125,7 @@ export async function getRelatedCandidates(
   const addOnIds = PRODUCT_ADD_ONS[product.subcategory]?.productIds ?? [];
   if (subcategories.length === 0 && addOnIds.length === 0) return [];
 
-  if (!process.env.DATABASE_URL) {
-    return [];
-  }
-
-  const prisma = getPrisma();
+  const prisma = catalogueDatabase();
   if (!prisma) {
     return [];
   }
@@ -155,9 +161,7 @@ export async function getRelatedCandidates(
  */
 export const listProductsForSitemap = cache(
   async (): Promise<{ slug: string; id: number; updatedAt: Date }[]> => {
-    if (!process.env.DATABASE_URL) return [];
-
-    const prisma = getPrisma();
+    const prisma = catalogueDatabase();
     if (!prisma) return [];
 
     try {
@@ -180,11 +184,7 @@ export const listProductsForSitemap = cache(
  * crawler - that the product is gone; the last good page stays in place.
  */
 export const getPublishedProduct = cache(async (id: number): Promise<Appliance | null> => {
-  if (!process.env.DATABASE_URL) {
-    return null;
-  }
-
-  const prisma = getPrisma();
+  const prisma = catalogueDatabase();
   if (!prisma) {
     return null;
   }
@@ -208,11 +208,7 @@ export const getPublishedProductByParam = cache(async (param: string): Promise<A
     return getPublishedProduct(Number(trimmed));
   }
 
-  if (!process.env.DATABASE_URL) {
-    return null;
-  }
-
-  const prisma = getPrisma();
+  const prisma = catalogueDatabase();
   if (!prisma) {
     return null;
   }
@@ -227,3 +223,50 @@ export const getPublishedProductByParam = cache(async (param: string): Promise<A
     throw new Error("Failed to load product from database", { cause: error });
   }
 });
+
+/**
+ * Published products per brand, keyed by the brand's lowercased name, for the
+ * homepage's brand cards. One query, counted in the database, where the cards
+ * used to wait for the browser to download the whole catalogue and count it.
+ * Null when there's nothing to read, which the cards show as no count.
+ */
+export const getBrandProductCounts = cache(async (): Promise<Record<string, number> | null> => {
+  const prisma = catalogueDatabase();
+  if (!prisma) return null;
+
+  try {
+    const brands = await prisma.brand.findMany({
+      select: { name: true, _count: { select: { products: { where: { isPublished: true } } } } },
+    });
+    return Object.fromEntries(brands.map((brand) => [brand.name.toLowerCase(), brand._count.products]));
+  } catch (error) {
+    throw new Error("Failed to load brand product counts from database", { cause: error });
+  }
+});
+
+/** The most ids one price check may ask about: more than any real cart holds. */
+export const PRICE_CHECK_MAX_IDS = 50;
+
+/**
+ * Today's price and stock for the products a cart holds. A product that's
+ * missing from the result is unpublished or gone.
+ */
+export async function getCurrentPrices(
+  ids: number[]
+): Promise<{ id: number; price: number; status: string }[]> {
+  const wanted = [...new Set(ids)].slice(0, PRICE_CHECK_MAX_IDS);
+  if (wanted.length === 0) return [];
+
+  const prisma = catalogueDatabase();
+  if (!prisma) return [];
+
+  try {
+    const rows = await prisma.product.findMany({
+      where: { id: { in: wanted }, isPublished: true },
+      select: { id: true, priceKes: true, stockStatus: true },
+    });
+    return rows.map((row) => ({ id: row.id, price: row.priceKes, status: stockStatusLabel(row.stockStatus) }));
+  } catch (error) {
+    throw new Error("Failed to load current prices from database", { cause: error });
+  }
+}

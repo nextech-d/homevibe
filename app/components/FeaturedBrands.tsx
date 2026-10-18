@@ -5,13 +5,8 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { BUNDLED_BRAND_LOGOS } from "../data/brand-logos";
 import { brandHref, type Brand } from "../data/brands";
-import { useInventory } from "../context/ProductsContext";
 import { useNavBrands } from "../context/BrandsContext";
 import { focusRing, raisedSurfaceFromSm, sectionHeading } from "./homeSurfaces";
-
-function productCountForBrand(brandName: string, inventory: { brand: string }[]): number {
-  return inventory.filter((p) => p.brand.toLowerCase() === brandName.toLowerCase()).length;
-}
 
 /**
  * A brand's logo, or its name when there's none: an admin upload first, then
@@ -80,13 +75,15 @@ function SignatureBrandCard({
   );
 }
 
-export default function FeaturedBrands() {
-  const inventory = useInventory();
+/**
+ * productCounts comes with the homepage's own data, keyed by lowercased brand
+ * name; null when the counts couldn't be read, and then the cards show none.
+ */
+export default function FeaturedBrands({ productCounts }: { productCounts: Record<string, number> | null }) {
   // Same brands as the nav, loaded server-side, so the cards and tiles are in
   // the initial HTML. This used to fetch /catalog/brands itself and render an
   // empty section whenever that failed.
   const brands = useNavBrands();
-  const inventoryLoaded = inventory.length > 0;
 
   const featuredCards = brands.filter((brand) => brand.isFeatured);
   const partnerBrands = brands.filter((brand) => !brand.isFeatured);
@@ -109,7 +106,7 @@ export default function FeaturedBrands() {
             <li key={brand.slug}>
               <SignatureBrandCard
                 brand={brand}
-                productCount={inventoryLoaded ? productCountForBrand(brand.name, inventory) : null}
+                productCount={productCounts ? (productCounts[brand.name.toLowerCase()] ?? 0) : null}
               />
             </li>
           ))}
