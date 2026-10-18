@@ -9,7 +9,7 @@ export type ProductWithRelations = Product & {
   faqs?: ProductFaq[];
 };
 
-function stockStatusLabel(status: StockStatus): string {
+export function stockStatusLabel(status: StockStatus): string {
   switch (status) {
     case "in_stock":
       return "In Stock";

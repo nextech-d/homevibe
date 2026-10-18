@@ -9,7 +9,6 @@ import CartToast from "./components/CartToast";
 import SiteJsonLd from "./components/SiteJsonLd";
 import MetaPixel from "./components/MetaPixel";
 import { CartProvider } from "./context/CartContext";
-import { ProductsProvider } from "./context/ProductsContext";
 import { BrandsProvider } from "./context/BrandsContext";
 import { CategoriesProvider } from "./context/CategoriesContext";
 import { StorefrontProvider } from "./context/StorefrontContext";
@@ -68,21 +67,19 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-black">
         <SiteJsonLd />
         <CartProvider>
-          <ProductsProvider>
-            <CategoriesProvider initial={navCategories}>
-              <BrandsProvider initial={navBrands}>
-              <StorefrontProvider>
-              <WhatsAppProvider number={siteSettings.whatsapp}>
-                <Header />
-                <CartDrawer />
-                <CartToast />
-                <main className="flex-grow">{children}</main>
-                <Footer />
-              </WhatsAppProvider>
-              </StorefrontProvider>
-              </BrandsProvider>
-            </CategoriesProvider>
-          </ProductsProvider>
+          <CategoriesProvider initial={navCategories}>
+            <BrandsProvider initial={navBrands}>
+            <StorefrontProvider>
+            <WhatsAppProvider number={siteSettings.whatsapp}>
+              <Header />
+              <CartDrawer />
+              <CartToast />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+            </WhatsAppProvider>
+            </StorefrontProvider>
+            </BrandsProvider>
+          </CategoriesProvider>
         </CartProvider>
         <Analytics />
         <MetaPixel />

@@ -2,6 +2,8 @@
 
 import React from "react";
 import { useCart } from "../context/CartContext";
+import { AVAILABILITY_LABEL, useCartPriceCheck } from "../hooks/useCartPriceCheck";
+import CartPriceNotice from "../components/CartPriceNotice";
 import Link from "next/link";
 import { Trash2, Plus, Minus, ArrowLeft, ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import Image from "next/image";
@@ -21,6 +23,7 @@ const iconButton = `flex h-11 w-11 shrink-0 items-center justify-center rounded-
 
 export default function CartPage() {
   const { items, removeItem, updateQty, total } = useCart();
+  const { pricesChanged, availability } = useCartPriceCheck();
 
   return (
     <div className="min-h-screen pb-24">
@@ -50,6 +53,7 @@ export default function CartPage() {
           <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-10">
             {/* Items Column */}
             <div className="space-y-6 lg:col-span-8">
+              {pricesChanged && <CartPriceNotice />}
               <div className={`${raisedSurface} overflow-hidden`}>
                 <div className="border-b border-[#DCE0E7] bg-[#F6F7F9] px-5 py-4 sm:px-6">
                   <h2 className="text-sm font-semibold text-neutral-800">
@@ -86,6 +90,11 @@ export default function CartPage() {
                           <span className="mt-1 block text-xs font-medium text-neutral-600">
                             HomeVibe
                           </span>
+                          {availability[item.id] && (
+                            <span className="mt-1 block text-xs font-semibold text-[#8A4B00]">
+                              {AVAILABILITY_LABEL[availability[item.id]]}
+                            </span>
+                          )}
                         </div>
                       </div>
 

@@ -5,11 +5,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
-import { searchProducts, getAllSearchResults } from "../lib/searchProducts";
 import { formatPrice } from "../lib/formatPrice";
-import { getProductThumbnail, PRODUCT_IMAGE_SIZES } from "../lib/productImages";
-import { useInventory } from "../context/ProductsContext";
+import { PRODUCT_IMAGE_SIZES } from "../lib/productImages";
 import { productHref, type Appliance } from "../data/products";
+import type { SearchSuggestion } from "../api/search/route";
+
+/** How long typing has to pause before the query goes out. */
+const DEBOUNCE_MS = 200;
+
+/** The last answer the endpoint gave, and which query it was for. */
+type Answer = { query: string; total: number; results: SearchSuggestion[] } | { query: string; failed: true };
 
 type SearchPopoverProps = {
   /** Focus the input on mount - the mobile search row opens for typing. */
@@ -19,7 +24,6 @@ type SearchPopoverProps = {
 };
 
 export default function SearchPopover({ autoFocus = false, onNavigate }: SearchPopoverProps) {
-  const inventory = useInventory();
   const router = useRouter();
   const popoverRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -27,8 +31,40 @@ export default function SearchPopover({ autoFocus = false, onNavigate }: SearchP
   const [showSearchPop, setShowSearchPop] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
-  const results = search.trim() ? searchProducts(search, 5, inventory) : [];
-  const totalMatches = search.trim() ? getAllSearchResults(search, inventory).length : 0;
+  const [answer, setAnswer] = useState<Answer | null>(null);
+  const query = search.trim();
+
+  // Asked of /api/search once typing pauses, each request cancelling the one
+  // before, so a slow answer to "hi" can never land on top of "hisense". The
+  // last answer stays on screen while the next is on its way.
+  useEffect(() => {
+    if (!query) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      fetch(`/api/search?q=${encodeURIComponent(query)}&limit=5`, { signal: controller.signal })
+        .then(async (res) => {
+          const data = (await res.json()) as { success?: boolean; total?: number; results?: SearchSuggestion[] };
+          if (!res.ok || !data.success || !Array.isArray(data.results)) throw new Error(`Search answered ${res.status}`);
+          setAnswer({ query, total: data.total ?? data.results.length, results: data.results });
+        })
+        .catch((error: unknown) => {
+          if (controller.signal.aborted) return;
+          console.error("Search failed:", error);
+          setAnswer({ query, failed: true });
+        });
+    }, DEBOUNCE_MS);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [query]);
+
+  const failed = answer !== null && "failed" in answer;
+  const results = query && answer && !("failed" in answer) ? answer.results : [];
+  const totalMatches = query && answer && !("failed" in answer) ? answer.total : 0;
+  // Nothing to show until the first answer arrives; after that the previous
+  // answer stands in while a new one loads.
+  const waiting = answer === null || (answer.query !== query && results.length === 0 && !failed);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -136,12 +172,16 @@ export default function SearchPopover({ autoFocus = false, onNavigate }: SearchP
           className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl animate-in fade-in slide-in-from-top-2 duration-200"
         >
           <div className="border-b border-neutral-100 bg-neutral-50 p-3">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-black">
-              {totalMatches} result{totalMatches !== 1 ? "s" : ""}
+            <span className="text-[10px] font-bold uppercase tracking-wider text-black" aria-live="polite">
+              {waiting ? "Searching…" : failed ? "Search unavailable" : `${totalMatches} result${totalMatches !== 1 ? "s" : ""}`}
             </span>
           </div>
           <div className="max-h-80 overflow-y-auto">
-            {results.length === 0 ? (
+            {waiting ? null : failed ? (
+              <div className="p-6 text-center text-xs font-medium text-black">
+                Search isn&apos;t working right now. Try again in a minute.
+              </div>
+            ) : results.length === 0 ? (
               <div className="p-6 text-center text-xs font-medium text-black">
                 No appliances matching &quot;{search}&quot;
               </div>
@@ -159,7 +199,7 @@ export default function SearchPopover({ autoFocus = false, onNavigate }: SearchP
                   <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-neutral-100">
                     <div className="relative h-full w-full">
                       <Image
-                        src={getProductThumbnail(product)}
+                        src={product.thumbnail}
                         alt={product.name}
                         fill
                         sizes={PRODUCT_IMAGE_SIZES.search}

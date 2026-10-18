@@ -30,6 +30,8 @@ type CartContextProps = {
   addItem: (item: Omit<CartItem, 'qty'>, qty?: number, options?: AddItemOptions) => void;
   removeItem: (id: number) => void;
   updateQty: (id: number, qty: number) => void;
+  /** Replaces the stored price of each id given, leaving everything else as it is. */
+  updatePrices: (prices: Record<number, number>) => void;
   total: number;
   cartOpen: boolean;
   setCartOpen: (open: boolean) => void;
@@ -131,6 +133,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     saveItems(items.map(i => i.id === id ? { ...i, qty } : i));
   };
 
+  // From the state updater rather than the render's items, so a price check
+  // that lands just after a quantity change can't undo it.
+  const updatePrices = (prices: Record<number, number>) => {
+    setItems((current) => {
+      const next = current.map((i) => (prices[i.id] !== undefined ? { ...i, price: prices[i.id] } : i));
+      try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(next));
+      } catch (e) {
+        console.error("Failed to save cart items to localStorage", e);
+      }
+      return next;
+    });
+  };
+
   const clearCart = () => {
     saveItems([]);
   };
@@ -138,7 +154,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
 
   return (
-    <CartContext.Provider value={{ items, hydrated, toast, dismissToast, addItem, removeItem, updateQty, total, cartOpen, setCartOpen, clearCart }}>
+    <CartContext.Provider value={{ items, hydrated, toast, dismissToast, addItem, removeItem, updateQty, updatePrices, total, cartOpen, setCartOpen, clearCart }}>
       {children}
     </CartContext.Provider>
   );
