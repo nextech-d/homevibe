@@ -171,6 +171,14 @@ const nextConfig: NextConfig = {
         destination: "/product/hisense-hb25mobx7-built-in-microwave-solo-25l",
         permanent: true,
       },
+      // The Hisense 43Q6QKEN's name was a sentence from its meta description,
+      // and its slug came from that; it now follows the 50" and 55" Q6QKEN.
+      {
+        source:
+          "/product/shop-the-hisense-43q6qken-43-inch-qled-4k-smart-tv-in-kenya-features-dolby-vision-hdr10-vidaa-os-dolby-atmos-and-frameless-design-vivid-4k-qled-picture",
+        destination: "/product/hisense-43q6qken-43-inch-qled-4k-smart-frameless-tv",
+        permanent: true,
+      },
     ];
   },
   images: {
