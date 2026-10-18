@@ -334,7 +334,7 @@ export default function ProductDetail({
           </section>
         ) : null}
 
-        <WhyBuyFromUs />
+        <WhyBuyFromUs subcategory={product.subcategory} />
         </div>
 
         <ProductFaq items={product.faqs ?? []} />
