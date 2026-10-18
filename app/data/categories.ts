@@ -24,6 +24,29 @@ export type Category = {
   subcategories: SubCategory[];
 };
 
+/**
+ * What the header's menus read of a category: the rest - descriptions and SEO
+ * overrides - stays on the server, so it isn't sent to every page in the
+ * React payload. Subcategory counts stay: visibleSubcategories needs them.
+ */
+export type NavCategory = Pick<Category, "label" | "slug" | "navLabel"> & {
+  subcategories: Pick<SubCategory, "label" | "slug" | "href" | "productCount">[];
+};
+
+export function toNavCategory(category: Category): NavCategory {
+  return {
+    label: category.label,
+    slug: category.slug,
+    navLabel: category.navLabel,
+    subcategories: category.subcategories.map(({ label, slug, href, productCount }) => ({
+      label,
+      slug,
+      ...(href !== undefined && { href }),
+      ...(productCount !== undefined && { productCount }),
+    })),
+  };
+}
+
 /** Gym equipment category */
 export const GYM_CATEGORY: Category = {
   label: "Gym",
@@ -86,7 +109,9 @@ export const ALL_CATEGORIES: Category[] = NAV_CATEGORIES;
  * undefined means the list came from the static fallback, which knows no
  * counts - those are shown.
  */
-export function visibleSubcategories(category: Category): SubCategory[] {
+export function visibleSubcategories<T extends Pick<SubCategory, "productCount">>(category: {
+  subcategories: T[];
+}): T[] {
   return category.subcategories.filter((sub) => sub.productCount !== 0);
 }
 
@@ -133,7 +158,10 @@ export function categoryHref(categorySlug: string, subSlug?: string): string {
     : `/category/${categorySlug}`;
 }
 
-export function subcategoryHref(category: Category, sub: SubCategory): string {
+export function subcategoryHref(
+  category: Pick<Category, "slug">,
+  sub: Pick<SubCategory, "slug" | "href">
+): string {
   return sub.href ?? categoryHref(category.slug, sub.slug);
 }
 

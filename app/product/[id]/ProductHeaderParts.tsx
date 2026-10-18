@@ -6,6 +6,7 @@ import { ShieldCheck, ShoppingCart, Truck, Wallet, Wrench, type LucideIcon } fro
 import { INSTALLATION_WORDING, PRODUCT_TRUST_POINTS } from "../../config/site";
 import WhatsAppIcon from "../../components/WhatsAppIcon";
 import { focusRing } from "../../components/homeSurfaces";
+import { CART_INTENT_ATTRIBUTE } from "../../components/cartUiLoaders";
 
 /**
  * Hyphenated words ("12-month", "M-Pesa", "55-Inch") kept whole, and with
@@ -171,6 +172,7 @@ export function PinnedProductBar({
         <button
           type="button"
           onClick={onAddToCart}
+          {...{ [CART_INTENT_ATTRIBUTE]: "" }}
           disabled={added}
           className={`inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-4 text-[13px] font-semibold text-white transition-colors ${focusRing} ${
             added ? "bg-emerald-700" : "bg-[#a85414] hover:bg-[#8f4710]"

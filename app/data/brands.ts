@@ -9,6 +9,13 @@ export type Brand = {
   logoUrl?: string | null;
 };
 
+/** What the menus and brand cards read of a brand; origin and tier stay on the server. */
+export type NavBrand = Pick<Brand, "name" | "slug" | "isFeatured" | "logoUrl">;
+
+export function toNavBrand({ name, slug, isFeatured, logoUrl }: Brand): NavBrand {
+  return { name, slug, isFeatured, logoUrl };
+}
+
 /** Fallback when the catalog API is unavailable — keep in sync with live DB brands. */
 export const FEATURED_BRANDS: Brand[] = [
   { name: "Samsung", slug: "samsung", tier: "partner", origin: "Korea" },

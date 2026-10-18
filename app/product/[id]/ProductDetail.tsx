@@ -35,6 +35,7 @@ import {
   secondaryButton,
   sectionHeading,
 } from "../../components/homeSurfaces";
+import { CART_INTENT_ATTRIBUTE } from "../../components/cartUiLoaders";
 /**
  * The description: HTML already sanitised on the server (descriptionHtml),
  * or plain text. This component only renders - the sanitiser and its
@@ -252,6 +253,7 @@ export default function ProductDetail({
               <div className="flex w-full sm:w-auto flex-col gap-3 lg:min-w-0 lg:flex-1 lg:flex-row lg:flex-wrap">
                 <button
                   onClick={handleAddToCart}
+                  {...{ [CART_INTENT_ATTRIBUTE]: "" }}
                   disabled={added}
                   className={`${
                     added

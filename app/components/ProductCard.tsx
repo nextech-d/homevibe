@@ -8,6 +8,7 @@ import { productHref } from "../data/products";
 import type { CatalogProduct } from "../lib/inventory";
 import { formatPrice } from "../lib/formatPrice";
 import { focusRing, raisedSurface } from "./homeSurfaces";
+import { CART_INTENT_ATTRIBUTE } from "./cartUiLoaders";
 import {
   getProductCardImage,
   PRODUCT_IMAGE_SIZES,
@@ -110,6 +111,7 @@ export default function ProductCard({
           {!compact && onAddToCart && (
             <button
               onClick={(e) => onAddToCart(e, appliance)}
+              {...{ [CART_INTENT_ATTRIBUTE]: "" }}
               disabled={added}
               // Above the stretched anchor, so Add to Cart stays a button.
               className={`relative z-10 inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-full border px-4 text-xs font-medium transition active:scale-[0.98] @min-[17rem]:w-auto ${focusRing} ${
