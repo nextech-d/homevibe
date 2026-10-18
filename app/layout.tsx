@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Header from "./components/Header";
@@ -18,21 +17,13 @@ import { getCategoriesFromDb } from "./lib/categories.server";
 import { getBrandsFromDb } from "./lib/brands.server";
 import { getSiteSettingsData } from "./lib/storefront.server";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-});
+/*
+ * No web fonts: the site is set in the system font stack (Tailwind's default
+ * font-sans and font-mono). Geist, Geist Mono and Playfair Display used to be
+ * loaded here through next/font, but only as CSS variables nothing read, so
+ * every page preloaded four font files (about 128 KB) it never drew with -
+ * ahead of the hero image, on every first visit.
+ */
 
 /**
  * The backstop for every page that renders statically: at most 60 seconds
@@ -63,7 +54,7 @@ export default async function RootLayout({
   ]);
 
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} h-full antialiased`}>
+    <html lang="en" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-black">
         <SiteJsonLd />
         <CartProvider>
