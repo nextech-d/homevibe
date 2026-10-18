@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getPublishedProductByParam, getRelatedCandidates } from "../../lib/inventory.server";
+import { getPublishedProductByParam, getRelatedCandidates, listProductsForSitemap } from "../../lib/inventory.server";
 import { productAddOns, relatedProducts, toCatalogProduct } from "../../lib/inventory";
 import ProductDetail from "./ProductDetail";
 import { descriptionLooksLikeHtml, sanitizeDescriptionHtml } from "../../lib/descriptionHtml";
@@ -15,12 +15,23 @@ type Props = {
 export const revalidate = 60;
 
 /**
- * No product pages at build time - each is rendered on its first visit and
- * cached from then on. An empty list is what lets a dynamic route be cached
- * and revalidated at all; listing all 139 would only lengthen every deploy.
+ * Every published product is rendered at build time, so the first shopper to
+ * open one - or the link prefetch before they tap it - gets a cached page
+ * instead of waiting a second or more for it to render. Revalidation is
+ * unchanged, and a product added after the deploy is still rendered on its
+ * first visit (dynamicParams stays on).
+ *
+ * If the list can't be read the build carries on with none prerendered, as
+ * before: a database blip shouldn't block a deploy, and every page still
+ * renders on demand and throws on a failed query, keeping the last good copy.
  */
-export async function generateStaticParams() {
-  return [];
+export async function generateStaticParams(): Promise<{ id: string }[]> {
+  try {
+    return (await listProductsForSitemap()).map((product) => ({ id: product.slug }));
+  } catch (error) {
+    console.warn("Product pages not prerendered: couldn't list products", error);
+    return [];
+  }
 }
 
 export default async function ProductPage({ params }: Props) {

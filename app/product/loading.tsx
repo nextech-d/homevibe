@@ -1,6 +1,11 @@
-import { raisedSurface } from "../../components/homeSurfaces";
+import { raisedSurface } from "../components/homeSurfaces";
 
-/** Shaped like the page it stands in for: breadcrumb, a raised image panel, then the buy column. */
+/**
+ * Shaped like the page it stands in for: breadcrumb, a raised image panel, then
+ * the buy column. Here rather than in [id]/, so it also covers [id]/layout.tsx:
+ * that layout loads the product before anything under it can render, and a
+ * loading screen inside it only appeared once that load was already done.
+ */
 export default function ProductLoading() {
   return (
     // min-h-screen, as the page itself has: a shorter skeleton painted the footer
