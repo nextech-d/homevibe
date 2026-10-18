@@ -12,7 +12,21 @@ import { buildPageMetadata } from "../../../lib/seo";
 import { getSeoContext } from "../../../lib/seo.server";
 import { categoryMetaFallback, subcategoryMetaFallback } from "../../../lib/seo-fallbacks";
 
-export const dynamic = "force-dynamic";
+/**
+ * Cached like product pages: refreshed on demand by every admin save through
+ * /api/revalidate (the "/" layout path covers these), with 60 seconds as the
+ * backstop. getInventory throws when the database can't answer, and a
+ * background refresh that throws keeps the last good page in place - where a
+ * dynamic render would have streamed a 200 with the error page, or an empty
+ * catalogue. Filters and sorting are client state, so nothing here reads the
+ * request.
+ */
+export const revalidate = 60;
+
+/** None at build time: each is rendered on its first visit and cached from then on. */
+export async function generateStaticParams() {
+  return [];
+}
 
 type Props = {
   params: Promise<{ slug: string; sub?: string[] }>;
