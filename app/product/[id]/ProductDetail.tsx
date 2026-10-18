@@ -28,7 +28,6 @@ import { renderMarkdown } from "../../lib/markdown";
 import Breadcrumbs from "../../components/Breadcrumbs";
 import {
   focusRing,
-  pageHeading,
   primaryButton,
   raisedSurface,
   raisedSurfaceFromSm,
@@ -160,21 +159,31 @@ export default function ProductDetail({
           ]}
         />
 
-        {/* Three blocks on a twelve-column grid. On a phone they stack title and
-            price, then the gallery, then the rest, so the name and price are on
-            the first screen; from lg the gallery takes the left five columns
+        {/* Three blocks on a twelve-column grid. On a phone they stack the
+            title, facts and promises, then the gallery, then price and buttons;
+            from lg the gallery takes the left five columns
             beside both, the title level with the top of the image box. In one
             white panel from 640px up, like the homepage's sections; on a phone
             it sits on the page, full width. The panel's 40px padding leaves
             896px at 1024px, so the gap is 48px there and 64px from xl. The
-            first row hugs the title and price; the second takes whatever the
+            first row hugs the title, facts and promises; the second takes whatever the
             taller gallery adds, so the price-to-buttons gap stays fixed. */}
         <div className={`${raisedSurfaceFromSm} grid w-full grid-cols-1 gap-6 sm:p-8 lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-x-12 lg:gap-y-0 lg:p-10 xl:gap-x-16`}>
           <div className="w-full lg:col-span-7 lg:col-start-6 lg:row-start-1">
-            <h1 className={pageHeading}>{keepWhole(product.name)}</h1>
-            <p className="mt-4 text-3xl font-semibold tabular-nums tracking-tight text-[#8f4710] lg:mt-5">
-              {formatPrice(product.price)}
-            </p>
+            <h1 className="text-xl font-medium leading-snug tracking-tight text-neutral-950 md:text-2xl">{keepWhole(product.name)}</h1>
+            <div className="mt-5">
+              <ProductFacts
+                brand={product.brand}
+                brandHref={product.brandSlug ? brandHref(product.brandSlug) : undefined}
+                category={factCategoryLabel}
+                categoryHref={factCategoryHref}
+                status={product.status}
+              />
+            </div>
+
+            <div className="mt-4 border-t border-[#DCE0E7] pt-5">
+              <ProductTrustPoints subcategory={product.subcategory} />
+            </div>
           </div>
 
           <div className="flex flex-col gap-4 lg:col-span-5 lg:col-start-1 lg:row-span-2 lg:row-start-1">
@@ -240,6 +249,9 @@ export default function ProductDetail({
           </div>
 
           <div className="w-full lg:col-span-7 lg:col-start-6 lg:row-start-2 lg:mt-8">
+            <p className="mb-5 text-3xl font-semibold tabular-nums tracking-tight text-[#8f4710]">
+              {formatPrice(product.price)}
+            </p>
             <div id="product-actions" className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
               <QuantitySelector qty={qty} onChange={setQty} variant="pill" />
 
@@ -281,19 +293,6 @@ export default function ProductDetail({
               </div>
             </div>
 
-            <div className="mt-6">
-              <ProductFacts
-                brand={product.brand}
-                brandHref={product.brandSlug ? brandHref(product.brandSlug) : undefined}
-                category={factCategoryLabel}
-                categoryHref={factCategoryHref}
-                status={product.status}
-              />
-            </div>
-
-            <div className="mt-4 border-t border-[#DCE0E7] pt-5">
-              <ProductTrustPoints subcategory={product.subcategory} />
-            </div>
           </div>
         </div>
 

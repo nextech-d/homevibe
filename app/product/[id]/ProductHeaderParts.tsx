@@ -29,7 +29,7 @@ export function keepWhole(text: string, { brackets = false }: { brackets?: boole
   );
 }
 
-const factLink = `inline-flex min-h-11 items-center rounded-sm text-sm font-semibold text-neutral-950 underline-offset-4 hover:text-[#8f4710] hover:underline ${focusRing}`;
+const factLink = `inline-flex min-h-9 items-center rounded-sm text-sm font-semibold text-neutral-950 underline-offset-4 hover:text-[#8f4710] hover:underline ${focusRing}`;
 
 /**
  * The product's facts on one slim line: its brand and what it is, both links,
@@ -53,7 +53,7 @@ export function ProductFacts({
   const stockNote = stock.includes("out") ? "Out of stock" : stock.includes("low") ? "Low stock" : null;
 
   return (
-    <dl className="flex flex-wrap items-center gap-x-6 gap-y-0">
+    <dl className="flex flex-col items-start">
       <div className="flex items-center gap-2">
         <dt className="text-sm text-neutral-600">Brand</dt>
         <dd>
