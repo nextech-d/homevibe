@@ -23,7 +23,7 @@ export const SITE = {
 } as const;
 
 export const TRUST_BADGES = [
-  { label: "Free same-day delivery in Nairobi", detail: "Complimentary across Nairobi & environs" },
+  { label: "Free same-day delivery in Nairobi", detail: "Same day, anywhere in Nairobi" },
   { label: "12-month warranty", detail: "Our own technicians, parts & labour" },
   { label: "Free installation in Nairobi", detail: "Certified technicians" },
   { label: "Pay by M-Pesa or cash on delivery in Nairobi", detail: "Also bank transfer, or cash on delivery in Nairobi" },
@@ -36,7 +36,7 @@ export const TRUST_BADGES = [
  * installation line comes from INSTALLATION_WORDING, per subcategory.
  */
 export const PRODUCT_TRUST_POINTS = [
-  { id: "delivery", text: "Free delivery in Nairobi, delivery countrywide" },
+  { id: "delivery", text: "Free same-day delivery in Nairobi, within 24 hours elsewhere in Kenya" },
   { id: "warranty", text: "12-month warranty on parts and labour, serviced by our own technicians" },
   { id: "payment", text: "Pay by M-Pesa, bank transfer, or cash on delivery in Nairobi" },
 ] as const;

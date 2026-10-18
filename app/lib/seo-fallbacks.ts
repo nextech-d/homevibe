@@ -184,11 +184,17 @@ function withBrand(name: string, brand: string): string {
 }
 
 /**
- * Where we deliver, e.g. "Kenya". The region is the whole delivery area and
- * already contains the city, so "Nairobi and Kenya" would read as two places.
+ * The delivery promise, as the hero and the product page put it: free and
+ * same-day in the city, within 24 hours in the rest of the region. "Free"
+ * stays with the city. Without a city, just where we deliver; without either,
+ * nothing.
  */
-function deliveryArea(ctx: SeoContext): string {
-  return ctx.site.region.trim() || ctx.site.city.trim();
+function deliveryLine(ctx: SeoContext): string {
+  const city = ctx.site.city.trim();
+  const region = ctx.site.region.trim();
+  if (city && region) return `Free same-day delivery in ${city}, within 24 hours elsewhere in ${region}`;
+  const area = region || city;
+  return area ? `Delivery across ${area}` : "";
 }
 
 type ProductLike = {
@@ -201,7 +207,7 @@ type ProductLike = {
 
 export function productMetaFallback(product: ProductLike, ctx: SeoContext) {
   const titled = withBrand(product.name, product.brand);
-  const area = deliveryArea(ctx);
+  const delivery = deliveryLine(ctx);
 
   return {
     title: titled,
@@ -209,7 +215,7 @@ export function productMetaFallback(product: ProductLike, ctx: SeoContext) {
       sentences(
         `Buy the ${titled}`,
         product.description,
-        area && `Delivery across ${area}`
+        delivery
       )
     ),
   };
@@ -222,7 +228,7 @@ type BrandLike = {
 };
 
 export function brandMetaFallback(brand: BrandLike, ctx: SeoContext) {
-  const area = deliveryArea(ctx);
+  const delivery = deliveryLine(ctx);
   const tier = brand.tier === "signature" ? "signature" : "partner";
 
   return {
@@ -231,7 +237,7 @@ export function brandMetaFallback(brand: BrandLike, ctx: SeoContext) {
       sentences(
         `Shop ${brand.name} at ${ctx.siteName}`,
         brand.origin.trim() && `A ${tier} brand from ${brand.origin.trim()}`,
-        area && `Delivery across ${area}`
+        delivery
       )
     ),
   };
@@ -243,7 +249,7 @@ type CategoryLike = {
 };
 
 export function categoryMetaFallback(category: CategoryLike, ctx: SeoContext) {
-  const area = deliveryArea(ctx);
+  const delivery = deliveryLine(ctx);
 
   return {
     title: category.label,
@@ -251,7 +257,7 @@ export function categoryMetaFallback(category: CategoryLike, ctx: SeoContext) {
       category.description.trim() ||
         sentences(
           `Shop ${category.label.toLowerCase()} at ${ctx.siteName}`,
-          area && `Delivery across ${area}`
+          delivery
         )
     ),
   };
@@ -262,7 +268,7 @@ export function subcategoryMetaFallback(
   category: CategoryLike,
   ctx: SeoContext
 ) {
-  const area = deliveryArea(ctx);
+  const delivery = deliveryLine(ctx);
   const sub = subcategory.label;
 
   return {
@@ -271,7 +277,7 @@ export function subcategoryMetaFallback(
       sentences(
         `Shop ${sub.toLowerCase()} at ${ctx.siteName}`,
         `Part of our ${category.label.toLowerCase()} range`,
-        area && `Delivery across ${area}`
+        delivery
       )
     ),
   };

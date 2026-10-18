@@ -9,7 +9,7 @@ import { raisedSurface } from "./homeSurfaces";
 const POINTS = [
   {
     lead: "We install it properly.",
-    body: "Delivered, unboxed, positioned, connected and tested with you before we leave. Not a box dropped at your door.",
+    body: "Delivered the same day in Nairobi and within 24 hours elsewhere in Kenya, then unboxed, positioned, connected and tested with you before we leave. Not a box dropped at your door.",
   },
   {
     lead: "We service what we sell.",
