@@ -43,7 +43,9 @@ export default function ProductCard({
   // The ring goes round the whole card when its name link has keyboard focus:
   // the link is stretched over the card, so a ring on the link itself would
   // circle only the name. The card's overflow-hidden would clip one inside it.
-  const cardShell = `@container group relative flex h-full w-full cursor-pointer flex-col overflow-hidden ${raisedSurface} transition-colors hover:border-[#c9ced8] has-[.card-link:focus-visible]:outline-2 has-[.card-link:focus-visible]:outline-offset-2 has-[.card-link:focus-visible]:outline-[#a85414]`;
+  // Squarer corners than the other panels' rounded-2xl: important, so it
+  // wins over the radius raisedSurface brings.
+  const cardShell = `@container group relative flex h-full w-full cursor-pointer flex-col overflow-hidden ${raisedSurface} rounded-md! transition-colors hover:border-[#c9ced8] has-[.card-link:focus-visible]:outline-2 has-[.card-link:focus-visible]:outline-offset-2 has-[.card-link:focus-visible]:outline-[#a85414]`;
 
   const contentPadding = compact ? "px-3 pb-3" : "px-3 pb-3 @min-[13rem]:px-4 @min-[13rem]:pb-4";
 
@@ -78,7 +80,7 @@ export default function ProductCard({
             line up: the clamp cuts a long name, the min-height holds a short
             one open. */}
         <h3
-          className={`line-clamp-2 font-semibold text-neutral-900 group-hover:text-neutral-700 ${
+          className={`line-clamp-2 font-medium text-neutral-900 group-hover:text-neutral-700 ${
             compact ? "min-h-10 text-xs leading-5" : "min-h-10 text-[13px] leading-5 @min-[13rem]:text-sm"
           }`}
         >
@@ -98,7 +100,7 @@ export default function ProductCard({
             button goes under the price, full width. */}
         <div className="mt-auto flex flex-col gap-2.5 pt-2 @min-[17rem]:flex-row @min-[17rem]:items-center @min-[17rem]:justify-between">
           <p
-            className={`shrink-0 font-bold tabular-nums tracking-tight text-neutral-950 ${
+            className={`shrink-0 font-semibold tabular-nums tracking-tight text-neutral-950 ${
               compact ? "text-sm" : "text-[15px] @min-[13rem]:text-base"
             }`}
           >
@@ -110,7 +112,7 @@ export default function ProductCard({
               onClick={(e) => onAddToCart(e, appliance)}
               disabled={added}
               // Above the stretched anchor, so Add to Cart stays a button.
-              className={`relative z-10 inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-full border px-4 text-xs font-semibold transition active:scale-[0.98] @min-[17rem]:w-auto ${focusRing} ${
+              className={`relative z-10 inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-full border px-4 text-xs font-medium transition active:scale-[0.98] @min-[17rem]:w-auto ${focusRing} ${
                 added
                   ? "border-emerald-700 bg-emerald-700 text-white"
                   : "border-[#DCE0E7] bg-white text-neutral-900 hover:border-[#a85414] hover:text-[#8f4710]"

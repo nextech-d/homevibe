@@ -23,10 +23,10 @@ export const SITE = {
 } as const;
 
 export const TRUST_BADGES = [
-  { label: "Free delivery within Nairobi", detail: "Complimentary across Nairobi & environs" },
+  { label: "Free same-day delivery in Nairobi", detail: "Complimentary across Nairobi & environs" },
   { label: "12-month warranty", detail: "Our own technicians, parts & labour" },
   { label: "Free installation in Nairobi", detail: "Certified technicians" },
-  { label: "M-Pesa accepted", detail: "Also bank transfer, or cash on delivery in Nairobi" },
+  { label: "Pay by M-Pesa or cash on delivery in Nairobi", detail: "Also bank transfer, or cash on delivery in Nairobi" },
 ] as const;
 
 /**

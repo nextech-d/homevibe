@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -18,22 +18,31 @@ import {
 import HeroCategoryNav from "./HeroCategoryNav";
 import { raisedSurfaceFromSm } from "./homeSurfaces";
 import WhatsAppIcon from "./WhatsAppIcon";
-import { TRUST_BADGES } from "../config/site";
+import { SITE, TRUST_BADGES } from "../config/site";
 import { categoryHref } from "../data/categories";
+import { productHref } from "../data/products";
 import { getAllCategories } from "../lib/categories.server";
+import { formatPrice } from "../lib/formatPrice";
+import type { Appliance } from "../lib/inventory";
+import { getPublishedProduct } from "../lib/inventory.server";
 import { getSiteSettingsData } from "../lib/storefront.server";
 import { buildWhatsAppUrl } from "../lib/whatsapp";
 
 /**
- * Catalogue packshots, as files rather than queries: the hero shows no name or
- * price, so there's nothing to keep in step with the catalogue. The fridge and
- * dispenser are trimmed to the product; the washer's file is the whole
- * 1920px square, so its frame is sized from where the machine sits in it
- * (1211x1707 at 355,116).
+ * Catalogue packshots, as files: a copy sized and trimmed for the hero rather
+ * than the product's own photo URL. Each links to its product, whose name and
+ * price come from the catalogue (HERO_PRODUCT_IDS). The fridge, TV, microwave and vacuum are
+ * trimmed to the product; the washer's file is the whole 1920px square, so its
+ * frame is sized from where the machine sits in it (1211x1707 at 355,116).
  */
 const WASHER_IMAGE = "/hero/hisense-wd3q1043bt.webp";
 const FRIDGE_IMAGE = "/hero/von-vrt-125drag-fridge.webp"; // 760x1784, transparent
-const DISPENSER_IMAGE = "/hero/ramtons-water-dispenser.webp"; // 242x640, white
+const TV_IMAGE = "/hero/tcl-85c8l-tv.webp"; // 1340x805, transparent
+const MICROWAVE_IMAGE = "/hero/von-vams-20dgb-microwave.webp"; // 1014x550, transparent
+const VACUUM_IMAGE = "/hero/ramtons-wet-dry-vacuum.webp"; // 594x612, white
+
+/** The products the photos are of. Replace a photo, change its id here. */
+const HERO_PRODUCT_IDS = { fridge: 129, washer: 25, tv: 66, microwave: 126, vacuum: 124 } as const;
 
 /** Widths as fractions of the photo band, which is 3:2 beside the text, 2:1 on a tablet and 16:9 on a phone. */
 const heroSizes = (desktop: number, tablet: number, phone: number) =>
@@ -55,7 +64,7 @@ const TILE_IMAGES: Record<string, string> = {
 
 const HEADLINE = "Washers, fridges and TVs, delivered free in Nairobi";
 const SUPPORTING_LINE =
-  "Hisense, TCL, Ramtons and Von, with delivery countrywide. Our own technicians install in Nairobi and service what we sell.";
+  "Hisense, TCL, Ramtons and Von, and delivery within 24 hours countrywide. Our own technicians install in Nairobi and service what we sell.";
 
 /** The header's accent and focus ring, so the hero and the nav read as one. */
 const focusRing =
@@ -73,15 +82,20 @@ const HERO_THEME = {
 
 /**
  * Soft neumorphism, for the category circles only: a white highlight top-left
- * and a low-opacity shade bottom-right, on the band's own colour. The hairline
- * keeps an edge where the shadows alone would not.
+ * and a low-opacity shade bottom-right, on the band's own colour. The hairline,
+ * in the accent like the product tags, keeps an edge where the shadows alone
+ * would not.
  */
 const raised =
-  "border border-[var(--hero-edge)] bg-[var(--hero-bg)] shadow-[-4px_-4px_12px_rgba(255,255,255,0.9),4px_4px_12px_var(--hero-shade)]";
+  "border border-[#a85414] bg-[var(--hero-bg)] shadow-[-4px_-4px_12px_rgba(255,255,255,0.9),4px_4px_12px_var(--hero-shade)]";
 
 /** Pressed in: on tap or click (:active), and while Enter is held (data-pressed). */
 const pressable =
   "group-active:shadow-[inset_3px_3px_8px_var(--hero-shade),inset_-3px_-3px_8px_rgba(255,255,255,0.9)] group-data-pressed:shadow-[inset_3px_3px_8px_var(--hero-shade),inset_-3px_-3px_8px_rgba(255,255,255,0.9)]";
+
+/** A soft oval of shade where a product meets the floor. */
+const floorShadow =
+  "pointer-events-none absolute rounded-[50%] bg-[radial-gradient(closest-side,rgba(30,36,48,0.22),transparent)]";
 
 const TRUST_ICONS = [Truck, ShieldCheck, Wrench, Smartphone] as const;
 
@@ -93,12 +107,54 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   cleaning: WashingMachine,
 };
 
+/**
+ * One photo of the group, as a link to its product - or, if it's unpublished,
+ * just the photo. From 1024px its name and price are always shown, in a
+ * small white tag outlined in the accent, placed per product
+ * (labelClassName) so the five don't collide; hover or keyboard focus tints
+ * it the page's grey. On a phone or tablet there's no tag - in the smaller band five would cover
+ * the photos - and it's only tappable. The tag is absolute and the link's
+ * box is the photo's own, so neither moves anything. The before: box holds
+ * the tap area to at least 44px however small the photo is drawn. The
+ * className places it in the group, so it carries the position.
+ */
+function HeroProduct({
+  product,
+  className,
+  labelClassName,
+  children,
+}: {
+  product: Appliance | null;
+  className: string;
+  labelClassName: string;
+  children: ReactNode;
+}) {
+  if (!product) return <div className={className}>{children}</div>;
+  const price = formatPrice(product.price);
+  return (
+    <Link
+      href={productHref(product)}
+      aria-label={`${product.name}, ${price}`}
+      className={`group/product block rounded-lg before:absolute before:left-1/2 before:top-1/2 before:h-full before:min-h-11 before:w-full before:min-w-11 before:-translate-x-1/2 before:-translate-y-1/2 before:content-[''] ${focusRing} ${className}`}
+    >
+      {children}
+      <span
+        aria-hidden="true"
+        className={`pointer-events-none absolute z-10 hidden w-max max-w-32 rounded-md border border-[#a85414] bg-white px-2 py-1 text-[10px] leading-tight shadow-[0_2px_6px_var(--hero-shade)] transition-colors duration-150 group-hover/product:bg-[var(--hero-bg)] group-focus-visible/product:bg-[var(--hero-bg)] motion-reduce:transition-none lg:block ${labelClassName}`}
+      >
+        <span className="line-clamp-2 font-medium text-neutral-800">{product.name}</span>
+        <span className="mt-px block font-bold tabular-nums text-neutral-950 group-hover/product:text-[#8f4710]">{price}</span>
+      </span>
+    </Link>
+  );
+}
+
 const buttonBase = `inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold transition-colors sm:w-auto ${focusRing}`;
 
 /**
  * Server-rendered end to end, from the layout's own memoised queries (the
- * categories and site settings): the photos are files, so the hero reads
- * nothing of its own from the database.
+ * categories and site settings) and the pictured products, for their links
+ * and labels.
  *
  * On a phone it stacks headline, line and buttons, then the photo as a 16:9
  * band - so the headline, the main button and the top of the photo share the
@@ -111,7 +167,15 @@ const buttonBase = `inline-flex h-12 w-full items-center justify-center gap-2 ro
  * padding so no cooler strip shows between it and the header.
  */
 export default async function HomeHero() {
-  const [siteSettings, categories] = await Promise.all([getSiteSettingsData(), getAllCategories()]);
+  const [siteSettings, categories, fridge, washer, tv, microwave, vacuum] = await Promise.all([
+    getSiteSettingsData(),
+    getAllCategories(),
+    getPublishedProduct(HERO_PRODUCT_IDS.fridge),
+    getPublishedProduct(HERO_PRODUCT_IDS.washer),
+    getPublishedProduct(HERO_PRODUCT_IDS.tv),
+    getPublishedProduct(HERO_PRODUCT_IDS.microwave),
+    getPublishedProduct(HERO_PRODUCT_IDS.vacuum),
+  ]);
   const whatsappUrl = buildWhatsAppUrl("Hi, I'd like to place an order.", siteSettings.whatsapp);
 
   return (
@@ -143,77 +207,127 @@ export default async function HomeHero() {
               Order on WhatsApp
             </a>
           </div>
+          <p className="mt-3 text-sm text-[#57534e]">
+            or call{" "}
+            <a
+              href={`tel:${SITE.phone.replace(/\s/g, "")}`}
+              className={`inline-block rounded py-3 font-medium text-neutral-900 underline decoration-[#DCE0E7] underline-offset-4 hover:decoration-[#a85414] sm:py-0 ${focusRing}`}
+            >
+              {SITE.phone}
+            </a>
+          </p>
         </div>
 
-        {/* A white panel round the three, with the category circles' hairline
-            and shadow, so they read as one group - a box within the hero's own
-            panel from 640px; the photos' own white backgrounds disappear into it. A fixed ratio on a
-            phone and tablet, so the space is held before the photos arrive:
-            16:9 (about 185px of an 812px screen), then 2:1. Beside the text
-            it runs from the headline's top to the category row's foot
-            instead (the three rows it spans).
+        {/* The group's own area, with no box of its own: it stands on the
+            hero's panel (on a phone, the page), with only its floor and
+            shadows round it. A fixed ratio on a phone and tablet, so the
+            space is held before the photos arrive: 16:9 (about 185px of an
+            812px screen), then 2:1. Beside the text it runs from the
+            headline's top to the category row's foot instead (the three rows
+            it spans).
 
-            Inside, the group's own box: as tall as the fridge and as wide as
-            the three plus two gaps (1.37:1), at 82% of whichever way the
-            panel is tighter (cq units: the panel is a size container), so
-            the margins are about 9% all round. Never over 496px wide: that
-            keeps the dispenser, the smallest photo (640px tall), within 2x
-            of its own pixels. On one baseline at their real heights relative
-            to each other - fridge about 1.13m, dispenser 1.0m, washer 0.85m.
-            A gap rather than an overlap: the washer is multiplied, so the
-            fridge would show through it. Each is whole, never cropped. */}
-        <div className="relative aspect-[16/9] w-full rounded-3xl border border-[var(--hero-edge)] bg-white shadow-[-4px_-4px_12px_rgba(255,255,255,0.9),4px_4px_12px_var(--hero-shade)] [container-type:size] sm:aspect-[2/1] lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:aspect-auto lg:self-stretch">
-          {/* Centred with flexbox, not a transform: a transformed parent would
-              isolate the multiply blend and leave the white backgrounds showing. */}
+            Inside, a little stage in three rows, laid out in metres: the TV
+            at the back, drawn at 80% with its stand at 0.65m; the fridge
+            (the microwave on top) and the washer in the middle row,
+            overlapping its edges; the vacuum stepped forward on a front row,
+            0.13m lower, just under the TV's stand. Otherwise at their real
+            sizes relative to each other - TV on its stand about 1.15m tall,
+            fridge 1.13m, washer 0.85m, the vacuum with its hose 0.78m, the
+            microwave 0.26m - and each whole, never cropped. The group's box
+            is 2.15m by 1.70m (1.27:1): 88% of the panel's width, or 82% of
+            its height if that's tighter (cq units: the panel is a size
+            container). A soft floor runs back to the TV's stand, and a
+            contact shadow under each sets it on that floor. */}
+        <div className="relative aspect-[16/9] w-full [container-type:size] sm:aspect-[2/1] lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:aspect-auto lg:self-stretch">
+          {/* Centred with flexbox, not a transform: a transformed parent
+              would isolate the vacuum's multiply blend. */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative aspect-[137/100] w-[min(82cqw,112cqh)] max-w-[496px]">
-              <div className="absolute inset-0 flex items-end justify-center">
-                <div className="relative aspect-[760/1784] h-full">
-                  <Image
-                    src={FRIDGE_IMAGE}
-                    alt=""
-                    fill
-                    sizes={heroSizes(0.12, 0.17, 0.2)}
-                    quality={90}
-                    className="object-contain object-bottom"
-                  />
-                </div>
-                {/* The machine's own box (0.85 / 1.13 of the fridge), with the
-                    square photo laid over it so the frame round the machine
-                    hangs outside. */}
-                <div className="relative ml-[2.9%] aspect-[1211/1707] h-[75.2%]">
+            <div className="relative aspect-[127/100] w-[min(88cqw,104cqh)]">
+              {/* The floor, from the TV's stand to the front, fading out at
+                  the sides: what makes the TV read as further back rather
+                  than floating. */}
+              <span aria-hidden="true" className="pointer-events-none absolute -bottom-[7%] -left-[8%] -right-[8%] top-[54%] bg-[linear-gradient(to_bottom,transparent,rgba(214,219,228,0.75)_55%,transparent)] [mask-image:linear-gradient(to_right,transparent,black_18%,black_82%,transparent)]" />
+              <span aria-hidden="true" className={`${floorShadow} bottom-[43.4%] left-[37%] h-[5%] w-[25%] opacity-70`} />
+              <span aria-hidden="true" className={`${floorShadow} bottom-[5.1%] left-[-2%] h-[6%] w-[26%]`} />
+              <span aria-hidden="true" className={`${floorShadow} -bottom-[1.5%] left-[50%] h-[4.5%] w-[15%]`} />
+              <span aria-hidden="true" className={`${floorShadow} bottom-[5.1%] right-[-2%] h-[6%] w-[32%]`} />
+
+              <HeroProduct product={tv} labelClassName="bottom-full left-1/2 mb-2 -translate-x-1/2" className="absolute left-[13.9%] top-0 aspect-[1340/805] w-[71.2%]">
+                <Image
+                  src={TV_IMAGE}
+                  alt=""
+                  fill
+                  sizes={heroSizes(0.3, 0.37, 0.42)}
+                  quality={90}
+                  // Preloaded from the head, and the only one: it's the
+                  // largest. fetchPriority="high" on the <img> instead was no
+                  // faster in Lighthouse on mobile and slower on desktop: it
+                  // put the photo up against the fonts and CSS.
+                  preload
+                  className="object-contain"
+                />
+              </HeroProduct>
+              <HeroProduct product={fridge} labelClassName="bottom-[12%] -left-[40%]" className="absolute bottom-[7.6%] left-0 aspect-[760/1784] h-[66.5%]">
+                <Image
+                  src={FRIDGE_IMAGE}
+                  alt=""
+                  fill
+                  sizes={heroSizes(0.095, 0.12, 0.13)}
+                  quality={90}
+                  className="object-contain object-bottom"
+                />
+              </HeroProduct>
+              <HeroProduct product={microwave} labelClassName="bottom-full -left-[42%] mb-2" className="absolute bottom-[74.1%] left-0 aspect-[1014/550] w-[22.2%]">
+                <Image
+                  src={MICROWAVE_IMAGE}
+                  alt=""
+                  fill
+                  sizes={heroSizes(0.095, 0.12, 0.13)}
+                  quality={90}
+                  className="object-contain object-bottom"
+                />
+              </HeroProduct>
+              {/* Its top stops at the TV's stand, so the multiply only ever
+                  meets the panel and the floor. */}
+              <HeroProduct product={vacuum} labelClassName="left-1/2 top-full mt-2 -translate-x-1/2" className="absolute bottom-0 left-[32.5%] aspect-[594/612] h-[45.9%]">
+                <Image
+                  src={VACUUM_IMAGE}
+                  alt=""
+                  fill
+                  sizes={heroSizes(0.15, 0.185, 0.21)}
+                  quality={90}
+                  className="object-contain object-bottom mix-blend-multiply"
+                />
+              </HeroProduct>
+              {/* The machine's own box, with the square photo laid over it and
+                  clipped to the machine, so the photo's white frame can't
+                  cover the TV behind. Multiplied, so the white between its
+                  feet takes the floor's grey - over white everywhere above
+                  the feet, so the TV can't show through the machine. */}
+              <HeroProduct product={washer} labelClassName="bottom-full right-0 mb-2" className="absolute bottom-[7.6%] right-0 aspect-[1211/1707] h-[50%]">
+                <div className="absolute inset-0 overflow-hidden rounded-[1.2%/0.85%]">
+                  <div className="absolute inset-x-0 bottom-[2%] top-0 bg-white" />
                   <div className="absolute left-[-29.3%] top-[-6.8%] h-[112.5%] w-[158.5%]">
                     <Image
                       src={WASHER_IMAGE}
-                      alt="Hisense front load washing machine, with a fridge and a water dispenser"
+                      alt=""
                       fill
-                      sizes={heroSizes(0.23, 0.34, 0.39)}
+                      sizes={heroSizes(0.185, 0.23, 0.26)}
                       quality={90}
-                      // Preloaded from the head, and the only one: it's the
-                      // largest of the three. fetchPriority="high" on the <img>
-                      // instead was no faster in Lighthouse on mobile and slower
-                      // on desktop: it put the photo up against the fonts and CSS.
-                      preload
                       className="object-contain mix-blend-multiply"
                     />
                   </div>
                 </div>
-                <div className="relative ml-[2.9%] aspect-[242/640] h-[88.5%]">
-                  <Image
-                    src={DISPENSER_IMAGE}
-                    alt=""
-                    fill
-                    sizes={heroSizes(0.1, 0.14, 0.16)}
-                    quality={90}
-                    className="object-contain object-bottom mix-blend-multiply"
-                  />
-                </div>
-              </div>
+              </HeroProduct>
             </div>
           </div>
         </div>
 
-        <ul className="grid max-w-md grid-cols-2 gap-x-4 gap-y-3 text-[13px] font-medium leading-snug text-[#57534e] lg:col-start-1 lg:row-start-2">
+        {/* Each point on one line. Two across, each column as wide as its
+            own longest point, need about 560px, so they pair up only where
+            there's that much room - from 768px, and beside the photo from
+            1280px - and stack in one column elsewhere. */}
+        <ul className="grid w-max max-w-full grid-cols-1 gap-x-6 gap-y-3 whitespace-nowrap text-[13px] font-medium leading-snug text-[#57534e] md:grid-cols-[auto_auto] lg:col-start-1 lg:row-start-2 lg:grid-cols-1 xl:grid-cols-[auto_auto]">
           {TRUST_BADGES.map((badge, i) => {
             const Icon = TRUST_ICONS[i];
             return (

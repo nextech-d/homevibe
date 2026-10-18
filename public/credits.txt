@@ -8,11 +8,17 @@ HOMEPAGE HERO
 /hero/von-vrt-125drag-fridge.webp
   Catalogue packshot of the Von VRT-125DRAG (product #129), a 1920x1920
   transparent cut-out, trimmed to the fridge (760x1784) and converted to WebP.
-/hero/ramtons-water-dispenser.webp
-  Catalogue packshot of the Ramtons hot, normal & cold water dispenser
-  (product #162), 700x700, trimmed to the dispenser (242x640) and converted to
-  WebP. No free-licence alternative was found: Unsplash and Pexels had no
-  freestanding dispenser on a plain background.
+/hero/tcl-85c8l-tv.webp
+  Catalogue packshot of the TCL 85C8L 85-inch TV (product #66), a 1600x1200
+  transparent cut-out, trimmed to the TV (1340x805) and converted to WebP.
+
+/hero/von-vams-20dgb-microwave.webp
+  Catalogue packshot of the Von VAMS-20DGB 20L microwave (product #126), a
+  1080x1080 transparent cut-out, trimmed to the microwave (1014x550) and
+  converted to WebP.
+/hero/ramtons-wet-dry-vacuum.webp
+  Catalogue packshot of the Ramtons RM/553 wet and dry vacuum cleaner (product
+  #124), 700x700, trimmed to the vacuum (594x612) and converted to WebP.
 
 HOMEPAGE CATEGORY TILES
 /categories/*.webp
