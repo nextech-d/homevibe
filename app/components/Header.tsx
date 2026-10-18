@@ -10,6 +10,7 @@ import { useCart } from "../context/CartContext";
 import { useSiteSettings } from "../context/StorefrontContext";
 import SearchPopover from "./SearchPopover";
 import NavMenu from "./NavMenu";
+import { CART_INTENT_ATTRIBUTE } from "./cartUiLoaders";
 import MobileNav from "./MobileNav";
 
 const focusRing =
@@ -101,6 +102,7 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => setCartOpen(true)}
+                {...{ [CART_INTENT_ATTRIBUTE]: "" }}
                 aria-label={`Open cart, ${cartCount} ${cartCount === 1 ? "item" : "items"}`}
                 className={iconButton}
               >

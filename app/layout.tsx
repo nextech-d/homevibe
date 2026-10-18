@@ -3,8 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import CartDrawer from "./components/CartDrawer";
-import CartToast from "./components/CartToast";
+import LazyCartUI from "./components/LazyCartUI";
 import SiteJsonLd from "./components/SiteJsonLd";
 import MetaPixel from "./components/MetaPixel";
 import { CartProvider } from "./context/CartContext";
@@ -15,6 +14,8 @@ import { WhatsAppProvider } from "./context/WhatsAppContext";
 import { buildRootMetadataFromContext } from "./lib/seo";
 import { getCategoriesFromDb } from "./lib/categories.server";
 import { getBrandsFromDb } from "./lib/brands.server";
+import { toNavCategory } from "./data/categories";
+import { toNavBrand } from "./data/brands";
 import { getSiteSettingsData } from "./lib/storefront.server";
 
 /*
@@ -58,13 +59,14 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-black">
         <SiteJsonLd />
         <CartProvider>
-          <CategoriesProvider initial={navCategories}>
-            <BrandsProvider initial={navBrands}>
+          {/* Cut to what the menus read: every page carries these in its
+              React payload. */}
+          <CategoriesProvider initial={navCategories?.map(toNavCategory) ?? null}>
+            <BrandsProvider initial={navBrands?.map(toNavBrand) ?? null}>
             <StorefrontProvider>
             <WhatsAppProvider number={siteSettings.whatsapp}>
               <Header />
-              <CartDrawer />
-              <CartToast />
+              <LazyCartUI />
               <main className="flex-grow">{children}</main>
               <Footer />
             </WhatsAppProvider>

@@ -83,10 +83,15 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
   };
 }
 
+/**
+ * Small copies of the header logo, made for the job: the 250px logo.png
+ * (70 KB) used to be the favicon too. public/favicon.ico (16 and 32px, from the
+ * same logo) answers browsers that ask for /favicon.ico directly.
+ */
 const siteIconMetadata: Pick<Metadata, "icons"> = {
   icons: {
-    icon: [{ url: "/logo.png", type: "image/png" }],
-    apple: [{ url: "/logo.png", type: "image/png" }],
+    icon: [{ url: "/icon-32.png", type: "image/png", sizes: "32x32" }],
+    apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
   },
 };
 

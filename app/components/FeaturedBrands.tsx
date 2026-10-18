@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { BUNDLED_BRAND_LOGOS } from "../data/brand-logos";
-import { brandHref, type Brand } from "../data/brands";
+import { brandHref, type NavBrand } from "../data/brands";
 import { useNavBrands } from "../context/BrandsContext";
 import { focusRing, raisedSurfaceFromSm, sectionHeading } from "./homeSurfaces";
 
@@ -14,7 +14,7 @@ import { focusRing, raisedSurfaceFromSm, sectionHeading } from "./homeSurfaces";
  * shapes read at one size; the image's alt is the name, which is the link's
  * accessible name either way.
  */
-function BrandMark({ brand, size }: { brand: Brand; size: "tile" | "card" }) {
+function BrandMark({ brand, size }: { brand: NavBrand; size: "tile" | "card" }) {
   const src = brand.logoUrl || BUNDLED_BRAND_LOGOS[brand.slug];
   if (!src) {
     return size === "tile" ? (
@@ -43,7 +43,7 @@ function SignatureBrandCard({
   brand,
   productCount,
 }: {
-  brand: Brand;
+  brand: NavBrand;
   productCount: number | null;
 }) {
   return (
