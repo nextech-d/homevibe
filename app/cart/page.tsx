@@ -150,8 +150,8 @@ export default function CartPage() {
                 <div className="flex gap-3 rounded-2xl border border-[#DCE0E7] bg-white p-5">
                   <Truck aria-hidden="true" className="h-6 w-6 shrink-0 stroke-[1.5] text-[#a85414]" />
                   <div>
-                    <h3 className="text-sm font-semibold text-neutral-950">Free delivery in Nairobi</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-neutral-600">We deliver, unpack, and can install on request.</p>
+                    <h3 className="text-sm font-semibold text-neutral-950">Free same-day delivery in Nairobi</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-neutral-600">Within 24 hours elsewhere in Kenya. We deliver, unpack, and can install on request.</p>
                   </div>
                 </div>
                 <div className="flex gap-3 rounded-2xl border border-[#DCE0E7] bg-white p-5">
@@ -176,12 +176,12 @@ export default function CartPage() {
                 <div className="flex justify-between gap-4">
                   <dt>Delivery</dt>
                   <dd className="max-w-[65%] text-right font-semibold text-emerald-800">
-                    Free within Nairobi. Other areas: we confirm the cost before dispatch.
+                    Free and same-day in Nairobi. Elsewhere in Kenya within 24 hours; we confirm the cost before dispatch.
                   </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt>Installation</dt>
-                  <dd className="font-semibold text-emerald-800">Included</dd>
+                  <dd className="font-semibold text-emerald-800">Free in Nairobi</dd>
                 </div>
               </dl>
 

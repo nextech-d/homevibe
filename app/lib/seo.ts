@@ -27,7 +27,7 @@ type PageMetadataInput = {
 /** Homepage copy, used when the admin's SEO fields are empty. */
 export const HOMEPAGE_TITLE_SUFFIX = "Washers, Fridges & TVs, Free Delivery in Nairobi";
 export const HOMEPAGE_DESCRIPTION =
-  "Hisense, TCL, Ramtons and Von washers, fridges, TVs and microwaves. Free delivery in Nairobi, delivery countrywide, our own technicians, M-Pesa.";
+  "Hisense, TCL, Ramtons and Von washers, fridges, TVs and microwaves. Free same-day delivery in Nairobi, 24 hours elsewhere in Kenya, our own technicians, M-Pesa.";
 
 /** The site-wide share image, used when the admin hasn't set one. */
 export const DEFAULT_OG_IMAGE = { path: "/og-home.jpg", width: 1200, height: 630 } as const;

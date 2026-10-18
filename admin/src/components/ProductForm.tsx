@@ -397,7 +397,7 @@ export default function ProductForm({
                     rows={10}
                     value={bulkText}
                     onChange={(e) => setBulkText(e.target.value)}
-                    placeholder={"Does it need a stabiliser?\nNot required, but a fridge guard is sensible.\n\nIs installation included?\nYes, countrywide."}
+                    placeholder={"Does it need a stabiliser?\nNot required, but a fridge guard is sensible.\n\nIs installation included?\nYes, free in Nairobi (parts paid separately)."}
                     className={`${storefrontInputClass} font-mono text-xs`}
                   />
                   <p className="text-[11px] text-neutral-500">

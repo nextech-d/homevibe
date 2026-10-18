@@ -53,7 +53,7 @@ export default async function Footer() {
               </span>
             </Link>
             <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-              {site.tagline}. Based in {site.city}, delivering across {site.region}.
+              {site.tagline}. Based in {site.city}: free same-day delivery in {site.city}, within 24 hours elsewhere in {site.region}.
             </p>
             <div className="mt-2 flex flex-col">
               <a href={`tel:${site.phone.replace(/\s/g, "")}`} className={`${linkClass} gap-2`}>

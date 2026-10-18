@@ -3,7 +3,7 @@ import { SITE } from "../config/site";
 export const FAQ_LIST = [
   {
     q: "Do you offer installation services?",
-    a: `Yes, countrywide. We deliver, install and run it with you before we leave. Delivery is free anywhere in Nairobi; everywhere else we confirm the courier rate with you before dispatch.`,
+    a: `Yes. In Nairobi, delivery is free and same-day, and installation is free too (parts paid separately): we install it and run it with you before we leave. Elsewhere in Kenya, delivery arrives within 24 hours, and we confirm the courier rate with you before dispatch.`,
   },
   {
     q: "What is your warranty policy?",
