@@ -182,7 +182,7 @@ export default async function HomeHero() {
     <section style={HERO_THEME} className="relative -mt-12 mb-12 bg-[var(--hero-bg)] pb-8 pt-8 [box-shadow:0_0_0_100vmax_var(--hero-bg)] [clip-path:inset(0_-100vmax)] sm:pt-12 lg:pt-14">
       {/* The same white panel as the sections below it, from 640px up, at half
           their inset. */}
-      <div className={`${raisedSurfaceFromSm} grid gap-6 sm:gap-8 sm:p-5 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] lg:grid-rows-[auto_auto_auto] lg:gap-x-12 lg:gap-y-6`}>
+      <div className={`${raisedSurfaceFromSm} grid grid-cols-[minmax(0,1fr)] gap-6 sm:gap-8 sm:p-5 lg:grid-cols-[minmax(0,11fr)_minmax(0,9fr)] lg:grid-rows-[auto_auto_auto] lg:gap-x-12 lg:gap-y-6`}>
         <div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:self-end">
           <h1 className="max-w-[16ch] text-balance text-[2rem] font-medium leading-[1.08] tracking-tight text-neutral-950 sm:text-4xl md:max-w-[20ch] md:text-5xl lg:max-w-[18ch]">
             {HEADLINE}
@@ -327,7 +327,7 @@ export default async function HomeHero() {
             own longest point, need about 560px, so they pair up only where
             there's that much room - from 768px, and beside the photo from
             1280px - and stack in one column elsewhere. */}
-        <ul className="grid w-max max-w-full grid-cols-1 gap-x-6 gap-y-3 whitespace-nowrap text-[13px] font-medium leading-snug text-[#57534e] md:grid-cols-[auto_auto] lg:col-start-1 lg:row-start-2 lg:grid-cols-1 xl:grid-cols-[auto_auto]">
+        <ul className="grid w-max max-w-full grid-cols-1 gap-x-6 gap-y-3 whitespace-nowrap max-[359px]:whitespace-normal text-[13px] font-medium leading-snug text-[#57534e] md:grid-cols-[auto_auto] lg:col-start-1 lg:row-start-2 lg:grid-cols-1 xl:grid-cols-[auto_auto]">
           {TRUST_BADGES.map((badge, i) => {
             const Icon = TRUST_ICONS[i];
             return (
@@ -339,11 +339,10 @@ export default async function HomeHero() {
           })}
         </ul>
 
-        {/* One row on a phone, swiped sideways - two rows of 72px circles took
-            a third of the screen - and wrapped from 640px, where all six fit.
-            The row runs to the screen's edges (-mx-6 px-6) so a cut-off circle
-            says there's more; the page itself never scrolls sideways. */}
-        <HeroCategoryNav className="-mx-6 flex snap-x snap-mandatory scroll-px-6 gap-3 overflow-x-auto px-6 pb-2 pt-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:gap-x-6 sm:gap-y-5 sm:overflow-visible sm:px-0 sm:pb-0 lg:col-start-1 lg:row-start-3 [&::-webkit-scrollbar]:hidden">
+        {/* Three to a row on a phone, so every circle shows whole - a swiped
+            row cut the last one off at the screen's edge - and one wrapped row
+            from 640px, where all six fit. */}
+        <HeroCategoryNav className="grid grid-cols-3 justify-items-center gap-x-3 gap-y-4 pt-1 sm:flex sm:flex-wrap sm:justify-items-stretch sm:gap-x-6 sm:gap-y-5 lg:col-start-1 lg:row-start-3">
           {categories.map((category) => {
             const Icon = CATEGORY_ICONS[category.slug] ?? LayoutGrid;
             const photo = TILE_IMAGES[category.slug];
@@ -351,7 +350,7 @@ export default async function HomeHero() {
               <Link
                 key={category.slug}
                 href={categoryHref(category.slug)}
-                className={`group flex w-[4.25rem] shrink-0 snap-start flex-col items-center gap-1.5 rounded-2xl text-center text-xs font-semibold leading-tight text-neutral-900 sm:w-[4.5rem] sm:gap-2 ${focusRing}`}
+                className={`group flex w-[5rem] shrink-0 flex-col items-center gap-1.5 rounded-2xl text-center text-xs font-semibold leading-tight text-neutral-900 sm:w-[4.5rem] sm:gap-2 ${focusRing}`}
               >
                 <span
                   className={`${raised} flex h-14 w-14 items-center justify-center overflow-hidden rounded-full transition-shadow duration-150 sm:h-[4.5rem] sm:w-[4.5rem] ${pressable}`}
