@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/api/src/index.js",
-    "build": "tsc",
+    "build": "prisma generate && tsc",
     "postinstall": "prisma generate",
     "db:push": "tsx ../scripts/guard-db.ts \"prisma db push\" && prisma db push",
     "db:seed": "tsx ../scripts/guard-db.ts \"prisma db seed\" && prisma db seed",
@@ -38,5 +38,10 @@
     "prisma": "^7.10.1",
     "tsx": "^4.23.8",
     "typescript": "^5"
+  },
+  "allowScripts": {
+    "prisma": true,
+    "@prisma/engines": true,
+    "esbuild": true
   }
 }

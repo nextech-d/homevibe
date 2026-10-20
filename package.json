@@ -53,5 +53,10 @@
     "tsx": "^4.23.8",
     "typescript": "^5",
     "zod": "^4.6.5"
+  },
+  "allowScripts": {
+    "prisma": true,
+    "@prisma/engines": true,
+    "esbuild": true
   }
 }
