@@ -58,10 +58,10 @@ const CONFIG: Record<
   },
   article: {
     title: "Articles",
-    description: "Evergreen guides and buying advice — published at /articles on the storefront.",
+    description: "Evergreen guides and buying advice — published at /blog on the storefront, alongside blog posts.",
     icon: BookOpen,
     basePath: "/content/articles",
-    storefrontPath: "/articles",
+    storefrontPath: "/blog",
     newPath: "/content/articles/new",
   },
 };

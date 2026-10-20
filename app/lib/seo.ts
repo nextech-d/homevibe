@@ -12,7 +12,8 @@ type PageMetadataInput = {
   description: string;
   path?: string;
   image?: string;
-  noIndex?: boolean;
+  /** "follow" keeps the page out of the index but lets crawlers follow its links. */
+  noIndex?: boolean | "follow";
   siteName?: string;
   defaultOgImage?: string;
   /**
@@ -63,7 +64,7 @@ export function buildPageMetadata(input: PageMetadataInput): Metadata {
     description: input.description,
     alternates: { canonical },
     ...(input.noIndex && {
-      robots: { index: false, follow: false },
+      robots: { index: false, follow: input.noIndex === "follow" },
     }),
     openGraph: {
       title,

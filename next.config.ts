@@ -122,7 +122,15 @@ const nextConfig: NextConfig = {
       },
       { source: "/category/cooking", destination: "/category/kitchen", permanent: true },
       { source: "/category/cooking/:sub", destination: "/category/kitchen/:sub", permanent: true },
-      { source: "/category/refrigeration", destination: "/category/kitchen", permanent: true },
+      // Refrigeration's own page goes to fridges rather than all of Kitchen, and
+      // wine cellars - an empty subcategory - to fridges too: both 301, as
+      // asked for, rather than Next's default 308.
+      { source: "/category/refrigeration", destination: "/category/kitchen/refrigerators", statusCode: 301 },
+      {
+        source: "/category/refrigeration/wine-cellars",
+        destination: "/category/kitchen/refrigerators",
+        statusCode: 301,
+      },
       { source: "/category/refrigeration/:sub", destination: "/category/kitchen/:sub", permanent: true },
       { source: "/category/coffee-tech", destination: "/category/kitchen", permanent: true },
       { source: "/category/coffee-tech/:sub", destination: "/category/kitchen/:sub", permanent: true },
@@ -187,6 +195,10 @@ const nextConfig: NextConfig = {
         destination: "/product/hisense-43q6qken-43-inch-qled-4k-smart-frameless-tv",
         permanent: true,
       },
+      // Articles were a second listing of the same posts' kind; every post is
+      // now served under /blog.
+      { source: "/articles", destination: "/blog", statusCode: 301 },
+      { source: "/articles/:slug", destination: "/blog/:slug", statusCode: 301 },
     ];
   },
   images: {

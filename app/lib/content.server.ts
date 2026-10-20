@@ -51,7 +51,8 @@ function mapPost(row: {
   };
 }
 
-export async function listPublishedPosts(type: ContentPostType): Promise<ContentPostData[]> {
+/** Every published post, blog posts and articles alike: they share /blog. */
+export async function listPublishedPosts(): Promise<ContentPostData[]> {
   if (!process.env.DATABASE_URL) return [];
 
   const prisma = getPrisma();
@@ -59,7 +60,7 @@ export async function listPublishedPosts(type: ContentPostType): Promise<Content
 
   try {
     const rows = await prisma.contentPost.findMany({
-      where: { type, isPublished: true },
+      where: { isPublished: true },
       orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
     });
     return rows.map(mapPost);
@@ -69,10 +70,11 @@ export async function listPublishedPosts(type: ContentPostType): Promise<Content
   }
 }
 
-export async function getPublishedPostBySlug(
-  type: ContentPostType,
-  slug: string
-): Promise<ContentPostData | null> {
+/**
+ * A published post of either type. A blog post and an article may share a
+ * slug (it is unique per type); the blog post wins, as it did at /blog/<slug>.
+ */
+export async function getPublishedPostBySlug(slug: string): Promise<ContentPostData | null> {
   if (!process.env.DATABASE_URL) return null;
 
   const prisma = getPrisma();
@@ -80,7 +82,8 @@ export async function getPublishedPostBySlug(
 
   try {
     const row = await prisma.contentPost.findFirst({
-      where: { type, slug: slug.toLowerCase(), isPublished: true },
+      where: { slug: slug.toLowerCase(), isPublished: true },
+      orderBy: { type: "asc" },
     });
     return row ? mapPost(row) : null;
   } catch (error) {
@@ -109,10 +112,7 @@ export async function listAllPublishedPostsForSitemap(): Promise<
   }
 }
 
-export function contentBasePath(type: ContentPostType): string {
-  return type === "blog" ? "/blog" : "/articles";
-}
-
-export function contentPostPath(type: ContentPostType, slug: string): string {
-  return `${contentBasePath(type)}/${slug}`;
+/** Blog posts and articles both live under /blog; /articles redirects there. */
+export function contentPostPath(slug: string): string {
+  return `/blog/${slug}`;
 }

@@ -83,7 +83,6 @@ export default async function Footer() {
             <ul className="mt-2">
               <li><Link href="/#faq" className={linkClass}>FAQ</Link></li>
               <li><Link href="/blog" className={linkClass}>Blog</Link></li>
-              <li><Link href="/articles" className={linkClass}>Buying guides</Link></li>
               <li><Link href="/cart" className={linkClass}>Your cart</Link></li>
               <li><Link href="/checkout" className={linkClass}>Checkout</Link></li>
               <li><Link href="/track-order" className={linkClass}>Track order</Link></li>

@@ -115,6 +115,19 @@ export function visibleSubcategories<T extends Pick<SubCategory, "productCount">
   return category.subcategories.filter((sub) => sub.productCount !== 0);
 }
 
+/**
+ * Whether a category, or one of its subcategories, has published products to
+ * show. An empty one is noindexed and left out of the sitemap until it gets
+ * one; the counts come from the database, so that follows by itself.
+ */
+export function hasPublishedProducts(
+  category: { subcategories: Pick<SubCategory, "productCount">[] },
+  subcategory?: Pick<SubCategory, "productCount">
+): boolean {
+  if (subcategory) return subcategory.productCount !== 0;
+  return visibleSubcategories(category).length > 0;
+}
+
 export type CategorySlug = (typeof CATEGORIES)[number]["slug"];
 
 export function getCategoryBySlug(slug: string | string[] | undefined) {

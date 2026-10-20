@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import CategoryCatalog from "../../../components/CategoryCatalog";
-import { categoryHref, getSubcategory } from "../../../data/categories";
+import { categoryHref, getSubcategory, hasPublishedProducts } from "../../../data/categories";
 import BreadcrumbJsonLd from "../../../components/BreadcrumbJsonLd";
 import CollectionJsonLd from "../../../components/CollectionJsonLd";
 import type { Crumb } from "../../../lib/breadcrumbs";
@@ -46,6 +46,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const subSlug = sub?.[0];
   const subcategory = getSubcategory(slug, subSlug, category);
   const ctx = await getSeoContext();
+  // Empty pages stay reachable but out of the index, and come back into it
+  // with their first published product.
+  const noIndex = hasPublishedProducts(category, subcategory) ? undefined : "follow";
 
   if (subcategory) {
     const fallback = subcategoryMetaFallback(subcategory, category, ctx);
@@ -53,6 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: subcategory.metaTitle?.trim() || fallback.title,
       description: subcategory.metaDescription?.trim() || fallback.description,
       path: `/category/${slug}/${subSlug}`,
+      noIndex,
       siteName: ctx.siteName,
       defaultOgImage: ctx.defaultOgImage,
     });
@@ -63,6 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: category.metaTitle?.trim() || fallback.title,
     description: category.metaDescription?.trim() || fallback.description,
     path: `/category/${slug}`,
+    noIndex,
     siteName: ctx.siteName,
     defaultOgImage: ctx.defaultOgImage,
   });

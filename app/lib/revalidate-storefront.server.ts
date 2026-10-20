@@ -18,7 +18,6 @@ export function revalidateStorefront(): void {
   revalidatePath("/");
   revalidatePath("/faq");
   revalidatePath("/blog");
-  revalidatePath("/articles");
   revalidatePath("/sitemap.xml");
   revalidateTag(GOOGLE_REVIEWS_TAG, "max");
   // The search index is cached data, not a page, so no path above covers it.

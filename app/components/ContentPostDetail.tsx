@@ -3,7 +3,6 @@ import Breadcrumbs from "./Breadcrumbs";
 import { pageHeading, raisedSurface, textLink } from "./homeSurfaces";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import type { ContentPostType } from "@prisma/client";
 import {
   contentPostPath,
   getPublishedPostBySlug,
@@ -13,18 +12,16 @@ import { formatContentDate, renderMarkdown } from "../lib/markdown";
 import { serializeJsonLd } from "../lib/json-ld";
 
 type Props = {
-  type: ContentPostType;
   params: Promise<{ slug: string }>;
   listLabel: string;
 };
 
 export async function generateContentPostMetadata({
-  type,
   params,
   listLabel,
 }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPublishedPostBySlug(type, slug);
+  const post = await getPublishedPostBySlug(slug);
   if (!post) {
     return buildPageMetadata({
       title: "Post Not Found",
@@ -41,24 +38,23 @@ export async function generateContentPostMetadata({
   return buildPageMetadata({
     title: post.metaTitle?.trim() || post.title,
     description: fallbackDescription,
-    path: contentPostPath(type, slug),
+    path: contentPostPath(slug),
     image: post.ogImageUrl ?? undefined,
   });
 }
 
 export default async function ContentPostDetail({
-  type,
   params,
   listLabel,
   listHref,
 }: Props & { listHref: string }) {
   const { slug } = await params;
-  const post = await getPublishedPostBySlug(type, slug);
+  const post = await getPublishedPostBySlug(slug);
   if (!post) notFound();
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": type === "blog" ? "BlogPosting" : "Article",
+    "@type": post.type === "blog" ? "BlogPosting" : "Article",
     headline: post.title,
     description: post.metaDescription?.trim() || post.excerpt || post.title,
     datePublished: post.publishedAt ?? undefined,
@@ -66,7 +62,7 @@ export default async function ContentPostDetail({
     author: post.author
       ? { "@type": "Person", name: post.author }
       : { "@type": "Organization", name: "HomeVibe" },
-    url: absoluteUrl(contentPostPath(type, slug)),
+    url: absoluteUrl(contentPostPath(slug)),
     ...(post.ogImageUrl ? { image: [post.ogImageUrl] } : {}),
   };
 
