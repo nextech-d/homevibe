@@ -22,8 +22,8 @@
     "db:migrate": "tsx scripts/guard-db.ts \"prisma migrate dev\" && prisma migrate dev"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.9.1",
-    "@prisma/client": "^7.9.1",
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
     "@vercel/analytics": "^2.0.1",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
@@ -33,7 +33,7 @@
     "pg": "^8.22.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "sanitize-html": "2.17.5",
+    "sanitize-html": "2.17.7",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
@@ -48,7 +48,7 @@
     "concurrently": "10.0.6",
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
-    "prisma": "^7.9.1",
+    "prisma": "^7.10.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.8",
     "typescript": "^5",
