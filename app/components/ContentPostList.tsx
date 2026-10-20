@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { ContentPostType } from "@prisma/client";
 import {
   contentPostPath,
   listPublishedPosts,
@@ -27,7 +26,7 @@ function PostCard({ post }: { post: ContentPostData }) {
       </div>
       <h2 className="mt-2 text-xl font-semibold tracking-tight text-neutral-950 md:text-2xl">
         <Link
-          href={contentPostPath(post.type, post.slug)}
+          href={contentPostPath(post.slug)}
           className="card-link after:absolute after:inset-0 group-hover:underline focus-visible:outline-none"
         >
           {post.title}
@@ -44,15 +43,13 @@ function PostCard({ post }: { post: ContentPostData }) {
 }
 
 export default async function ContentPostList({
-  type,
   title,
   description,
 }: {
-  type: ContentPostType;
   title: string;
   description: string;
 }) {
-  const posts = await listPublishedPosts(type);
+  const posts = await listPublishedPosts();
 
   return (
     <div className="min-h-screen pb-24">
@@ -85,16 +82,6 @@ export default async function ContentPostList({
           >
             ← Home
           </Link>
-          <span aria-hidden="true" className="text-neutral-500">|</span>
-          {type === "blog" ? (
-            <Link href="/articles" className={`inline-flex min-h-11 items-center ${textLink}`}>
-              Guides & articles
-            </Link>
-          ) : (
-            <Link href="/blog" className={`inline-flex min-h-11 items-center ${textLink}`}>
-              Blog
-            </Link>
-          )}
         </div>
       </div>
     </div>

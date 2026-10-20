@@ -255,6 +255,7 @@ export async function deleteContentPost(id: number): Promise<boolean> {
   return result.count > 0;
 }
 
-export function contentPostPublicPath(type: ContentPostType, slug: string): string {
-  return type === "blog" ? `/blog/${slug}` : `/articles/${slug}`;
+/** Blog posts and articles are both served under /blog on the storefront. */
+export function contentPostPublicPath(slug: string): string {
+  return `/blog/${slug}`;
 }

@@ -12,7 +12,6 @@ export const metadata: Metadata = buildPageMetadata({
 export default function BlogIndexPage() {
   return (
     <ContentPostList
-      type="blog"
       title="Blog"
       description="News, arrivals, and practical tips for outfitting your kitchen and home gym."
     />

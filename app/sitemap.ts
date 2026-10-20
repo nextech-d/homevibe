@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { categoryHref, visibleSubcategories } from "./data/categories";
+import { categoryHref, hasPublishedProducts, visibleSubcategories } from "./data/categories";
 import { listBrandsForSitemap } from "./lib/brands.server";
 import { getAllCategories } from "./lib/categories.server";
 import { listProductsForSitemap } from "./lib/inventory.server";
@@ -38,6 +38,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const categories: MetadataRoute.Sitemap = categoriesList.flatMap((category) => {
+    // An empty category is noindexed, so it isn't offered here either.
+    if (!hasPublishedProducts(category)) return [];
     const entries: MetadataRoute.Sitemap = [
       {
         url: `${base}${categoryHref(category.slug)}`,
@@ -75,7 +77,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const contentPosts = await listAllPublishedPostsForSitemap();
+  // Blog posts and articles share /blog, so a slug used by one of each is one page.
+  const contentPosts = [
+    ...new Map((await listAllPublishedPostsForSitemap()).map((post) => [post.slug, post])).values(),
+  ];
   const contentPages: MetadataRoute.Sitemap = [
     {
       url: `${base}/blog`,
@@ -83,14 +88,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.6,
     },
-    {
-      url: `${base}/articles`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.6,
-    },
     ...contentPosts.map((post) => ({
-      url: `${base}${contentPostPath(post.type, post.slug)}`,
+      url: `${base}${contentPostPath(post.slug)}`,
       lastModified: post.updatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.55,
