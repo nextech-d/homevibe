@@ -99,6 +99,8 @@ const SECURITY_HEADERS = [
 const nextConfig: NextConfig = {
   // No "X-Powered-By: Next.js" advertising the framework and its version.
   poweredByHeader: false,
+  // AGENTS.md is ours: `next dev` would otherwise rewrite it with its own block.
+  agentRules: false,
   async headers() {
     return [{ source: "/:path*", headers: SECURITY_HEADERS }];
   },
