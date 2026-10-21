@@ -3,7 +3,7 @@ import { SITE } from "../config/site";
 export const FAQ_LIST = [
   {
     q: "Do you offer installation services?",
-    a: `Yes. In Nairobi, delivery is free and same-day, and installation is free too (parts paid separately): we install it and run it with you before we leave. Elsewhere in Kenya, delivery arrives within 24 hours, and we confirm the courier rate with you before dispatch.`,
+    a: `Yes, in Nairobi. Installation there is free, TV wall mounting included (brackets and parts paid separately): we install it and run it with you before we leave. There's no free installation outside Nairobi. We deliver countrywide: free and same-day in Nairobi, within 24 hours elsewhere in Kenya.`,
   },
   {
     q: "What is your warranty policy?",
