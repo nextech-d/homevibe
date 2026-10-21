@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { shopStreetAddress } from "../config/site";
 import { categoryHref } from "../data/categories";
 import { getAllCategories } from "../lib/categories.server";
 import { getSiteSettingsData } from "../lib/storefront.server";
@@ -53,16 +54,24 @@ export default async function Footer() {
               </span>
             </Link>
             <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-              {site.tagline}. Based in {site.city}: free same-day delivery in {site.city}, within 24 hours elsewhere in {site.region}.
+              {site.tagline}. Free same-day delivery in {site.city}, within 24 hours elsewhere in {site.region}.
             </p>
-            <div className="mt-2 flex flex-col">
-              <a href={`tel:${site.phone.replace(/\s/g, "")}`} className={`${linkClass} gap-2`}>
-                <Phone aria-hidden="true" className="h-4 w-4 text-[#a85414]" /> {site.phone}
-              </a>
-              <a href={`mailto:${site.email}`} className={`${linkClass} gap-2`}>
-                <Mail aria-hidden="true" className="h-4 w-4 text-[#a85414]" /> {site.email}
-              </a>
-            </div>
+            {/* The same street address as the JSON-LD, from the same setting. */}
+            <address className="mt-3 text-sm not-italic leading-relaxed text-neutral-700">
+              <span className="block font-semibold text-neutral-950">{site.name}</span>
+              <span className="block">{shopStreetAddress(site.streetAddress)}</span>
+              <span className="block">
+                {site.city}, {site.region}
+              </span>
+              <span className="mt-2 flex flex-col">
+                <a href={`tel:${site.phone.replace(/\s/g, "")}`} className={`${linkClass} gap-2`}>
+                  <Phone aria-hidden="true" className="h-4 w-4 text-[#a85414]" /> {site.phone}
+                </a>
+                <a href={`mailto:${site.email}`} className={`${linkClass} gap-2`}>
+                  <Mail aria-hidden="true" className="h-4 w-4 text-[#a85414]" /> {site.email}
+                </a>
+              </span>
+            </address>
           </div>
 
           <div>
