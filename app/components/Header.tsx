@@ -28,7 +28,7 @@ function BrandLink() {
     >
       <Image
         src="/logo.png"
-        alt=""
+        alt="HomeVibe"
         width={250}
         height={250}
         className="h-9 w-9 shrink-0 lg:h-10 lg:w-10"
