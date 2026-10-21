@@ -1,4 +1,5 @@
-import sanitizeHtml from "sanitize-html";
+// The bundled copy: see scripts/bundle-sanitize-html.mjs.
+import sanitizeHtml from "../vendor/sanitize-html.js";
 import { parseFragment, serialize } from "parse5";
 import { sanitizeDescription } from "../../../shared/description-sanitize.js";
 

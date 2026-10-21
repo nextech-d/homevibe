@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "start": "node dist/api/src/index.js",
-    "build": "prisma generate && tsc",
-    "postinstall": "prisma generate",
+    "build": "prisma generate && node scripts/bundle-sanitize-html.mjs && tsc",
+    "postinstall": "prisma generate && node scripts/bundle-sanitize-html.mjs",
     "db:push": "tsx ../scripts/guard-db.ts \"prisma db push\" && prisma db push",
     "db:seed": "tsx ../scripts/guard-db.ts \"prisma db seed\" && prisma db seed",
     "db:studio": "tsx ../scripts/guard-db.ts \"prisma studio\" && prisma studio"
@@ -35,6 +35,7 @@
     "@types/node": "^20",
     "@types/pg": "^8.20.4",
     "@types/sanitize-html": "2.16.1",
+    "esbuild": "^0.28.2",
     "prisma": "^7.10.1",
     "tsx": "^4.23.8",
     "typescript": "^5"
