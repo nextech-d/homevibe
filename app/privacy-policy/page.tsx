@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Breadcrumbs from "../components/Breadcrumbs";
 import { pageHeading, raisedSurface, textLink } from "../components/homeSurfaces";
+import { shopStreetAddress } from "../config/site";
 import { buildPageMetadata } from "../lib/seo";
+import { getSiteSettingsData } from "../lib/storefront.server";
 
 /**
  * The privacy policy. Every statement here is what the code does - checked
@@ -18,10 +20,12 @@ import { buildPageMetadata } from "../lib/seo";
 const LAST_UPDATED = "17 October 2026";
 const LAST_UPDATED_ISO = "2026-10-17";
 
-/** The business details as the owner gave them for this page. */
+/**
+ * The business details as the owner gave them for this page. The address
+ * comes from the street address, city and region site settings.
+ */
 const BUSINESS = {
   name: "HomeVibe",
-  address: "Taveta Road, Nairobi, Kenya",
   email: "homevibekenya@gmail.com",
   phone: "+254 182 230 250",
 } as const;
@@ -72,7 +76,10 @@ const phoneLink = (
   </a>
 );
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage() {
+  const site = await getSiteSettingsData();
+  const address = `${shopStreetAddress(site.streetAddress)}, ${site.city}, ${site.region}`;
+
   return (
     <div className="min-h-screen pb-24">
       <div className="mx-auto max-w-7xl px-6 py-8">
@@ -291,7 +298,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <ul className={ul}>
               <Item label="Address">
-                {BUSINESS.name}, {BUSINESS.address}.
+                {BUSINESS.name}, {address}.
               </Item>
               <Item label="Email">{emailLink}</Item>
               <Item label="Phone">{phoneLink} (also on WhatsApp)</Item>

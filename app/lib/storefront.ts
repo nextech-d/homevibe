@@ -17,6 +17,7 @@ export type SiteSettingsData = {
   whatsapp: string;
   region: string;
   city: string;
+  streetAddress: string;
   facebookUrl: string;
   instagramUrl: string;
   tiktokUrl: string;
@@ -37,6 +38,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
   whatsapp: SITE.whatsapp,
   region: SITE.region,
   city: SITE.city,
+  streetAddress: SITE.streetAddress,
   facebookUrl: SITE.social.facebook,
   instagramUrl: SITE.social.instagram,
   tiktokUrl: SITE.social.tiktok,

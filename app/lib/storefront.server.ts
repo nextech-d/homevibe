@@ -21,6 +21,7 @@ export type SiteSettingsData = {
   whatsapp: string;
   region: string;
   city: string;
+  streetAddress: string;
   facebookUrl: string;
   instagramUrl: string;
   tiktokUrl: string;
@@ -41,6 +42,7 @@ const DEFAULT_SETTINGS: SiteSettingsData = {
   whatsapp: SITE.whatsapp,
   region: SITE.region,
   city: SITE.city,
+  streetAddress: SITE.streetAddress,
   facebookUrl: SITE.social.facebook,
   instagramUrl: SITE.social.instagram,
   tiktokUrl: SITE.social.tiktok,
@@ -56,6 +58,7 @@ function mapSiteSettings(rows: { key: string; value: string }[]): SiteSettingsDa
     whatsapp: byKey.get("whatsapp") ?? DEFAULT_SETTINGS.whatsapp,
     region: byKey.get("region") ?? DEFAULT_SETTINGS.region,
     city: byKey.get("city") ?? DEFAULT_SETTINGS.city,
+    streetAddress: byKey.get("street_address") ?? DEFAULT_SETTINGS.streetAddress,
     facebookUrl: byKey.get("facebook_url") ?? DEFAULT_SETTINGS.facebookUrl,
     instagramUrl: byKey.get("instagram_url") ?? DEFAULT_SETTINGS.instagramUrl,
     tiktokUrl: byKey.get("tiktok_url") ?? DEFAULT_SETTINGS.tiktokUrl,

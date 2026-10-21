@@ -22,6 +22,7 @@ export type SiteSettings = {
   whatsapp: string;
   region: string;
   city: string;
+  streetAddress: string;
   facebookUrl: string;
   instagramUrl: string;
   tiktokUrl: string;
@@ -42,6 +43,7 @@ export const SITE_SETTING_KEYS = [
   "whatsapp",
   "region",
   "city",
+  "street_address",
   "facebook_url",
   "instagram_url",
   "tiktok_url",
@@ -55,6 +57,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   whatsapp: "254182230250",
   region: "Kenya",
   city: "Nairobi",
+  streetAddress: "Basement, Shop 14, New Alnoor Exhibition Building, Taveta Rd",
   facebookUrl: "https://facebook.com/homevibe",
   instagramUrl: "https://instagram.com/homevibe",
   tiktokUrl: "https://tiktok.com/@homevibe",
@@ -70,6 +73,7 @@ function mapSiteSettings(rows: { key: string; value: string }[]): SiteSettings {
     whatsapp: byKey.get("whatsapp") ?? DEFAULT_SITE_SETTINGS.whatsapp,
     region: byKey.get("region") ?? DEFAULT_SITE_SETTINGS.region,
     city: byKey.get("city") ?? DEFAULT_SITE_SETTINGS.city,
+    streetAddress: byKey.get("street_address") ?? DEFAULT_SITE_SETTINGS.streetAddress,
     facebookUrl: byKey.get("facebook_url") ?? DEFAULT_SITE_SETTINGS.facebookUrl,
     instagramUrl: byKey.get("instagram_url") ?? DEFAULT_SITE_SETTINGS.instagramUrl,
     tiktokUrl: byKey.get("tiktok_url") ?? DEFAULT_SITE_SETTINGS.tiktokUrl,
@@ -85,6 +89,7 @@ function siteSettingsToDb(settings: Partial<SiteSettings>): Record<string, strin
   if (settings.whatsapp !== undefined) map.whatsapp = settings.whatsapp;
   if (settings.region !== undefined) map.region = settings.region;
   if (settings.city !== undefined) map.city = settings.city;
+  if (settings.streetAddress !== undefined) map.street_address = settings.streetAddress;
   if (settings.facebookUrl !== undefined) map.facebook_url = settings.facebookUrl;
   if (settings.instagramUrl !== undefined) map.instagram_url = settings.instagramUrl;
   if (settings.tiktokUrl !== undefined) map.tiktok_url = settings.tiktokUrl;

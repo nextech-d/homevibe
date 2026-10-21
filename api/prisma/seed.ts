@@ -149,6 +149,7 @@ async function main() {
     whatsapp: SITE.whatsapp,
     region: SITE.region,
     city: SITE.city,
+    street_address: SITE.streetAddress,
     facebook_url: SITE.social.facebook,
     instagram_url: SITE.social.instagram,
     tiktok_url: SITE.social.tiktok,

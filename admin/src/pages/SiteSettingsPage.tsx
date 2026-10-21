@@ -23,6 +23,7 @@ type SiteSettings = {
   whatsapp: string;
   region: string;
   city: string;
+  streetAddress: string;
   facebookUrl: string;
   instagramUrl: string;
   tiktokUrl: string;
@@ -256,6 +257,19 @@ export default function SiteSettingsPage() {
                   <input
                     value={settings.city}
                     onChange={(e) => updateField("city", e.target.value)}
+                    className={`${inputClass} pl-9`}
+                  />
+                </div>
+              </Field>
+              <Field
+                label="Street address"
+                hint="Without the city. Used in the privacy policy and search results."
+              >
+                <div className="relative">
+                  <MapPin className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-neutral-600" />
+                  <input
+                    value={settings.streetAddress}
+                    onChange={(e) => updateField("streetAddress", e.target.value)}
                     className={`${inputClass} pl-9`}
                   />
                 </div>

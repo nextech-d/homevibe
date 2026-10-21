@@ -1,4 +1,4 @@
-import { SITE } from "../config/site";
+import { SITE, shopStreetAddress } from "../config/site";
 import { absoluteUrl, getSiteUrl } from "../lib/seo";
 import { getSeoContext } from "../lib/seo.server";
 import { serializeJsonLd } from "../lib/json-ld";
@@ -30,7 +30,7 @@ export default async function SiteJsonLd() {
         image: ctx.defaultOgImage,
         address: {
           "@type": "PostalAddress",
-          streetAddress: "Taveta Rd",
+          streetAddress: shopStreetAddress(ctx.site.streetAddress),
           addressLocality: ctx.site.city,
           addressCountry: "KE",
         },

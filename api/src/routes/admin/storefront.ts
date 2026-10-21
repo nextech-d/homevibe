@@ -104,6 +104,7 @@ adminStorefrontRoute.patch("/settings", async (c) => {
       whatsapp: typeof body.whatsapp === "string" ? body.whatsapp : undefined,
       region: typeof body.region === "string" ? body.region : undefined,
       city: typeof body.city === "string" ? body.city : undefined,
+      streetAddress: typeof body.streetAddress === "string" ? body.streetAddress : undefined,
       facebookUrl: typeof body.facebookUrl === "string" ? body.facebookUrl : undefined,
       instagramUrl: typeof body.instagramUrl === "string" ? body.instagramUrl : undefined,
       tiktokUrl: typeof body.tiktokUrl === "string" ? body.tiktokUrl : undefined,

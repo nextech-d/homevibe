@@ -14,6 +14,7 @@ export const SITE = {
   phone: "+254 182 230 250",
   region: "Kenya",
   city: "Nairobi",
+  streetAddress: "Basement, Shop 14, New Alnoor Exhibition Building, Taveta Rd",
   currency: {
     code: "KES",
     locale: "en-KE",
@@ -21,6 +22,11 @@ export const SITE = {
     symbol: "Ksh",
   },
 } as const;
+
+/** The street address setting, or the street alone when it's been left empty. */
+export function shopStreetAddress(streetAddress: string): string {
+  return streetAddress.trim() || "Taveta Rd";
+}
 
 export const TRUST_BADGES = [
   { label: "Free same-day delivery in Nairobi", detail: "Same day, anywhere in Nairobi" },
