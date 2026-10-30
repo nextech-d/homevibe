@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings2, FileText, MessagesSquare, ChevronUp, ChevronDown, SlidersHorizontal } from "lucide-react";
+import { Settings2, FileText, MessagesSquare, ChevronUp, ChevronDown } from "lucide-react";
 import { api } from "../lib/api";
 import { ProductGalleryField, ProductImageField } from "./ProductImageField";
 import DescriptionEditor from "./DescriptionEditor";
@@ -131,6 +131,28 @@ export default function ProductForm({
   // brand sorts first, so nobody saves the wrong brand by not looking.
   const [brandId, setBrandId] = useState<number | null>(product ? product.brandId : null);
   const [optionValueIds, setOptionValueIds] = useState<number[]>(product?.optionValueIds ?? []);
+  const [savedOptionValueIds, setSavedOptionValueIds] = useState<number[]>(
+    product?.optionValueIds ?? []
+  );
+
+  /**
+   * The Options section's own Save. On an existing product it stores just the
+   * options, leaving every other edit on the page as it is; on a new one it
+   * only confirms them, and they're stored with the product on Create.
+   */
+  async function saveOptions(ids: number[]) {
+    if (isEdit && product) {
+      const data = await api<{ optionValueIds: number[] }>(`/admin/products/${product.id}/options`, {
+        method: "PUT",
+        body: JSON.stringify({ optionValueIds: ids }),
+      });
+      // The API drops a value deleted in System data meanwhile; match it.
+      setOptionValueIds(data.optionValueIds);
+      setSavedOptionValueIds(data.optionValueIds);
+    } else {
+      setSavedOptionValueIds(ids);
+    }
+  }
   const [subcategoryId, setSubcategoryId] = useState(
     product?.subcategoryId ?? subcategories[0]?.id ?? 0
   );
@@ -292,19 +314,6 @@ export default function ProductForm({
               label="Secondary images"
               value={secondaryImages}
               onChange={setSecondaryImages}
-            />
-          </StorefrontSection>
-
-          <StorefrontSection
-            title="Options"
-            description="Descriptive options such as Size or Color. Pick a type, then tick the values this product comes in. No separate price or stock per option."
-            icon={SlidersHorizontal}
-            accent="green"
-          >
-            <ProductOptionsField
-              types={optionTypes}
-              value={optionValueIds}
-              onChange={setOptionValueIds}
             />
           </StorefrontSection>
 
@@ -488,7 +497,9 @@ export default function ProductForm({
           description="Pricing, stock, visibility, and categorization."
           icon={Settings2}
           accent="sky"
-          className="lg:sticky lg:top-8"
+          // Options make the rail taller than a laptop screen; scrolling it
+          // keeps the save button reachable while it sticks.
+          className="lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto"
         >
           <StorefrontField label="Slug" hint="Auto-generated from name if empty.">
             <input
@@ -525,6 +536,19 @@ export default function ProductForm({
                 </option>
               ))}
             </select>
+          </StorefrontField>
+          <StorefrontField
+            label="Options"
+            hint="Descriptive options such as Size or Color. Pick a type, then tick the values this product comes in. No separate price or stock per option."
+          >
+            <ProductOptionsField
+              types={optionTypes}
+              value={optionValueIds}
+              onChange={setOptionValueIds}
+              savedValue={savedOptionValueIds}
+              onSave={saveOptions}
+              savedNote={isEdit ? undefined : "stored when the product is created"}
+            />
           </StorefrontField>
           <StorefrontField label="Price (KES)">
             <input

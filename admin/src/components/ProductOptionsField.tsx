@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { X } from "lucide-react";
+import { Save, X } from "lucide-react";
 import type { OptionTypeItem } from "../lib/options";
 import { storefrontSelectClass } from "./StorefrontPanel";
 
@@ -9,17 +9,55 @@ import { storefrontSelectClass } from "./StorefrontPanel";
  * ids are saved - a type shows here while it has a tick, or after it is picked
  * until the form is left. The System data links open a new tab, so unsaved
  * edits here aren't lost.
+ *
+ * Its own Save appears once anything here is touched and is enabled while the
+ * ticks differ from `savedValue`. What saving means is the form's: stored at
+ * once on an existing product, kept for the create on a new one.
  */
 export default function ProductOptionsField({
   types,
   value,
   onChange,
+  savedValue,
+  onSave,
+  savedNote,
 }: {
   types: OptionTypeItem[];
   value: number[];
   onChange: (ids: number[]) => void;
+  /** The ticks as last saved (or, on a new product, confirmed). */
+  savedValue: number[];
+  /** Throws to report a failure; the selection is kept either way. */
+  onSave: (ids: number[]) => Promise<void>;
+  /** Appended to the confirmation, e.g. "stored when the product is created". */
+  savedNote?: string;
 }) {
   const selected = new Set(value);
+  const [touched, setTouched] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState<{ ok: boolean; text: string } | null>(null);
+  const dirty = !sameIds(value, savedValue);
+
+  function change(ids: number[]) {
+    setTouched(true);
+    setNotice(null);
+    onChange(ids);
+  }
+
+  async function save() {
+    const ids = value;
+    setSaving(true);
+    setNotice(null);
+    try {
+      await onSave(ids);
+      const text = describeSave(types, new Set(savedValue), new Set(ids));
+      setNotice({ ok: true, text: savedNote ? `${text} — ${savedNote}.` : `${text}.` });
+    } catch (e) {
+      setNotice({ ok: false, text: e instanceof Error ? e.message : "Failed to save options." });
+    } finally {
+      setSaving(false);
+    }
+  }
   const [shownIds, setShownIds] = useState<number[]>(() =>
     types.filter((type) => type.values.some((v) => selected.has(v.id))).map((type) => type.id)
   );
@@ -27,12 +65,12 @@ export default function ProductOptionsField({
   const available = types.filter((type) => !shownIds.includes(type.id));
 
   function toggle(id: number) {
-    onChange(selected.has(id) ? value.filter((v) => v !== id) : [...value, id]);
+    change(selected.has(id) ? value.filter((v) => v !== id) : [...value, id]);
   }
 
   function removeType(type: OptionTypeItem) {
     const ids = new Set(type.values.map((v) => v.id));
-    onChange(value.filter((id) => !ids.has(id)));
+    change(value.filter((id) => !ids.has(id)));
     setShownIds((rows) => rows.filter((id) => id !== type.id));
   }
 
@@ -93,16 +131,19 @@ export default function ProductOptionsField({
         </div>
       ))}
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="space-y-2">
         {available.length > 0 && (
           <select
             value=""
             onChange={(e) => {
               const id = Number(e.target.value);
-              if (id) setShownIds((rows) => [...rows, id]);
+              if (!id) return;
+              setShownIds((rows) => [...rows, id]);
+              setTouched(true);
+              setNotice(null);
             }}
             aria-label="Add an option type"
-            className={`${storefrontSelectClass} max-w-xs`}
+            className={storefrontSelectClass}
           >
             <option value="">Add an option type…</option>
             {available.map((type) => (
@@ -116,6 +157,59 @@ export default function ProductOptionsField({
           Manage types and values (new tab)
         </Link>
       </div>
+
+      {(touched || dirty) && (
+        <button
+          type="button"
+          onClick={save}
+          disabled={!dirty || saving}
+          className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#00e599] py-2 text-xs font-bold uppercase tracking-wider text-black hover:bg-[#00cc88] disabled:opacity-40"
+        >
+          <Save className="h-3.5 w-3.5" />
+          {saving ? "Saving…" : "Save options"}
+        </button>
+      )}
+
+      {notice && (
+        <p
+          role={notice.ok ? "status" : "alert"}
+          className={`rounded-lg border px-3 py-2 text-xs ${
+            notice.ok
+              ? "border-emerald-900/50 bg-emerald-950/30 text-emerald-400"
+              : "border-red-900/50 bg-red-950/30 text-red-400"
+          }`}
+        >
+          {notice.text}
+        </p>
+      )}
     </div>
   );
+}
+
+function sameIds(a: number[], b: number[]): boolean {
+  const set = new Set(a);
+  return set.size === new Set(b).size && b.every((id) => set.has(id));
+}
+
+/** "Size", "Size and Color", "Size, Color and Capacity". */
+function joinNames(names: string[]): string {
+  return names.length < 2 ? names.join("") : `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+}
+
+/**
+ * Names what changed, by type: "Size added" (it had no ticks before), "Color
+ * removed" (it has none now), "Size and Color saved" (ticks changed).
+ */
+function describeSave(types: OptionTypeItem[], before: Set<number>, after: Set<number>): string {
+  const groups: Record<"added" | "saved" | "removed", string[]> = { added: [], saved: [], removed: [] };
+  for (const type of types) {
+    const was = type.values.filter((v) => before.has(v.id)).map((v) => v.id);
+    const now = type.values.filter((v) => after.has(v.id)).map((v) => v.id);
+    if (sameIds(was, now)) continue;
+    groups[was.length === 0 ? "added" : now.length === 0 ? "removed" : "saved"].push(type.name);
+  }
+  const parts = (["added", "saved", "removed"] as const)
+    .filter((verb) => groups[verb].length > 0)
+    .map((verb) => `${joinNames(groups[verb])} ${verb}`);
+  return parts.length > 0 ? parts.join(", ") : "Options saved";
 }

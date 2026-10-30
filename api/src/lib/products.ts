@@ -469,6 +469,28 @@ export async function updateProductForAdmin(
   }
 }
 
+/**
+ * Replaces only the product's ticked option values - the Options section's
+ * own Save, which leaves the rest of the form unsaved. Null if there's no
+ * such product; the ids kept, which drop any value deleted meanwhile.
+ */
+export async function setProductOptionValues(id: number, ids: number[]): Promise<number[] | null> {
+  const prisma = getPrisma();
+  if (!prisma) throw new Error("Database unavailable");
+
+  const product = await prisma.product.findUnique({ where: { id }, select: { id: true } });
+  if (!product) return null;
+
+  const optionValueIds = await existingOptionValueIds(ids);
+  await prisma.$transaction([
+    prisma.productOptionValue.deleteMany({ where: { productId: id } }),
+    prisma.productOptionValue.createMany({
+      data: optionValueIds.map((optionValueId) => ({ productId: id, optionValueId })),
+    }),
+  ]);
+  return optionValueIds;
+}
+
 /** Quick list-page update (price, stock, publish). */
 export async function patchProductPriceStock(
   id: number,

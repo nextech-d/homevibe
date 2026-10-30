@@ -9,6 +9,7 @@ import {
   updateProductForAdmin,
   getProductForAdmin,
   deleteProductForAdmin,
+  setProductOptionValues,
   type ProductFormInput,
   type ProductFaqInput,
 } from "../../lib/products.js";
@@ -252,6 +253,25 @@ adminProductsRoute.patch("/", async (c) => {
 
   scheduleStorefrontPublish("product update");
   return c.json({ success: true, product });
+});
+
+// The Options section's own Save. Options aren't on the storefront, so no publish.
+adminProductsRoute.put("/:id/options", async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id) || id <= 0) {
+    return c.json({ success: false, message: "Invalid product id." }, 400);
+  }
+  const body = (await c.req.json()) as Record<string, unknown>;
+  const ids = parseOptionValueIds(body.optionValueIds);
+  if (!ids) return c.json({ success: false, message: "Invalid options." }, 400);
+
+  try {
+    const optionValueIds = await setProductOptionValues(id, ids);
+    if (!optionValueIds) return c.json({ success: false, message: "Product not found." }, 404);
+    return c.json({ success: true, optionValueIds });
+  } catch (error) {
+    return c.json({ success: false, message: clientErrorMessage(error, "Failed to save options.") }, 500);
+  }
 });
 
 adminProductsRoute.delete("/:id", async (c) => {
