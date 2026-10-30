@@ -141,8 +141,12 @@ export default function SearchResults({ open, query, search, onPick, onViewAll, 
               <div className="min-w-0 flex-1">
                 <h4 className="truncate text-xs font-bold text-black">{product.name}</h4>
                 <p className="text-[10px] font-semibold text-black">
-                  {product.brand}
-                  <span className="mx-1 text-black/40">·</span>
+                  {product.brand && (
+                    <>
+                      {product.brand}
+                      <span className="mx-1 text-black/40">·</span>
+                    </>
+                  )}
                   {product.category}
                 </p>
               </div>

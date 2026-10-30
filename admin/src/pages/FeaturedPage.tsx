@@ -21,7 +21,7 @@ import {
 type ProductOption = {
   id: number;
   name: string;
-  brand: string;
+  brand: string | null;
   primaryPhotoId: string;
 };
 
@@ -53,7 +53,8 @@ function emptyDrafts(): SlotDraft[] {
 function productLabel(options: ProductOption[], id: string): string {
   if (!id) return "Not selected";
   const product = options.find((p) => String(p.id) === id);
-  return product ? `${product.name} · ${product.brand}` : "Unknown product";
+  if (!product) return "Unknown product";
+  return product.brand ? `${product.name} · ${product.brand}` : product.name;
 }
 
 export default function FeaturedPage() {
@@ -223,7 +224,7 @@ export default function FeaturedPage() {
                         <option value="">Select product…</option>
                         {productOptions.map((product) => (
                           <option key={product.id} value={product.id}>
-                            {product.name} ({product.brand})
+                            {product.brand ? `${product.name} (${product.brand})` : product.name}
                           </option>
                         ))}
                       </select>
@@ -264,7 +265,7 @@ export default function FeaturedPage() {
                         <option value="">None</option>
                         {productOptions.map((product) => (
                           <option key={product.id} value={product.id}>
-                            {product.name} ({product.brand})
+                            {product.brand ? `${product.name} (${product.brand})` : product.name}
                           </option>
                         ))}
                       </select>

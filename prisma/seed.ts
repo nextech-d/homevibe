@@ -93,7 +93,7 @@ async function main() {
     const categorySlug = item.category.toLowerCase().replace(/\s+/g, "-");
 
     const subcategoryId = subcategoryByKey.get(`${categorySlug}:${item.subcategory}`);
-    const brandId = brandByName.get(item.brand.toLowerCase());
+    const brandId = item.brand ? brandByName.get(item.brand.toLowerCase()) : undefined;
 
     if (!subcategoryId || !brandId) {
       throw new Error(

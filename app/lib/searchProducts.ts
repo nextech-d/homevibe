@@ -1,5 +1,5 @@
 /** What the matching reads. A full product or a search index entry both have it. */
-export type Searchable = { name: string; category: string; subcategory: string; brand: string };
+export type Searchable = { name: string; category: string; subcategory: string; brand: string | null };
 
 /** The longest query worth matching; anything after it is ignored. */
 export const SEARCH_QUERY_MAX_LENGTH = 80;
@@ -18,7 +18,7 @@ function filterByQuery<T extends Searchable>(inventory: T[], query: string): T[]
       p.name.toLowerCase().includes(q) ||
       p.category.toLowerCase().includes(q) ||
       p.subcategory.toLowerCase().includes(q) ||
-      p.brand.toLowerCase().includes(q)
+      Boolean(p.brand?.toLowerCase().includes(q))
   );
 }
 

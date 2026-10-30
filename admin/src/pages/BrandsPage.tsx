@@ -233,7 +233,7 @@ function BrandsListPage() {
     if (
       !confirm(
         brand.productCount > 0
-          ? `"${brand.name}" has ${brand.productCount} product(s). Reassign them before deleting.`
+          ? `"${brand.name}" has ${brand.productCount} product(s). Reassign them, or set them to No brand, before deleting.`
           : `Delete "${brand.name}"? This cannot be undone.`
       )
     ) {

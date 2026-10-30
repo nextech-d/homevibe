@@ -204,7 +204,7 @@ export async function deleteBrand(id: number): Promise<{ ok: true } | { ok: fals
   if (productCount > 0) {
     return {
       ok: false,
-      message: `Cannot delete: ${productCount} product${productCount === 1 ? "" : "s"} still use this brand. Reassign them first.`,
+      message: `Cannot delete: ${productCount} product${productCount === 1 ? "" : "s"} still use this brand. Reassign them, or set them to No brand, first.`,
     };
   }
 

@@ -41,6 +41,9 @@ const CATALOGUE_TABLES = [
   "faq_items",
   "site_settings",
   "content_posts",
+  "option_types",
+  "option_values",
+  "product_option_values",
 ] as const;
 
 /** Every other table, named so a new one fails the check below until someone decides. */

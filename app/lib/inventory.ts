@@ -47,13 +47,18 @@ export function relatedSubcategories(subcategory: string): string[] {
  * anything else - fewer cards, or none, rather than unrelated ones. Within
  * each, in stock before out of stock, then closest in price, then same brand.
  */
+/** Two products with no brand don't share one. */
+function sameBrand(a: { brand: string | null }, b: { brand: string | null }): boolean {
+  return a.brand !== null && a.brand === b.brand;
+}
+
 export function relatedProducts(candidates: Appliance[], product: RelatedTarget): Appliance[] {
   const subcategories = relatedSubcategories(product.subcategory);
   const rank = (a: Appliance, b: Appliance) =>
     subcategories.indexOf(a.subcategory) - subcategories.indexOf(b.subcategory) ||
     Number(isOutOfStock(a)) - Number(isOutOfStock(b)) ||
     Math.abs(a.price - product.price) - Math.abs(b.price - product.price) ||
-    Number(b.brand === product.brand) - Number(a.brand === product.brand) ||
+    Number(sameBrand(b, product)) - Number(sameBrand(a, product)) ||
     a.id - b.id;
 
   return candidates
@@ -158,7 +163,7 @@ export function productsInSubcategory(
 
 export function productsForBrand(inventory: Appliance[], brandName: string): Appliance[] {
   const name = brandName.trim().toLowerCase();
-  return inventory.filter((product) => product.brand.toLowerCase() === name);
+  return inventory.filter((product) => product.brand?.toLowerCase() === name);
 }
 
 export async function fetchProductByParamClient(param: string): Promise<Appliance | null> {

@@ -30,6 +30,7 @@ const catalogNav = [
   { to: "/products", label: "Products", icon: Package },
   { to: "/brands", label: "Brands", icon: Tag },
   { to: "/categories", label: "Categories", icon: Layers },
+  { to: "/system-data", label: "System data", icon: Database },
 ] as const;
 
 const storefrontNav = [

@@ -23,7 +23,8 @@ export type Appliance = {
     gallery: string[];
   };
   specs: string;
-  brand: string;
+  /** Null when the product has no brand. */
+  brand: string | null;
   description: string;
   body?: string | null;
   faqs?: { question: string; answer: string }[];

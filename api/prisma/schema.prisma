@@ -72,7 +72,8 @@ model Product {
   id              Int                @id @default(autoincrement())
   slug            String             @unique
   name            String
-  brandId         Int                @map("brand_id")
+  /// Optional: a product can be saved with no brand.
+  brandId         Int?               @map("brand_id")
   subcategoryId   Int                @map("subcategory_id")
   priceKes        Int                @map("price_kes")
   stockStatus     StockStatus        @default(in_stock) @map("stock_status")
@@ -93,12 +94,15 @@ model Product {
   galleryPhotoIds Json               @map("gallery_photo_ids")
   createdAt       DateTime           @default(now()) @map("created_at")
   updatedAt       DateTime           @updatedAt @map("updated_at")
-  brand           Brand              @relation(fields: [brandId], references: [id])
+  /// Restrict, as before: a brand with products can't be deleted (the admin
+  /// says how many to reassign or clear first).
+  brand           Brand?             @relation(fields: [brandId], references: [id], onDelete: Restrict)
   subcategory     Subcategory        @relation(fields: [subcategoryId], references: [id])
   featuredTop     FeaturedHomeSlot[] @relation("FeaturedTop")
   featuredBottom  FeaturedHomeSlot[] @relation("FeaturedBottom")
   orderItems      OrderItem[]
   faqs            ProductFaq[]
+  optionValues    ProductOptionValue[]
 
   @@index([brandId])
   @@index([subcategoryId])
@@ -117,6 +121,44 @@ model ProductFaq {
 
   @@index([productId])
   @@map("product_faqs")
+}
+
+/// "System data" in the admin: descriptive option types (Size, Color,
+/// Capacity...) and their values, ticked per product. No price or stock per
+/// option - a product's price and stock stay on the product.
+model OptionType {
+  id        Int           @id @default(autoincrement())
+  name      String        @unique
+  sortOrder Int           @default(0) @map("sort_order")
+  values    OptionValue[]
+
+  @@map("option_types")
+}
+
+model OptionValue {
+  id           Int                  @id @default(autoincrement())
+  optionTypeId Int                  @map("option_type_id")
+  value        String
+  sortOrder    Int                  @default(0) @map("sort_order")
+  optionType   OptionType           @relation(fields: [optionTypeId], references: [id], onDelete: Cascade)
+  products     ProductOptionValue[]
+
+  @@unique([optionTypeId, value])
+  @@index([optionTypeId])
+  @@map("option_values")
+}
+
+/// The values ticked on a product. Deleting a value (or its type) removes it
+/// from every product here; the admin asks before doing that.
+model ProductOptionValue {
+  productId     Int         @map("product_id")
+  optionValueId Int         @map("option_value_id")
+  product       Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  optionValue   OptionValue @relation(fields: [optionValueId], references: [id], onDelete: Cascade)
+
+  @@id([productId, optionValueId])
+  @@index([optionValueId])
+  @@map("product_option_values")
 }
 
 model FeaturedHomeSlot {

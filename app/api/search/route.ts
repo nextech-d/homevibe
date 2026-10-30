@@ -12,7 +12,8 @@ export type SearchSuggestion = {
   id: number;
   slug: string;
   name: string;
-  brand: string;
+  /** Null when the product has no brand. */
+  brand: string | null;
   category: string;
   price: number;
   thumbnail: string;

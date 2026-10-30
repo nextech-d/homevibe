@@ -28,8 +28,9 @@ export type AdminProductDetail = {
   id: number;
   slug: string;
   name: string;
-  brandId: number;
-  brandName: string;
+  /** Null when the product has no brand. */
+  brandId: number | null;
+  brandName: string | null;
   subcategoryId: number;
   subcategoryLabel: string;
   categoryLabel: string;
@@ -48,4 +49,6 @@ export type AdminProductDetail = {
   primaryPhotoId: string;
   galleryPhotoIds: string[];
   faqs: { question: string; answer: string; sortOrder: number }[];
+  /** Ids of the option values ticked (System data). */
+  optionValueIds: number[];
 };

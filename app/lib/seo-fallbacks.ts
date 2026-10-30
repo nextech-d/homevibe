@@ -177,8 +177,8 @@ function sentences(...parts: (string | null | undefined)[]): string {
 }
 
 /** "Sub-Zero Classic Fridge" already names the brand — don't repeat it. */
-function withBrand(name: string, brand: string): string {
-  const trimmed = brand.trim();
+function withBrand(name: string, brand: string | null): string {
+  const trimmed = brand?.trim();
   if (!trimmed) return name;
   return name.toLowerCase().includes(trimmed.toLowerCase()) ? name : `${trimmed} ${name}`;
 }
@@ -199,7 +199,7 @@ function deliveryLine(ctx: SeoContext): string {
 
 type ProductLike = {
   name: string;
-  brand: string;
+  brand: string | null;
   description: string;
   category?: string;
   subcategory?: string;

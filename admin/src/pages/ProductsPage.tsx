@@ -14,7 +14,8 @@ import ProductCreatedView from "../views/ProductCreatedView";
 type Product = {
   id: number;
   name: string;
-  brand: string;
+  /** Null when the product has no brand. */
+  brand: string | null;
   priceKes: number;
   stockStatus: StockStatus;
   isPublished: boolean;
@@ -462,7 +463,9 @@ function ProductRow({
         </Link>
         <div className="font-mono text-[10px] text-neutral-600">#{product.id}</div>
       </td>
-      <td className="px-4 py-3">{product.brand}</td>
+      <td className="px-4 py-3">
+        {product.brand ?? <span className="text-neutral-600">No brand</span>}
+      </td>
       <td className="px-4 py-3 tabular-nums text-white">{formatKes(product.priceKes)}</td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-1.5">

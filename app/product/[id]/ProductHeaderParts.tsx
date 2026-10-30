@@ -43,7 +43,8 @@ export function ProductFacts({
   categoryHref,
   status,
 }: {
-  brand: string;
+  /** Null when the product has no brand: the row is left out. */
+  brand: string | null;
   brandHref?: string;
   category: string;
   categoryHref: string;
@@ -54,18 +55,20 @@ export function ProductFacts({
 
   return (
     <dl className="flex flex-col items-start">
-      <div className="flex items-center gap-2">
-        <dt className="text-sm text-neutral-600">Brand</dt>
-        <dd>
-          {brandHref ? (
-            <Link href={brandHref} className={factLink}>
-              {brand}
-            </Link>
-          ) : (
-            <span className="text-sm font-semibold text-neutral-950">{brand}</span>
-          )}
-        </dd>
-      </div>
+      {brand && (
+        <div className="flex items-center gap-2">
+          <dt className="text-sm text-neutral-600">Brand</dt>
+          <dd>
+            {brandHref ? (
+              <Link href={brandHref} className={factLink}>
+                {brand}
+              </Link>
+            ) : (
+              <span className="text-sm font-semibold text-neutral-950">{brand}</span>
+            )}
+          </dd>
+        </div>
+      )}
       <div className="flex items-center gap-2">
         <dt className="text-sm text-neutral-600">Category</dt>
         <dd>

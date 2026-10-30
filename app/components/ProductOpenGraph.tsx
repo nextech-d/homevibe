@@ -13,7 +13,7 @@ import { isOutOfStock } from "../lib/inventory";
 export default function ProductOpenGraph({
   product,
 }: {
-  product: { price: number; brand: string; status: string };
+  product: { price: number; brand: string | null; status: string };
 }) {
   return (
     <>
@@ -24,7 +24,7 @@ export default function ProductOpenGraph({
         property="product:availability"
         content={isOutOfStock(product) ? "oos" : "instock"}
       />
-      <meta property="product:brand" content={product.brand} />
+      {product.brand && <meta property="product:brand" content={product.brand} />}
     </>
   );
 }

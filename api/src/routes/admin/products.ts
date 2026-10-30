@@ -12,6 +12,7 @@ import {
   type ProductFormInput,
   type ProductFaqInput,
 } from "../../lib/products.js";
+import { listOptionTypes } from "../../lib/options.js";
 import { validateProductImageRefs } from "../../lib/uploads.js";
 import { validateProductClaims } from "../../lib/claims.js";
 import { scheduleStorefrontPublish } from "../../lib/publishStorefront.js";
@@ -71,10 +72,16 @@ function parseFaqs(value: unknown): ProductFaqInput[] | undefined {
   });
 }
 
+/** Ids of the ticked option values; anything else in the array is dropped. */
+function parseOptionValueIds(value: unknown): number[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter((id): id is number => Number.isInteger(id) && id > 0);
+}
+
 function parseProductBody(body: Record<string, unknown>): ProductFormInput | null {
   if (
     typeof body.name !== "string" ||
-    typeof body.brandId !== "number" ||
+    (typeof body.brandId !== "number" && body.brandId !== null) ||
     typeof body.subcategoryId !== "number" ||
     typeof body.priceKes !== "number" ||
     typeof body.specs !== "string" ||
@@ -104,6 +111,7 @@ function parseProductBody(body: Record<string, unknown>): ProductFormInput | nul
     description: sanitizeDescriptionForSave(body.description),
     body: parseOptionalString(body.body),
     faqs: parseFaqs(body.faqs),
+    optionValueIds: parseOptionValueIds(body.optionValueIds),
     metaTitle: parseOptionalString(body.metaTitle),
     metaDescription: parseOptionalString(body.metaDescription),
     highlights: parseHighlights(body.highlights),
@@ -116,11 +124,12 @@ function parseProductBody(body: Record<string, unknown>): ProductFormInput | nul
 export const adminProductsRoute = new Hono();
 
 adminProductsRoute.get("/options", async (c) => {
-  const [brands, subcategories] = await Promise.all([
+  const [brands, subcategories, optionTypes] = await Promise.all([
     listBrandOptions(),
     listSubcategoryOptions(),
+    listOptionTypes(),
   ]);
-  return c.json({ success: true, brands, subcategories });
+  return c.json({ success: true, brands, subcategories, optionTypes });
 });
 
 adminProductsRoute.get("/", async (c) => {

@@ -24,7 +24,8 @@ export type Appliance = {
   images: string[];
   imageSet: ProductImageSet;
   specs: string;
-  brand: string;
+  /** Null when the product has no brand. */
+  brand: string | null;
   /** For the brand link on the product page; absent where products come from the API. */
   brandSlug?: string;
   description: string;

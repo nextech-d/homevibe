@@ -46,7 +46,7 @@ type ProductRow = {
   description: string;
   metaTitle: string | null;
   metaDescription: string | null;
-  brand: { name: string };
+  brand: { name: string } | null;
   subcategory: { label: string; category: { label: string } };
 };
 
@@ -151,7 +151,7 @@ Rules, in priority order:
 function userPrompt(product: ProductRow): string {
   return [
     `Product name: ${product.name}`,
-    `Brand: ${product.brand.name}`,
+    `Brand: ${product.brand?.name ?? "(none)"}`,
     `Category: ${product.subcategory.category.label} > ${product.subcategory.label}`,
     `Specs: ${product.specs || "(none recorded)"}`,
     `Description: ${product.description || "(none recorded)"}`,

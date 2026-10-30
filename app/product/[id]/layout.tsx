@@ -80,7 +80,8 @@ export default async function ProductLayout({ children, params }: Props) {
         name: product.name,
         description: product.metaDescription?.trim() || product.description,
         image: getProductDetailImage(product),
-        brand: { "@type": "Brand", name: product.brand },
+        // No brand, no Brand node: an empty one is worse than none.
+        ...(product.brand ? { brand: { "@type": "Brand", name: product.brand } } : {}),
         sku: String(product.id),
         offers: {
           "@type": "Offer",

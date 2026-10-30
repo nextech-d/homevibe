@@ -7,7 +7,8 @@ import { clientErrorMessage } from "../../../shared/client-errors.js";
 export type AdminProductListItem = {
   id: number;
   name: string;
-  brand: string;
+  /** Null when the product has no brand. */
+  brand: string | null;
   priceKes: number;
   stockStatus: StockStatus;
   isPublished: boolean;
@@ -19,8 +20,8 @@ export type AdminProductDetail = {
   id: number;
   slug: string;
   name: string;
-  brandId: number;
-  brandName: string;
+  brandId: number | null;
+  brandName: string | null;
   subcategoryId: number;
   subcategoryLabel: string;
   categoryLabel: string;
@@ -39,6 +40,8 @@ export type AdminProductDetail = {
   primaryPhotoId: string;
   galleryPhotoIds: string[];
   faqs: { question: string; answer: string; sortOrder: number }[];
+  /** Ids of the option values ticked (System data). */
+  optionValueIds: number[];
 };
 
 export type ProductFaqInput = {
@@ -50,7 +53,8 @@ export type ProductFaqInput = {
 export type ProductFormInput = {
   name: string;
   slug?: string;
-  brandId: number;
+  /** Null saves the product with no brand. */
+  brandId: number | null;
   subcategoryId: number;
   priceKes: number;
   stockStatus: StockStatus;
@@ -68,6 +72,8 @@ export type ProductFormInput = {
   galleryPhotoIds: string[];
   /** Replaces the product's questions wholesale when present. */
   faqs?: ProductFaqInput[];
+  /** Replaces the product's ticked option values wholesale when present. */
+  optionValueIds?: number[];
 };
 
 export type BrandOption = { id: number; name: string };
@@ -104,7 +110,7 @@ function mapDetail(product: {
   id: number;
   slug: string;
   name: string;
-  brandId: number;
+  brandId: number | null;
   subcategoryId: number;
   priceKes: number;
   stockStatus: StockStatus;
@@ -119,16 +125,17 @@ function mapDetail(product: {
   claimsCheckedAt: Date | null;
   primaryPhotoId: string;
   galleryPhotoIds: unknown;
-  brand: { name: string };
+  brand: { name: string } | null;
   subcategory: { label: string; categoryId: number; category: { label: string } };
   faqs?: { question: string; answer: string; sortOrder: number }[];
+  optionValues?: { optionValueId: number }[];
 }): AdminProductDetail {
   return {
     id: product.id,
     slug: product.slug,
     name: product.name,
     brandId: product.brandId,
-    brandName: product.brand.name,
+    brandName: product.brand?.name ?? null,
     subcategoryId: product.subcategoryId,
     subcategoryLabel: product.subcategory.label,
     categoryLabel: product.subcategory.category.label,
@@ -152,6 +159,7 @@ function mapDetail(product: {
       answer: faq.answer,
       sortOrder: faq.sortOrder,
     })),
+    optionValueIds: (product.optionValues ?? []).map((row) => row.optionValueId),
   };
 }
 
@@ -227,7 +235,7 @@ export async function listProductsFiltered(
     products: products.map((product) => ({
       id: product.id,
       name: product.name,
-      brand: product.brand.name,
+      brand: product.brand?.name ?? null,
       priceKes: product.priceKes,
       stockStatus: product.stockStatus,
       isPublished: product.isPublished,
@@ -248,6 +256,7 @@ export async function getProductForAdmin(id: number): Promise<AdminProductDetail
       brand: true,
       subcategory: { include: { category: true } },
       faqs: { orderBy: { sortOrder: "asc" } },
+      optionValues: { select: { optionValueId: true } },
     },
   });
 
@@ -320,6 +329,20 @@ function cleanFaqs(faqs: ProductFaqInput[] | undefined) {
     .filter((faq) => faq.question && faq.answer);
 }
 
+/**
+ * The given option value ids that still exist, deduplicated. A value deleted
+ * in System data while a product form was open is dropped, not an error.
+ */
+async function existingOptionValueIds(ids: number[] | undefined): Promise<number[]> {
+  const prisma = getPrisma();
+  if (!prisma || !ids?.length) return [];
+  const rows = await prisma.optionValue.findMany({
+    where: { id: { in: [...new Set(ids)] } },
+    select: { id: true },
+  });
+  return rows.map((row) => row.id);
+}
+
 export async function createProductForAdmin(input: ProductFormInput): Promise<AdminProductDetail> {
   const prisma = getPrisma();
   if (!prisma) throw new Error("Database unavailable");
@@ -351,6 +374,11 @@ export async function createProductForAdmin(input: ProductFormInput): Promise<Ad
       primaryPhotoId: input.primaryPhotoId.trim(),
       galleryPhotoIds: input.galleryPhotoIds,
       faqs: { create: cleanFaqs(input.faqs) },
+      optionValues: {
+        create: (await existingOptionValueIds(input.optionValueIds)).map((optionValueId) => ({
+          optionValueId,
+        })),
+      },
     },
   });
 
@@ -398,9 +426,13 @@ export async function updateProductForAdmin(
   if (input.primaryPhotoId !== undefined) data.primaryPhotoId = input.primaryPhotoId.trim();
   if (input.galleryPhotoIds !== undefined) data.galleryPhotoIds = input.galleryPhotoIds;
 
-  if (Object.keys(data).length === 0 && input.faqs === undefined) {
+  if (Object.keys(data).length === 0 && input.faqs === undefined && input.optionValueIds === undefined) {
     return getProductForAdmin(id);
   }
+
+  // Checked before the transaction, so the transaction only writes.
+  const optionValueIds =
+    input.optionValueIds === undefined ? undefined : await existingOptionValueIds(input.optionValueIds);
 
   try {
     // The questions are edited as a list, so they are replaced as a list: the
@@ -415,6 +447,16 @@ export async function updateProductForAdmin(
         if (faqs.length > 0) {
           await tx.productFaq.createMany({
             data: faqs.map((faq) => ({ ...faq, productId: id })),
+          });
+        }
+      }
+
+      // Ticked options are a set from the form too, replaced the same way.
+      if (optionValueIds !== undefined) {
+        await tx.productOptionValue.deleteMany({ where: { productId: id } });
+        if (optionValueIds.length > 0) {
+          await tx.productOptionValue.createMany({
+            data: optionValueIds.map((optionValueId) => ({ productId: id, optionValueId })),
           });
         }
       }
@@ -469,7 +511,7 @@ export async function patchProductPriceStock(
     return {
       id: product.id,
       name: product.name,
-      brand: product.brand.name,
+      brand: product.brand?.name ?? null,
       priceKes: product.priceKes,
       stockStatus: product.stockStatus,
       isPublished: product.isPublished,

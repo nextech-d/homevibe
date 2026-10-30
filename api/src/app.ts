@@ -14,6 +14,7 @@ import { adminStorefrontRoute } from "./routes/admin/storefront.js";
 import { adminCustomersRoute } from "./routes/admin/customers.js";
 import { adminSeoRoute } from "./routes/admin/seo.js";
 import { adminContentRoute } from "./routes/admin/content.js";
+import { adminOptionsRoute } from "./routes/admin/options.js";
 import { catalogRoute } from "./routes/catalog.js";
 import { storefrontRoute } from "./routes/storefront.js";
 import { authRoute, accountRoute } from "./routes/auth.js";
@@ -100,6 +101,7 @@ export function createApp(basePath = "") {
   app.route("/admin/customers", adminCustomersRoute);
   app.route("/admin/seo", adminSeoRoute);
   app.route("/admin/content", adminContentRoute);
+  app.route("/admin/options", adminOptionsRoute);
 
   // Anything unhandled: logged here, never described to the client.
   app.onError((err, c) => {

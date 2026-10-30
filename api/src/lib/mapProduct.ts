@@ -3,7 +3,7 @@ import type { Appliance } from "../types.js";
 import { buildProductImageSet } from "./productImages.js";
 
 export type ProductWithRelations = Product & {
-  brand: Brand;
+  brand: Brand | null;
   subcategory: Subcategory & { category: Category };
   /** Present only for the single-product queries, which include them. */
   faqs?: ProductFaq[];
@@ -37,7 +37,7 @@ export function mapDbProductToAppliance(product: ProductWithRelations): Applianc
     subcategory: product.subcategory.slug,
     price: product.priceKes,
     status: stockStatusLabel(product.stockStatus),
-    brand: product.brand.name,
+    brand: product.brand?.name ?? null,
     specs: product.specs,
     description: product.description,
     body: product.body,

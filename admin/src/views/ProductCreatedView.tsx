@@ -50,7 +50,7 @@ export default function ProductCreatedView({ entityId, onCreateAnother }: Props)
           <div>
             <p className="font-medium text-white">{product.name}</p>
             <p className="text-xs text-neutral-500">
-              {product.brandName} · {product.categoryLabel} / {product.subcategoryLabel}
+              {product.brandName ?? "No brand"} · {product.categoryLabel} / {product.subcategoryLabel}
             </p>
           </div>
         </div>
@@ -58,7 +58,7 @@ export default function ProductCreatedView({ entityId, onCreateAnother }: Props)
       rows={[
         { label: "ID", value: `#${product.id}`, mono: true },
         { label: "Slug", value: product.slug, mono: true },
-        { label: "Brand", value: product.brandName },
+        { label: "Brand", value: product.brandName ?? "No brand" },
         { label: "Category", value: `${product.categoryLabel} / ${product.subcategoryLabel}` },
         { label: "Price", value: formatKes(product.priceKes) },
         { label: "Stock", value: STOCK_LABELS[product.stockStatus] },

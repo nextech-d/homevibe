@@ -23,6 +23,7 @@ import SeoOverviewPage from "./pages/SeoOverviewPage";
 import SeoGlobalPage from "./pages/SeoGlobalPage";
 import ContentPostsPage from "./pages/ContentPostsPage";
 import ContentPostEditPage from "./pages/ContentPostEditPage";
+import SystemDataPage from "./pages/SystemDataPage";
 
 function ProtectedLayout() {
   const [sessionReady, setSessionReady] = useState(false);
@@ -79,6 +80,7 @@ export default function App() {
         <Route path="categories/:id/edit" element={<CategoryEditPage />} />
         <Route path="subcategories/new" element={<Navigate to="/categories/new" replace />} />
         <Route path="subcategories/:id/edit" element={<SubcategoryEditPage />} />
+        <Route path="system-data" element={<SystemDataPage />} />
         <Route path="featured" element={<FeaturedPage />} />
         <Route path="settings" element={<SiteSettingsPage />} />
         <Route path="faq" element={<FaqPage />} />

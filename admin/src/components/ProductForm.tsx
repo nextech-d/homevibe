@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings2, FileText, MessagesSquare, ChevronUp, ChevronDown } from "lucide-react";
+import { Settings2, FileText, MessagesSquare, ChevronUp, ChevronDown, SlidersHorizontal } from "lucide-react";
 import { api } from "../lib/api";
 import { ProductGalleryField, ProductImageField } from "./ProductImageField";
 import DescriptionEditor from "./DescriptionEditor";
+import ProductOptionsField from "./ProductOptionsField";
 import { descriptionHasText } from "../lib/descriptionHtml";
 import { parseFaqBlock } from "../lib/parseFaqBlock";
 import { htmlToMarkdown } from "../lib/htmlToMarkdown";
@@ -19,6 +20,7 @@ import type {
   StockStatus,
   SubcategoryOption,
 } from "../lib/products";
+import type { OptionTypeItem } from "../lib/options";
 
 function subcategoryOptionLabel(option: SubcategoryOption): string {
   if (option.label.toLowerCase() === option.categoryLabel.toLowerCase()) {
@@ -36,6 +38,7 @@ const STOCK_OPTIONS: { value: StockStatus; label: string }[] = [
 type ProductFormProps = {
   brands: BrandOption[];
   subcategories: SubcategoryOption[];
+  optionTypes: OptionTypeItem[];
   product?: AdminProductDetail;
   mode: "create" | "edit";
   onCreated?: (id: number) => void;
@@ -59,6 +62,7 @@ function initialSecondaryImages(product?: AdminProductDetail): string[] {
 export default function ProductForm({
   brands,
   subcategories,
+  optionTypes,
   product,
   mode,
   onCreated,
@@ -123,7 +127,10 @@ export default function ProductForm({
   const [metaTitle, setMetaTitle] = useState(product?.metaTitle ?? "");
   const [metaDescription, setMetaDescription] = useState(product?.metaDescription ?? "");
   const [slug, setSlug] = useState(product?.slug ?? "");
-  const [brandId, setBrandId] = useState(product?.brandId ?? brands[0]?.id ?? 0);
+  // null is "No brand". A new product starts with none rather than whichever
+  // brand sorts first, so nobody saves the wrong brand by not looking.
+  const [brandId, setBrandId] = useState<number | null>(product ? product.brandId : null);
+  const [optionValueIds, setOptionValueIds] = useState<number[]>(product?.optionValueIds ?? []);
   const [subcategoryId, setSubcategoryId] = useState(
     product?.subcategoryId ?? subcategories[0]?.id ?? 0
   );
@@ -167,7 +174,8 @@ export default function ProductForm({
         .filter(Boolean),
       claimsChecked,
       slug: slug || undefined,
-      brandId: Number(brandId),
+      brandId,
+      optionValueIds,
       subcategoryId: Number(subcategoryId),
       priceKes: Number(priceKes),
       stockStatus,
@@ -284,6 +292,19 @@ export default function ProductForm({
               label="Secondary images"
               value={secondaryImages}
               onChange={setSecondaryImages}
+            />
+          </StorefrontSection>
+
+          <StorefrontSection
+            title="Options"
+            description="Descriptive options such as Size or Color. Pick a type, then tick the values this product comes in. No separate price or stock per option."
+            icon={SlidersHorizontal}
+            accent="green"
+          >
+            <ProductOptionsField
+              types={optionTypes}
+              value={optionValueIds}
+              onChange={setOptionValueIds}
             />
           </StorefrontSection>
 
@@ -479,11 +500,11 @@ export default function ProductForm({
           </StorefrontField>
           <StorefrontField label="Brand">
             <select
-              required
-              value={brandId}
-              onChange={(e) => setBrandId(Number(e.target.value))}
+              value={brandId ?? ""}
+              onChange={(e) => setBrandId(e.target.value ? Number(e.target.value) : null)}
               className={storefrontSelectClass}
             >
+              <option value="">No brand</option>
               {brands.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}

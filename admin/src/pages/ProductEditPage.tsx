@@ -5,6 +5,7 @@ import { api } from "../lib/api";
 import ProductForm from "../components/ProductForm";
 import ProductCreatedView from "../views/ProductCreatedView";
 import type { AdminProductDetail, BrandOption, SubcategoryOption } from "../lib/products";
+import type { OptionTypeItem } from "../lib/options";
 
 export default function ProductEditPage() {
   const { id } = useParams();
@@ -13,6 +14,7 @@ export default function ProductEditPage() {
 
   const [brands, setBrands] = useState<BrandOption[]>([]);
   const [subcategories, setSubcategories] = useState<SubcategoryOption[]>([]);
+  const [optionTypes, setOptionTypes] = useState<OptionTypeItem[]>([]);
   const [product, setProduct] = useState<AdminProductDetail | undefined>();
   const [createdId, setCreatedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,10 +26,12 @@ export default function ProductEditPage() {
         const options = await api<{
           brands: BrandOption[];
           subcategories: SubcategoryOption[];
+          optionTypes: OptionTypeItem[];
         }>("/admin/products/options");
 
         setBrands(options.brands);
         setSubcategories(options.subcategories);
+        setOptionTypes(options.optionTypes);
 
         if (!isNew && id) {
           const detail = await api<{ product: AdminProductDetail }>(`/admin/products/${id}`);
@@ -95,6 +99,7 @@ export default function ProductEditPage() {
       <ProductForm
         brands={brands}
         subcategories={subcategories}
+        optionTypes={optionTypes}
         product={product}
         mode={isNew ? "create" : "edit"}
         onCreated={setCreatedId}
