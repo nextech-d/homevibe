@@ -1,9 +1,19 @@
 import { useEffect, useRef } from "react";
+import { List, ListOrdered } from "lucide-react";
 import {
   descriptionLooksLikeHtml,
   plainTextToDescriptionHtml,
   sanitizeDescriptionHtml,
 } from "../lib/descriptionHtml";
+import {
+  closestInEditor,
+  handleListEnter,
+  insertBlocksAtCursor,
+  listifyPastedHtml,
+  listifyPastedText,
+  toggleList,
+  type ListKind,
+} from "../lib/descriptionLists";
 import { storefrontLabelClass } from "./StorefrontPanel";
 
 const FONT_SIZES = ["11", "12", "14", "16", "18", "24", "36"];
@@ -133,12 +143,45 @@ export default function DescriptionEditor({ value, onChange }: DescriptionEditor
     if (sizeSelectRef.current) sizeSelectRef.current.value = px;
   }
 
+  /** The block the cursor is in - never the editor itself, which is a div too. */
   function currentBlock(): HTMLElement | null {
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return null;
-    let node: Node | null = sel.getRangeAt(0).startContainer;
-    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
-    return (node as HTMLElement | null)?.closest("p, div") ?? null;
+    const editor = editorRef.current;
+    if (!sel || sel.rangeCount === 0 || !editor) return null;
+    return closestInEditor(editor, sel.getRangeAt(0).startContainer, "li, p, div");
+  }
+
+  function runList(kind: ListKind) {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
+    restoreSelection();
+    toggleList(editor, kind);
+    saveSelection();
+    emit();
+  }
+
+  /** Enter in a list item: a new item, or out of the list from an empty one. */
+  function listEnter(): boolean {
+    const editor = editorRef.current;
+    if (!editor || !handleListEnter(editor)) return false;
+    saveSelection();
+    emit();
+    return true;
+  }
+
+  /** Pasted lists - Word, Google Docs, "• " / "- " lines - become real lists; anything else pastes as before. */
+  function handlePaste(e: React.ClipboardEvent<HTMLDivElement>) {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const html = e.clipboardData.getData("text/html");
+    const text = e.clipboardData.getData("text/plain");
+    const blocks = (html && listifyPastedHtml(html)) || (text && listifyPastedText(text)) || null;
+    if (!blocks) return;
+    e.preventDefault();
+    insertBlocksAtCursor(editor, sanitizeDescriptionHtml(blocks));
+    saveSelection();
+    emit();
   }
 
   function splitBlockAtCursor(range: Range): HTMLElement | null {
@@ -173,7 +216,11 @@ export default function DescriptionEditor({ value, onChange }: DescriptionEditor
     editorRef.current?.focus();
     restoreSelection();
     const block = currentBlock();
-    if (block && editorRef.current?.contains(block) && block.tagName !== "P") {
+    if (block?.tagName === "LI" && block.parentElement) {
+      runList(block.parentElement.tagName.toLowerCase() as ListKind);
+      return;
+    }
+    if (block && block.tagName !== "P") {
       const p = document.createElement("p");
       while (block.firstChild) p.appendChild(block.firstChild);
       if (isEmptyBlock(p)) p.appendChild(document.createElement("br"));
@@ -197,6 +244,7 @@ export default function DescriptionEditor({ value, onChange }: DescriptionEditor
   function insertNewParagraph() {
     editorRef.current?.focus();
     restoreSelection();
+    if (listEnter()) return;
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return;
     const range = sel.getRangeAt(0);
@@ -226,7 +274,7 @@ export default function DescriptionEditor({ value, onChange }: DescriptionEditor
   function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      insertNewParagraph();
+      if (!listEnter()) insertNewParagraph();
     }
   }
 
@@ -280,6 +328,26 @@ export default function DescriptionEditor({ value, onChange }: DescriptionEditor
           >
             P
           </button>
+          <button
+            type="button"
+            title="Bulleted list"
+            aria-label="Bulleted list"
+            className={toolBtn}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => runList("ul")}
+          >
+            <List size={14} />
+          </button>
+          <button
+            type="button"
+            title="Numbered list"
+            aria-label="Numbered list"
+            className={toolBtn}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => runList("ol")}
+          >
+            <ListOrdered size={14} />
+          </button>
           <select
             ref={sizeSelectRef}
             title="Font size"
@@ -328,10 +396,11 @@ export default function DescriptionEditor({ value, onChange }: DescriptionEditor
         contentEditable
         role="textbox"
         aria-label="Description"
-        className="min-h-[180px] w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm leading-normal text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] focus:border-[#00e599]/40 focus:outline-none focus:ring-1 focus:ring-[#00e599]/20 [&_div]:mb-3 [&_div]:min-h-[1.25em] [&_div:last-child]:mb-0 [&_p]:mb-3 [&_p]:min-h-[1.25em] [&_p:last-child]:mb-0"
+        className="min-h-[180px] w-full rounded-lg border border-[#333] bg-[#0a0a0a] px-4 py-2.5 text-sm leading-normal text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] focus:border-[#00e599]/40 focus:outline-none focus:ring-1 focus:ring-[#00e599]/20 [&_div]:mb-3 [&_div]:min-h-[1.25em] [&_div:last-child]:mb-0 [&_p]:mb-3 [&_p]:min-h-[1.25em] [&_p:last-child]:mb-0 [&_ul]:mb-3 [&_ul]:list-disc [&_ol]:mb-3 [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_ul:last-child]:mb-0 [&_ol:last-child]:mb-0 [&_li+li]:mt-1 [&_li>p]:mb-0"
         onInput={emit}
         onBlur={emit}
         onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
         onMouseUp={saveSelection}
         onKeyUp={saveSelection}
         onSelect={saveSelection}

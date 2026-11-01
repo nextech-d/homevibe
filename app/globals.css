@@ -63,11 +63,13 @@ body {
 .product-description > :first-child {
   margin-top: 0;
 }
+/* Lists: the paragraphs' size and line height, the paragraphs' gap around
+   the list, and a little air between items. */
 .product-description :is(ul, ol) {
   margin: 0 0 0.75rem;
   padding-left: 1.25rem;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.25rem;
 }
 .product-description ul {
   list-style: disc;
@@ -75,8 +77,25 @@ body {
 .product-description ol {
   list-style: decimal;
 }
+.product-description li {
+  padding-left: 0.25rem;
+}
 .product-description li + li {
-  margin-top: 0.25rem;
+  margin-top: 0.375rem;
+}
+/* A pasted item may carry its own paragraph; it mustn't add the paragraph gap. */
+.product-description li > :is(p, div) {
+  margin: 0;
+  min-height: 0;
+}
+.product-description li :is(ul, ol) {
+  margin: 0.375rem 0 0;
+}
+.product-description li ul {
+  list-style: circle;
+}
+.product-description > :is(ul, ol):last-child {
+  margin-bottom: 0;
 }
 .product-description li::marker {
   color: #a85414;
