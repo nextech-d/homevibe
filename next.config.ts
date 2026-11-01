@@ -206,26 +206,14 @@ const nextConfig: NextConfig = {
   images: {
     // 75 stays the default; 90 is for the homepage hero's photos, which ask for it.
     qualities: [75, 90],
+    // The optimiser fetches from HomeVibe's own Blob store only - every
+    // catalogue image lives there. A wildcard would let anyone's Blob store
+    // (or any Unsplash photo) through our optimiser. Google review avatars
+    // don't need an entry: GoogleReviews.tsx renders them unoptimized.
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "images.unsplash.com",
-        pathname: "/**",
-      },
-      {
-        // Google review author avatars from the Places API.
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "*.public.blob.vercel-storage.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "*.blob.vercel-storage.com",
+        hostname: "ph5lkxw4quqqiyhv.public.blob.vercel-storage.com",
         pathname: "/**",
       },
     ],
