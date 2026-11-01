@@ -16,6 +16,9 @@ const eslintConfig = defineConfig([
     // on every build; linting it only counts the bundler's code, not ours.
     "admin/dist/**",
     "api/dist/**",
+    // sanitize-html bundled by api/scripts/bundle-sanitize-html.mjs - also
+    // generated and gitignored.
+    "api/src/vendor/sanitize-html.js",
   ]),
 ]);
 

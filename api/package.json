@@ -23,12 +23,12 @@
     "@vercel/functions": "3.9.9",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
-    "hono": "4.13.10",
+    "hono": "4.13.11",
     "jose": "^6.0.11",
     "parse5": "7.3.0",
     "pg": "^8.22.0",
     "resend": "^6.18.1",
-    "sanitize-html": "2.17.7"
+    "sanitize-html": "2.18.1"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -44,5 +44,10 @@
     "prisma": true,
     "@prisma/engines": true,
     "esbuild": true
+  },
+  "overrides": {
+    "@vercel/cli-config": {
+      "zod": "4.6.6"
+    }
   }
 }

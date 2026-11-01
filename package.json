@@ -28,12 +28,12 @@
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.16.0",
-    "next": "16.4.0",
+    "next": "16.4.1",
     "parse5": "7.3.0",
     "pg": "^8.22.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "sanitize-html": "2.17.7",
+    "sanitize-html": "2.18.1",
     "server-only": "^0.0.1"
   },
   "devDependencies": {
@@ -52,7 +52,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.8",
     "typescript": "^5",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "allowScripts": {
     "prisma": true,
