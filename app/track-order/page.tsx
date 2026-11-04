@@ -9,6 +9,8 @@ import DemoModeBanner from "../components/DemoModeBanner";
 import WhatsAppIcon from "../components/WhatsAppIcon";
 import { useWhatsAppNumber } from "../context/WhatsAppContext";
 import { buildWhatsAppUrl } from "../lib/whatsapp";
+import ItemOptions from "../components/ItemOptions";
+import { formatItemOptions } from "../../shared/order-options";
 import {
   fieldInput,
   focusRing,
@@ -26,6 +28,7 @@ type OrderItem = {
   price: number;
   qty: number;
   image: string;
+  options?: { type: string; value: string }[];
 };
 
 type TrackedOrder = {
@@ -251,12 +254,13 @@ function TrackOrderContent() {
               <ul className="mt-3 space-y-3">
                 {order.items.map((item) => (
                   <li
-                    key={`${item.id}-${item.name}`}
+                    key={`${item.id}-${item.name}-${formatItemOptions(item.options)}`}
                     className="flex items-center justify-between gap-4 text-sm"
                   >
                     <span className="font-medium text-neutral-950">
                       {item.name}{" "}
                       <span className="text-neutral-600">× {item.qty}</span>
+                      <ItemOptions options={item.options} className="mt-0.5" />
                     </span>
                     <span className="shrink-0 font-semibold tabular-nums text-neutral-950">
                       {formatPrice(item.price * item.qty)}

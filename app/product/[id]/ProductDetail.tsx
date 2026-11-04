@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getCategorySlug, getSubcategoryLabel, categoryHref } from "../../data/categories";
 import { useCart } from "../../context/CartContext";
+import { productBreadcrumbs } from "../../lib/product-breadcrumbs";
+import type { CartItemOption } from "../../../shared/order-options";
+import ProductOptionPicker from "./ProductOptionPicker";
 import { isOutOfStock, type Appliance, type CatalogProduct } from "../../lib/inventory";
 import { formatPrice } from "../../lib/formatPrice";
 import { productWhatsAppUrl } from "../../lib/whatsapp";
@@ -82,6 +84,43 @@ export default function ProductDetail({
   const [activeIndex, setActiveIndex] = useState(0);
   const whatsappNumber = useWhatsAppNumber();
 
+  // One value per option type; a type with a single value starts chosen.
+  const optionGroups = product.options ?? [];
+  const [selectedOptions, setSelectedOptions] = useState<Record<number, number>>(() =>
+    Object.fromEntries(
+      optionGroups.filter((group) => group.values.length === 1).map((group) => [group.typeId, group.values[0].id])
+    )
+  );
+  // Types the customer tried to order without choosing; each shows its message.
+  const [missingOptions, setMissingOptions] = useState<number[]>([]);
+
+  const chosenOptions: CartItemOption[] | null = optionGroups.every((group) => selectedOptions[group.typeId])
+    ? optionGroups.map((group) => {
+        const value = group.values.find((v) => v.id === selectedOptions[group.typeId])!;
+        return { typeId: group.typeId, type: group.name, valueId: value.id, value: value.value };
+      })
+    : null;
+
+  const selectOption = (typeId: number, valueId: number) => {
+    setSelectedOptions((current) => ({ ...current, [typeId]: valueId }));
+    setMissingOptions((current) => current.filter((id) => id !== typeId));
+  };
+
+  /**
+   * The choices, or null after flagging the missing ones and moving focus to
+   * the first of them - which also brings it on screen when the pinned bar
+   * was tapped from further down. Nothing else on the page changes.
+   */
+  const requireOptions = (): CartItemOption[] | null => {
+    if (chosenOptions) return chosenOptions;
+    const missing = optionGroups.filter((group) => !selectedOptions[group.typeId]).map((group) => group.typeId);
+    setMissingOptions(missing);
+    document
+      .querySelector<HTMLInputElement>(`input[name="option-${product.id}-${missing[0]}"]`)
+      ?.focus();
+    return null;
+  };
+
   // Meta's retargeting audiences are built from this: the product someone
   // looked at, not just the page they landed on.
   useEffect(() => {
@@ -106,6 +145,8 @@ export default function ProductDetail({
   }
 
   const handleAddToCart = () => {
+    const options = requireOptions();
+    if (!options) return;
     addItem(
       {
         id: product.id,
@@ -113,6 +154,7 @@ export default function ProductDetail({
         price: product.price,
         slug: product.slug,
         image: getProductThumbnail(product),
+        ...(options.length > 0 && { options }),
       },
       qty,
       { openDrawer: false }
@@ -121,20 +163,19 @@ export default function ProductDetail({
     setTimeout(() => setAdded(false), 2000);
   };
 
-  const whatsappUrl = productWhatsAppUrl(product, whatsappNumber);
   const outOfStock = isOutOfStock(product);
+  const whatsappUrl = productWhatsAppUrl(product, whatsappNumber, chosenOptions ?? undefined);
+  // Asking about availability needs no choice; ordering does.
+  const handleWhatsAppClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!outOfStock && !requireOptions()) event.preventDefault();
+  };
 
-  const categorySlug = getCategorySlug(product.category);
-  const showSubcategoryCrumb =
-    product.subcategory.toLowerCase() !== categorySlug.toLowerCase();
+  const crumbs = productBreadcrumbs(product);
   // The facts line names what the product is - "Washing Machines", not the
-  // "Cleaning" it's filed under - with the subcategory's own database label.
-  const factCategoryLabel = showSubcategoryCrumb
-    ? product.subcategoryLabel ?? getSubcategoryLabel(categorySlug, product.subcategory)
-    : product.category;
-  const factCategoryHref = showSubcategoryCrumb
-    ? categoryHref(categorySlug, product.subcategory)
-    : categoryHref(categorySlug);
+  // "Cleaning" it's filed under: the trail's last link before the product.
+  const factCrumb = crumbs[crumbs.length - 2];
+  const factCategoryLabel = factCrumb.label;
+  const factCategoryHref = factCrumb.href ?? "/";
 
   return (
     <div className="min-h-screen font-sans pb-24">
@@ -144,19 +185,7 @@ export default function ProductDetail({
             hard to scan and loses the casing the catalogue stores. */}
         <Breadcrumbs
           className="mb-8"
-          items={[
-            { label: "Home", href: "/" },
-            { label: product.category, href: `/category/${categorySlug}` },
-            ...(showSubcategoryCrumb
-              ? [
-                  {
-                    label: getSubcategoryLabel(categorySlug, product.subcategory),
-                    href: categoryHref(categorySlug, product.subcategory),
-                  },
-                ]
-              : []),
-            { label: product.name },
-          ]}
+          items={crumbs}
         />
 
         {/* Three blocks on a twelve-column grid. On a phone they stack the
@@ -249,6 +278,14 @@ export default function ProductDetail({
           </div>
 
           <div className="w-full lg:col-span-7 lg:col-start-6 lg:row-start-2 lg:mt-8">
+            {/* Below the delivery / warranty / payment lines, above the price. */}
+            <ProductOptionPicker
+              productId={product.id}
+              groups={optionGroups}
+              selected={selectedOptions}
+              missing={missingOptions}
+              onSelect={selectOption}
+            />
             <p className="mb-5 text-3xl font-semibold tabular-nums tracking-tight text-[#8f4710]">
               {formatPrice(product.price)}
             </p>
@@ -283,6 +320,7 @@ export default function ProductDetail({
                     is exactly when someone wants to ask. */}
                 <a
                   href={whatsappUrl}
+                  onClick={handleWhatsAppClick}
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`${secondaryButton} h-12 w-full active:scale-[0.98] lg:w-60`}
@@ -301,6 +339,7 @@ export default function ProductDetail({
           onAddToCart={handleAddToCart}
           added={added}
           whatsappUrl={whatsappUrl}
+          onWhatsAppClick={handleWhatsAppClick}
           outOfStock={outOfStock}
         />
 

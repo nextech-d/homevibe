@@ -20,7 +20,14 @@ import {
   storefrontSelectClass,
 } from "../components/StorefrontPanel";
 
-type OrderItem = { id: number; name: string; price: number; qty: number };
+type OrderItem = {
+  id: number;
+  name: string;
+  price: number;
+  qty: number;
+  /** The options chosen, as stored when the order was placed; [] for none. */
+  options?: { type: string; value: string }[];
+};
 type Order = {
   id: number;
   trackingId: string;
@@ -37,6 +44,11 @@ type Order = {
   total: number;
   items: OrderItem[];
 };
+
+/** "Length: 45M, Color: Red" - the item's chosen options, or "". */
+function optionsText(item: OrderItem): string {
+  return (item.options ?? []).map((option) => `${option.type}: ${option.value}`).join(", ");
+}
 
 type Summary = {
   total: number;
@@ -557,11 +569,14 @@ function OrderDetail({
         <ul className="divide-y divide-[#262626] rounded-lg border border-[#262626]">
           {order.items.map((item) => (
             <li
-              key={`${order.id}-${item.id}-${item.name}`}
-              className="flex justify-between px-4 py-2.5"
+              key={`${order.id}-${item.id}-${item.name}-${optionsText(item)}`}
+              className="flex justify-between gap-4 px-4 py-2.5"
             >
               <span>
                 {item.name} <span className="text-neutral-600">× {item.qty}</span>
+                {optionsText(item) && (
+                  <span className="mt-0.5 block text-xs text-neutral-400">{optionsText(item)}</span>
+                )}
               </span>
               <span className="font-medium text-white">{formatKes(item.price * item.qty)}</span>
             </li>

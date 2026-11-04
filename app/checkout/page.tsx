@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useCart } from "../context/CartContext";
+import { cartLineKey, useCart } from "../context/CartContext";
+import ItemOptions from "../components/ItemOptions";
 import { AVAILABILITY_LABEL, useCartPriceCheck } from "../hooks/useCartPriceCheck";
 import CartPriceNotice from "../components/CartPriceNotice";
 import Link from "next/link";
 import { CheckCircle, ArrowRight, PhoneCall } from "lucide-react";
 import { formatPrice } from "../lib/formatPrice";
 import { buildWhatsAppUrl } from "../lib/whatsapp";
+import { formatItemOptions } from "../../shared/order-options";
 import { useWhatsAppNumber } from "../context/WhatsAppContext";
 import DemoModeBanner from "../components/DemoModeBanner";
 import { SITE } from "../config/site";
@@ -181,7 +183,12 @@ export default function CheckoutPage() {
 
   const whatsappUrl = buildWhatsAppUrl(
     `Hi HomeVibe, I'd like to place an order.\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}, ${city}\n\nItems:\n` +
-      items.map((item) => `• ${item.name} (Qty: ${item.qty})`).join("\n") +
+      items
+        .map((item) => {
+          const options = formatItemOptions(item.options);
+          return `• ${item.name}${options ? ` - ${options}` : ""} (Qty: ${item.qty})`;
+        })
+        .join("\n") +
       `\n\nTotal: ${formatPrice(total)}`,
     whatsappNumber
   );
@@ -351,9 +358,10 @@ export default function CheckoutPage() {
                 {pricesChanged && <CartPriceNotice className="mt-4" />}
                 <div className="max-h-56 divide-y divide-[#DCE0E7] overflow-y-auto py-2">
                   {items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between gap-2 py-3">
+                    <div key={cartLineKey(item)} className="flex items-center justify-between gap-2 py-3">
                       <span className="truncate pr-3 text-sm text-neutral-700">
                         {item.name} <span className="text-xs font-semibold text-neutral-600">x{item.qty}</span>
+                        <ItemOptions options={item.options} />
                         {availability[item.id] && (
                           <span className="block text-xs font-semibold text-[#8A4B00]">
                             {AVAILABILITY_LABEL[availability[item.id]]}

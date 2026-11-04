@@ -4,6 +4,28 @@ import type { OrderStatus, PaymentStatus } from "@prisma/client";
 import type { CartItem } from "../context/CartContext";
 import { getPrisma } from "./db";
 import { normalizeTrackingId, phonesMatch } from "../../shared/order-lookup";
+import { formatItemOptions, readOrderItemOptions, type OrderItemOption } from "../../shared/order-options";
+
+/** A saved order item: a cart line's fields, with the option names stored on it. */
+export type OrderLineItem = Omit<CartItem, "options"> & { options: OrderItemOption[] };
+
+function toOrderLineItem(item: {
+  productId: number | null;
+  name: string;
+  priceKes: number;
+  quantity: number;
+  imageUrl: string;
+  options: unknown;
+}): OrderLineItem {
+  return {
+    id: item.productId ?? 0,
+    name: item.name,
+    price: item.priceKes,
+    qty: item.quantity,
+    image: item.imageUrl,
+    options: readOrderItemOptions(item.options),
+  };
+}
 
 export type OrderPayload = {
   name: string;
@@ -24,7 +46,7 @@ export type PublicOrder = {
   paymentStatus: string;
   total: number;
   customer: { name: string; city: string };
-  items: CartItem[];
+  items: OrderLineItem[];
 };
 
 export type AdminOrder = {
@@ -41,7 +63,7 @@ export type AdminOrder = {
   deliveryAddress: string;
   deliveryCity: string;
   total: number;
-  items: CartItem[];
+  items: OrderLineItem[];
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -84,6 +106,7 @@ function mapOrderToAdmin(order: {
     priceKes: number;
     quantity: number;
     imageUrl: string;
+    options: unknown;
   }[];
 }): AdminOrder {
   return {
@@ -100,13 +123,7 @@ function mapOrderToAdmin(order: {
     deliveryAddress: order.deliveryAddress,
     deliveryCity: order.deliveryCity,
     total: order.totalKes,
-    items: order.items.map((item) => ({
-      id: item.productId ?? 0,
-      name: item.name,
-      price: item.priceKes,
-      qty: item.quantity,
-      image: item.imageUrl,
-    })),
+    items: order.items.map(toOrderLineItem),
   };
 }
 
@@ -137,13 +154,7 @@ export async function getOrderByTrackingId(
     paymentStatus: paymentStatusLabel(order.paymentStatus),
     total: order.totalKes,
     customer: { name: order.customerName, city: order.deliveryCity },
-    items: order.items.map((item) => ({
-      id: item.productId ?? 0,
-      name: item.name,
-      price: item.priceKes,
-      qty: item.quantity,
-      image: item.imageUrl,
-    })),
+    items: order.items.map(toOrderLineItem),
   };
 }
 
@@ -169,7 +180,10 @@ export function ordersToCsv(orders: AdminOrder[]): string {
     "tracking_id,order_date,status,payment_status,customer_name,customer_email,customer_phone,address,city,total_kes,items";
   const rows = orders.map((order) => {
     const items = order.items
-      .map((item) => `${item.name} x${item.qty}`)
+      .map((item) => {
+        const options = formatItemOptions(item.options);
+        return `${item.name}${options ? ` (${options})` : ""} x${item.qty}`;
+      })
       .join("; ")
       .replace(/"/g, '""');
     const fields = [

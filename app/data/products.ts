@@ -13,6 +13,8 @@ export type Appliance = {
   slug: string;
   name: string;
   category: string;
+  /** The category's own slug from the database; absent on the static fallback. */
+  categorySlug?: string;
   subcategory: string;
   /** The subcategory's own label from the database, e.g. "Washing Machines"; product page only. */
   subcategoryLabel?: string;
@@ -37,6 +39,17 @@ export type Appliance = {
   metaTitle?: string | null;
   metaDescription?: string | null;
   isFeatured?: boolean;
+  /** True when the product has options to choose, so a card sends people to its page. */
+  hasOptions?: boolean;
+  /** The product's options, one group per type in System data order; product page only. */
+  options?: ProductOptionGroup[];
+};
+
+/** One option type on a product - "Length" - with the values ticked for it. */
+export type ProductOptionGroup = {
+  typeId: number;
+  name: string;
+  values: { id: number; value: string }[];
 };
 
 type ApplianceInput = Omit<Appliance, "image" | "images" | "imageSet" | "slug"> & {

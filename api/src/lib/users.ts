@@ -8,6 +8,7 @@ import { getPrisma } from "./db.js";
 import type { AuthUser } from "../types.js";
 import { SESSION_MAX_AGE_SECONDS } from "../types.js";
 import { newSessionToken } from "../../../shared/session-token.js";
+import { readOrderItemOptions } from "../../../shared/order-options.js";
 
 export type SavedAddressRecord = {
   id: number;
@@ -208,6 +209,7 @@ export async function listOrdersForUser(userId: number) {
       name: item.name,
       qty: item.quantity,
       price: item.priceKes,
+      options: readOrderItemOptions(item.options),
     })),
   }));
 }

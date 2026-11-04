@@ -217,6 +217,10 @@ model OrderItem {
   priceKes  Int     @map("price_kes")
   quantity  Int
   imageUrl  String  @map("image_url")
+  /// The options chosen, as [{ "type": "Length", "value": "45M" }]: names
+  /// copied when the order was placed, so later System data edits don't
+  /// change past orders. [] when the product had none.
+  options   Json    @default("[]")
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 

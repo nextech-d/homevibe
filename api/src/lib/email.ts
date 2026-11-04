@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 import { SITE, absoluteUrl } from "./site.js";
 import type { OrderPayload } from "./orders.js";
+import { formatItemOptions } from "../../../shared/order-options.js";
 
 type OrderEmailDetails = {
   trackingId: string;
@@ -51,11 +52,17 @@ function emailShell(title: string, body: string): string {
 </html>`;
 }
 
+/** The item's chosen options, e.g. " (Length: 45M)", or nothing. */
+function optionsHtml(options: OrderPayload["items"][number]["options"]): string {
+  const text = formatItemOptions(options);
+  return text ? ` (${escapeHtml(text)})` : "";
+}
+
 function buildItemsHtml(items: OrderPayload["items"]): string {
   return items
     .map(
       (item) =>
-        `<li>${escapeHtml(item.name)} × ${escapeHtml(item.qty)} — ${escapeHtml(formatKes(item.price * item.qty))}</li>`
+        `<li>${escapeHtml(item.name)}${optionsHtml(item.options)} × ${escapeHtml(item.qty)} — ${escapeHtml(formatKes(item.price * item.qty))}</li>`
     )
     .join("");
 }

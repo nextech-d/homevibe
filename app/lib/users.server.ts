@@ -15,6 +15,7 @@ import {
   readUserSessionCookie,
 } from "./user-auth.constants";
 import { newSessionToken, sessionIdsForToken } from "../../shared/session-token";
+import { readOrderItemOptions } from "../../shared/order-options";
 
 export type AuthUser = {
   id: number;
@@ -274,6 +275,7 @@ export async function listOrdersForUser(userId: number) {
       name: item.name,
       qty: item.quantity,
       price: item.priceKes,
+      options: readOrderItemOptions(item.options),
     })),
   }));
 }

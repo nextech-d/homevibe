@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { formatPrice } from "../../../lib/formatPrice";
+import ItemOptions from "../../../components/ItemOptions";
+import { formatItemOptions } from "../../../../shared/order-options";
 import { panelHeading, raisedSurface, textLink } from "../../../components/homeSurfaces";
 import { getCurrentUser, listOrdersForUser } from "../../../lib/users.server";
 
@@ -51,8 +53,11 @@ export default async function AccountOrdersPage() {
               </p>
               <ul className="mt-3 divide-y divide-[#DCE0E7] text-sm text-neutral-700">
                 {order.items.map((item) => (
-                  <li key={`${order.trackingId}-${item.name}`} className="flex justify-between py-2">
-                    <span>{item.name} × {item.qty}</span>
+                  <li key={`${order.trackingId}-${item.name}-${formatItemOptions(item.options)}`} className="flex justify-between gap-4 py-2">
+                    <span>
+                      {item.name} × {item.qty}
+                      <ItemOptions options={item.options} className="mt-0.5" />
+                    </span>
                     <span>{formatPrice(item.price * item.qty)}</span>
                   </li>
                 ))}

@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
-import { useCart } from "../context/CartContext";
+import { cartLineKey, useCart } from "../context/CartContext";
+import ItemOptions from "./ItemOptions";
 import { formatPrice } from "../lib/formatPrice";
 import { X, Trash2, Plus, Minus, ShoppingBag } from "lucide-react";
 import Link from "next/link";
@@ -77,7 +78,7 @@ export default function CartDrawer() {
           ) : (
             items.map((item) => (
               <div
-                key={item.id}
+                key={cartLineKey(item)}
                 className="flex items-center gap-3 rounded-2xl border border-[#DCE0E7] bg-white p-3"
               >
                 {/* Product Image */}
@@ -102,6 +103,7 @@ export default function CartDrawer() {
                   >
                     {item.name}
                   </Link>
+                  <ItemOptions options={item.options} className="mt-0.5 truncate" />
                   {/* Unit price and line total share a line, so the row below
                       holds only the 44px controls: as a third column the total
                       pushed a 360px drawer past its edge. */}
@@ -114,7 +116,7 @@ export default function CartDrawer() {
                     {/* Quantity selectors */}
                     <div className="flex items-center rounded-full border border-[#7D8594] bg-white">
                       <button
-                        onClick={() => updateQty(item.id, item.qty - 1)}
+                        onClick={() => updateQty(cartLineKey(item), item.qty - 1)}
                         className={iconButton}
                         aria-label="Decrease quantity"
                       >
@@ -124,7 +126,7 @@ export default function CartDrawer() {
                         {item.qty}
                       </span>
                       <button
-                        onClick={() => updateQty(item.id, item.qty + 1)}
+                        onClick={() => updateQty(cartLineKey(item), item.qty + 1)}
                         className={iconButton}
                         aria-label="Increase quantity"
                       >
@@ -134,7 +136,7 @@ export default function CartDrawer() {
 
                     {/* Delete Item */}
                     <button
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => removeItem(cartLineKey(item))}
                       className={`${iconButton} hover:text-red-700`}
                       aria-label="Remove item"
                     >

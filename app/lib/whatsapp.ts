@@ -3,6 +3,7 @@ import { productHref } from "../data/products";
 import { formatPrice } from "./formatPrice";
 import { absoluteUrl } from "./site-url";
 import { isOutOfStock } from "./inventory";
+import { formatItemOptions, type OrderItemOption } from "../../shared/order-options";
 
 /**
  * wa.me wants digits only, in international format: no "+", no spaces, no
@@ -43,20 +44,29 @@ type WhatsAppProduct = {
  * "/product/x" means nothing. Out of stock asks a different question, since
  * quoting a price for something nobody can buy only invites a dead end.
  */
-export function buildProductWhatsAppMessage(product: WhatsAppProduct): string {
+export function buildProductWhatsAppMessage(
+  product: WhatsAppProduct,
+  options?: OrderItemOption[]
+): string {
   const url = absoluteUrl(productHref(product));
+  const chosen = formatItemOptions(options);
+  const choiceLine = chosen ? `\n${chosen}` : "";
 
   if (isOutOfStock(product)) {
-    return `Hi, is the ${product.name} coming back in stock?\n${url}`;
+    return `Hi, is the ${product.name} coming back in stock?${choiceLine}\n${url}`;
   }
 
-  return `Hi, I'm interested in the ${product.name} (${formatPrice(product.price)}).\n${url}`;
+  return `Hi, I'm interested in the ${product.name} (${formatPrice(product.price)}).${choiceLine}\n${url}`;
 }
 
 /**
  * `phone` is required, not defaulted to config: it has to be the admin-set
  * number the footer uses, which components get from useWhatsAppNumber().
  */
-export function productWhatsAppUrl(product: WhatsAppProduct, phone: string): string {
-  return buildWhatsAppUrl(buildProductWhatsAppMessage(product), phone);
+export function productWhatsAppUrl(
+  product: WhatsAppProduct,
+  phone: string,
+  options?: OrderItemOption[]
+): string {
+  return buildWhatsAppUrl(buildProductWhatsAppMessage(product, options), phone);
 }

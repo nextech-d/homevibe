@@ -1,9 +1,18 @@
+import type { OrderItemOption } from "../../shared/order-options.js";
+
 export type CartItem = {
   id: number;
   name: string;
   price: number;
   qty: number;
   image: string;
+  /**
+   * Coming in from a cart, each choice also carries its typeId and valueId -
+   * only the valueIds are read, and checked against the product. Going out
+   * (an order, an email, the admin), the type and value names stored on the
+   * order item.
+   */
+  options?: OrderItemOption[];
 };
 
 export type Appliance = {

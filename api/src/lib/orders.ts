@@ -13,6 +13,12 @@ import {
   normalizeTrackingId,
   phonesMatch,
 } from "../../../shared/order-lookup.js";
+import {
+  readChosenValueIds,
+  formatItemOptions,
+  readOrderItemOptions,
+  type OrderItemOption,
+} from "../../../shared/order-options.js";
 
 export type OrderPayload = {
   name: string;
@@ -108,7 +114,67 @@ function paymentStatusLabel(status: string): string {
 const productInclude = {
   brand: true,
   subcategory: { include: { category: true } },
+  optionValues: { include: { optionValue: { include: { optionType: true } } } },
 } as const;
+
+/** "Choose a length" - the type's own name, lowercased. */
+function chooseMessage(typeName: string, productName: string): string {
+  return `Choose a ${typeName.toLowerCase()} for ${productName}.`;
+}
+
+/**
+ * Checks a cart line's chosen values against the product's own: every value
+ * must be one ticked on the product, and every option type the product has
+ * needs exactly one. Returns the names to store, in System data order, or a
+ * message for the customer.
+ */
+function resolveChosenOptions(
+  product: {
+    name: string;
+    optionValues: {
+      optionValue: {
+        id: number;
+        value: string;
+        sortOrder: number;
+        optionType: { id: number; name: string; sortOrder: number };
+      };
+    }[];
+  },
+  rawOptions: unknown
+): { ok: true; options: OrderItemOption[] } | { ok: false; message: string } {
+  const chosenIds = readChosenValueIds(rawOptions);
+  if (chosenIds === null) {
+    return { ok: false, message: `The options chosen for ${product.name} are invalid.` };
+  }
+
+  const available = new Map(product.optionValues.map(({ optionValue }) => [optionValue.id, optionValue]));
+  const types = [...new Map(
+    product.optionValues.map(({ optionValue }) => [optionValue.optionType.id, optionValue.optionType])
+  ).values()].sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+
+  const chosenByType = new Map<number, (typeof product.optionValues)[number]["optionValue"]>();
+  for (const id of chosenIds) {
+    const value = available.get(id);
+    if (!value) {
+      return { ok: false, message: `An option chosen for ${product.name} is invalid. Please choose again.` };
+    }
+    if (chosenByType.has(value.optionType.id)) {
+      return { ok: false, message: `An option chosen for ${product.name} is invalid. Please choose again.` };
+    }
+    chosenByType.set(value.optionType.id, value);
+  }
+
+  for (const type of types) {
+    if (!chosenByType.has(type.id)) {
+      return { ok: false, message: chooseMessage(type.name, product.name) };
+    }
+  }
+
+  return {
+    ok: true,
+    options: types.map((type) => ({ type: type.name, value: chosenByType.get(type.id)!.value })),
+  };
+}
 
 export type OrderValidationResult =
   | { ok: true; items: CartItem[]; total: number }
@@ -161,6 +227,13 @@ export async function validateOrderItems(items: CartItem[]): Promise<OrderValida
       };
     }
 
+    // Never trusted from the browser: the values are checked against the
+    // product's own, and the names stored are the database's.
+    const chosen = resolveChosenOptions(product, item.options);
+    if (!chosen.ok) {
+      return { ok: false, message: chosen.message };
+    }
+
     const appliance = mapDbProductToAppliance(product);
     resolved.push({
       id: product.id,
@@ -168,6 +241,7 @@ export async function validateOrderItems(items: CartItem[]): Promise<OrderValida
       price: product.priceKes,
       qty: item.qty,
       image: appliance.image,
+      options: chosen.options,
     });
   }
 
@@ -190,6 +264,25 @@ async function generateTrackingId(): Promise<string> {
   throw new Error("Could not generate a unique order reference.");
 }
 
+/** A saved order item as the admin, emails and order lookups list it. */
+function orderItemToCartItem(item: {
+  productId: number | null;
+  name: string;
+  priceKes: number;
+  quantity: number;
+  imageUrl: string;
+  options: unknown;
+}): CartItem {
+  return {
+    id: item.productId ?? 0,
+    name: item.name,
+    price: item.priceKes,
+    qty: item.quantity,
+    image: item.imageUrl,
+    options: readOrderItemOptions(item.options),
+  };
+}
+
 function mapOrderToAdmin(order: {
   id: number;
   trackingId: string;
@@ -208,6 +301,7 @@ function mapOrderToAdmin(order: {
     priceKes: number;
     quantity: number;
     imageUrl: string;
+    options: unknown;
   }[];
 }): AdminOrder {
   return {
@@ -224,13 +318,7 @@ function mapOrderToAdmin(order: {
     deliveryAddress: order.deliveryAddress,
     deliveryCity: order.deliveryCity,
     total: order.totalKes,
-    items: order.items.map((item) => ({
-      id: item.productId ?? 0,
-      name: item.name,
-      price: item.priceKes,
-      qty: item.quantity,
-      image: item.imageUrl,
-    })),
+    items: order.items.map(orderItemToCartItem),
   };
 }
 
@@ -281,6 +369,7 @@ export async function createOrder(payload: OrderPayload) {
             priceKes: item.price,
             quantity: item.qty,
             imageUrl: item.image,
+            options: item.options ?? [],
           })),
         },
       },
@@ -384,13 +473,7 @@ export async function getOrderByTrackingId(
     paymentStatus: paymentStatusLabel(order.paymentStatus),
     total: order.totalKes,
     customer: { name: order.customerName, city: order.deliveryCity },
-    items: order.items.map((item) => ({
-      id: item.productId ?? 0,
-      name: item.name,
-      price: item.priceKes,
-      qty: item.quantity,
-      image: item.imageUrl,
-    })),
+    items: order.items.map(orderItemToCartItem),
   };
 }
 
@@ -547,7 +630,12 @@ export function ordersToCsv(orders: AdminOrder[]): string {
   const header =
     "tracking_id,order_date,status,payment_status,customer_name,customer_email,customer_phone,address,city,total_kes,items";
   const rows = orders.map((order) => {
-    const items = order.items.map((item) => `${item.name} x${item.qty}`).join("; ");
+    const items = order.items
+      .map((item) => {
+        const options = formatItemOptions(item.options);
+        return `${item.name}${options ? ` (${options})` : ""} x${item.qty}`;
+      })
+      .join("; ");
     return [
       order.trackingId,
       order.orderDate,

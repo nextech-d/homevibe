@@ -24,6 +24,8 @@ export type CatalogProduct = Pick<
   imageSet: Pick<ProductImageSet, "thumbnail" | "card">;
   /** Drives the homepage grid's choice of layout. */
   isFeatured?: boolean;
+  /** Set only when true: the card's Add to cart opens the product page to choose. */
+  hasOptions?: true;
 };
 
 /** One full row of cards on desktop, two on a phone. */
@@ -114,6 +116,7 @@ export function toCatalogProduct(product: Appliance): CatalogProduct {
       card: product.imageSet.card,
     },
     isFeatured: product.isFeatured,
+    ...(product.hasOptions && { hasOptions: true as const }),
   };
 }
 

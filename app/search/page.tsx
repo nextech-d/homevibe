@@ -19,7 +19,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const raw = (await searchParams).q;
   const q = (Array.isArray(raw) ? raw[0] : raw ?? "").trim().slice(0, SEARCH_QUERY_MAX_LENGTH);
   const results = q
-    ? getAllSearchResults(q, await getSearchIndex()).map(({ id, slug, name, price, status, image, imageSet }) => ({
+    ? getAllSearchResults(q, await getSearchIndex()).map(({ id, slug, name, price, status, image, imageSet, hasOptions }) => ({
         id,
         slug,
         name,
@@ -27,6 +27,7 @@ export default async function SearchPage({ searchParams }: Props) {
         status,
         image,
         imageSet,
+        ...(hasOptions && { hasOptions }),
       }))
     : [];
 

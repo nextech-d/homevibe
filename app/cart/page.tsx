@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { useCart } from "../context/CartContext";
+import { cartLineKey, useCart } from "../context/CartContext";
+import ItemOptions from "../components/ItemOptions";
 import { AVAILABILITY_LABEL, useCartPriceCheck } from "../hooks/useCartPriceCheck";
 import CartPriceNotice from "../components/CartPriceNotice";
 import Link from "next/link";
@@ -63,7 +64,7 @@ export default function CartPage() {
                 <div className="divide-y divide-[#DCE0E7]">
                   {items.map((item) => (
                     <div
-                      key={item.id}
+                      key={cartLineKey(item)}
                       className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center sm:gap-6 sm:p-6"
                     >
                       <div className="flex min-w-0 items-center gap-4 sm:gap-5">
@@ -87,6 +88,7 @@ export default function CartPage() {
                           >
                             {item.name}
                           </Link>
+                          <ItemOptions options={item.options} className="mt-1" />
                           <span className="mt-1 block text-xs font-medium text-neutral-600">
                             HomeVibe
                           </span>
@@ -103,7 +105,7 @@ export default function CartPage() {
                         {/* Quantity Counter */}
                         <div className="flex items-center rounded-full border border-[#7D8594] bg-white">
                           <button
-                            onClick={() => updateQty(item.id, item.qty - 1)}
+                            onClick={() => updateQty(cartLineKey(item), item.qty - 1)}
                             className={iconButton}
                             aria-label="Decrease quantity"
                           >
@@ -113,7 +115,7 @@ export default function CartPage() {
                             {item.qty}
                           </span>
                           <button
-                            onClick={() => updateQty(item.id, item.qty + 1)}
+                            onClick={() => updateQty(cartLineKey(item), item.qty + 1)}
                             className={iconButton}
                             aria-label="Increase quantity"
                           >
@@ -135,7 +137,7 @@ export default function CartPage() {
 
                         {/* Remove Action */}
                         <button
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeItem(cartLineKey(item))}
                           className={`${iconButton} hover:text-red-700`}
                           aria-label="Remove item"
                         >

@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type MouseEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { ShieldCheck, ShoppingCart, Truck, Wallet, Wrench, type LucideIcon } from "lucide-react";
 import { INSTALLATION_WORDING, PRODUCT_TRUST_POINTS } from "../../config/site";
@@ -144,12 +144,15 @@ export function PinnedProductBar({
   onAddToCart,
   added,
   whatsappUrl,
+  onWhatsAppClick,
   outOfStock,
 }: {
   watchId: string;
   onAddToCart: () => void;
   added: boolean;
   whatsappUrl: string;
+  /** Stops the link, and flags the options, while a choice is missing. */
+  onWhatsAppClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
   outOfStock: boolean;
 }) {
   const [pageButtonsVisible, setPageButtonsVisible] = useState(false);
@@ -186,6 +189,7 @@ export function PinnedProductBar({
         </button>
         <a
           href={whatsappUrl}
+          onClick={onWhatsAppClick}
           target="_blank"
           rel="noopener noreferrer"
           className={`inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border-2 border-[#a85414] px-2 text-[13px] font-semibold text-[#8f4710] transition-colors hover:bg-[#a85414]/10 ${focusRing}`}

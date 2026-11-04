@@ -3,6 +3,9 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { readMigrated } from '../lib/storage-migration';
 import { PIXEL_CURRENCY, pixelContentId, trackPixel } from '../lib/pixel';
+import { cartLineKey, type CartItemOption } from '../../shared/order-options';
+
+export { cartLineKey };
 
 export type CartItem = {
   id: number;
@@ -11,6 +14,11 @@ export type CartItem = {
   price: number;
   qty: number;
   image: string;
+  /**
+   * The options chosen, in System data order. Absent for a product with none,
+   * and on every line saved before options existed.
+   */
+  options?: CartItemOption[];
 };
 
 export type CartToast = {
@@ -28,8 +36,9 @@ type CartContextProps = {
   toast: CartToast | null;
   dismissToast: () => void;
   addItem: (item: Omit<CartItem, 'qty'>, qty?: number, options?: AddItemOptions) => void;
-  removeItem: (id: number) => void;
-  updateQty: (id: number, qty: number) => void;
+  /** Lines are addressed by cartLineKey(item): same product, other options, other line. */
+  removeItem: (lineKey: string) => void;
+  updateQty: (lineKey: string, qty: number) => void;
   /** Replaces the stored price of each id given, leaving everything else as it is. */
   updatePrices: (prices: Record<number, number>) => void;
   total: number;
@@ -48,7 +57,11 @@ function readStoredCart(): CartItem[] {
     const stored = readMigrated(localStorage, CART_STORAGE_KEY, LEGACY_CART_STORAGE_KEY);
     const parsed = stored ? (JSON.parse(stored) as unknown) : null;
     if (!Array.isArray(parsed)) return [];
-    return parsed as CartItem[];
+    // A line from before options existed has none, and keeps working as a
+    // plain product line; anything malformed in its options is dropped.
+    return (parsed as CartItem[]).map((item) =>
+      Array.isArray(item.options) && item.options.length > 0 ? item : { ...item, options: undefined }
+    );
   } catch {
     return [];
   }
@@ -90,10 +103,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const amount = Math.max(1, qty);
     const wasEmpty = items.length === 0;
     let updated: CartItem[];
-    const existing = items.find(i => i.id === item.id);
+    const key = cartLineKey(item);
+    const existing = items.find(i => cartLineKey(i) === key);
     if (existing) {
       updated = items.map(i =>
-        i.id === item.id ? { ...i, qty: i.qty + amount } : i
+        cartLineKey(i) === key ? { ...i, qty: i.qty + amount } : i
       );
     } else {
       updated = [...items, { ...item, qty: amount }];
@@ -121,16 +135,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const removeItem = (id: number) => {
-    saveItems(items.filter(i => i.id !== id));
+  const removeItem = (lineKey: string) => {
+    saveItems(items.filter(i => cartLineKey(i) !== lineKey));
   };
 
-  const updateQty = (id: number, qty: number) => {
+  const updateQty = (lineKey: string, qty: number) => {
     if (qty < 1) {
-      removeItem(id);
+      removeItem(lineKey);
       return;
     }
-    saveItems(items.map(i => i.id === id ? { ...i, qty } : i));
+    saveItems(items.map(i => cartLineKey(i) === lineKey ? { ...i, qty } : i));
   };
 
   // From the state updater rather than the render's items, so a price check

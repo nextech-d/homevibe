@@ -131,7 +131,7 @@ ordersRoute.post("/", async (c) => {
     // error starting "Invalid `prisma..." must not pass for one.
     const generic = "Unable to place your order. Please try again.";
     const shown = clientErrorMessage(error, generic);
-    if (shown !== generic && /empty|invalid|unavailable|no longer available|out of stock|limited stock|idempotency/i.test(shown)) {
+    if (shown !== generic && /empty|invalid|unavailable|no longer available|out of stock|limited stock|idempotency|^choose a /i.test(shown)) {
       return c.json({ success: false, message: shown }, 400);
     }
     if (shown !== generic) console.error("Order failed:", error);

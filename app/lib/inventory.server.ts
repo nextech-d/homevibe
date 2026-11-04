@@ -28,12 +28,16 @@ function catalogueDatabase() {
 const productInclude = {
   brand: true,
   subcategory: { include: { category: true } },
+  // Counted, not loaded: a card only needs to know whether to send people
+  // to the product page to choose.
+  _count: { select: { optionValues: true } },
 } as const;
 
 /** One product, for its own page - the list query has no use for the FAQs. */
 const productDetailInclude = {
   ...productInclude,
   faqs: { orderBy: { sortOrder: "asc" } },
+  optionValues: { include: { optionValue: { include: { optionType: true } } } },
 } as const;
 
 /**
